@@ -1,0 +1,35 @@
+GRUPO FIERAMIX V5 ENTERPRISE — SPRINT 3
+METADATOS SEGUROS DE RADIOBOSS
+
+ARCHIVOS PARA SUBIR A GITHUB
+
+1. app/api/now-playing/route.ts
+2. data/radioboss-api.ts
+3. .env.example
+
+La clave API no se escribe en estos archivos.
+
+CONFIGURACIÓN EN NETLIFY
+
+1. Abre tu proyecto en Netlify.
+2. Entra a Project configuration.
+3. Busca Environment variables.
+4. Agrega RADIOBOSS_API_KEY con la clave real.
+5. Agrega el identificador de cada emisora usando los nombres incluidos
+   en el archivo .env.example.
+6. Si tu panel muestra una ruta API diferente, agrega también
+   RADIOBOSS_ENDPOINT_TEMPLATE.
+7. Guarda los cambios y ejecuta Deploy site o Trigger deploy.
+
+IMPORTANTE
+
+- Nunca publiques la clave en GitHub.
+- No subas .env.local.
+- El portal seguirá funcionando aunque falte algún identificador.
+- Las emisoras no configuradas mostrarán “Programación en vivo”.
+- El endpoint acepta distintos formatos comunes de respuesta JSON y
+  mantiene un fallback seguro si RadioBOSS no responde.
+
+COMMIT RECOMENDADO
+
+V5 Enterprise - metadatos seguros de RadioBOSS
