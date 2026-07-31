@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import { stations } from "@/data/stations";
 import { radioBossApi } from "@/data/radioboss-api";
 
@@ -33,7 +33,7 @@ function fallback(stationId: string, configured: boolean) {
   const station = stations.find((item) => item.id === stationId);
 
   return {
-    title: "Programación en vivo",
+    title: "ProgramaciÃ³n en vivo",
     artist: station?.name ?? "GRUPO FIERAMIX.COM",
     artwork: station?.logo ?? "/logos/grupo-fieramix.png",
     listeners: null,
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const config = radioBossApi.stations[stationId];
+  const config = radioBossApi.stations[stationId as keyof typeof radioBossApi.stations];
 
   if (!config?.stationId || !radioBossApi.apiKey) {
     return NextResponse.json(fallback(stationId, false));
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      throw new Error(`RadioBOSS respondió ${response.status}`);
+      throw new Error(`RadioBOSS respondiÃ³ ${response.status}`);
     }
 
     const payload = (await response.json()) as RadioBossPayload;
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
       payload.track?.title ??
       payload.nowplaying ??
       payload.title ??
-      "Programación en vivo";
+      "ProgramaciÃ³n en vivo";
 
     const parsed = splitTrack(rawTitle);
 
@@ -93,3 +93,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(fallback(stationId, true));
   }
 }
+
