@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { CSSProperties } from "react";
 import type { Station } from "@/types/station";
 import type { NowPlaying } from "@/types/radio";
@@ -25,7 +26,10 @@ export default function StationsGrid({
       <div className="sectionTitle">
         <span>NUESTRA RED</span>
         <h2>Nueve emisoras. Una sola pasión.</h2>
-        <p>Elige tu género y entra de inmediato a la transmisión en vivo.</p>
+        <p>
+          Elige tu género, escucha en vivo o entra a la página individual de
+          cada emisora.
+        </p>
       </div>
 
       <div className="stationGrid">
@@ -59,6 +63,24 @@ export default function StationsGrid({
                   {active && playing ? "❚❚ PAUSAR" : "▶ ESCUCHAR"}
                 </button>
               </div>
+
+              <Link
+                href={`/emisoras/${station.id}`}
+                style={{
+                  marginTop: 12,
+                  display: "block",
+                  padding: "10px 12px",
+                  color: "white",
+                  fontSize: ".7rem",
+                  fontWeight: 900,
+                  textAlign: "center",
+                  textDecoration: "none",
+                  border: `1px solid ${station.accent}`,
+                  borderRadius: 999,
+                }}
+              >
+                VER PÁGINA DE LA EMISORA
+              </Link>
             </article>
           );
         })}
