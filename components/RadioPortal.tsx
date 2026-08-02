@@ -2,12 +2,15 @@
 
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import WhatsAppFloat from "@/components/layout/WhatsAppFloat";
 import Hero from "@/components/home/Hero";
 import PremiumPlayer from "@/components/player/PremiumPlayer";
 import StickyPlayer from "@/components/player/StickyPlayer";
 import StationsGrid from "@/components/stations/StationsGrid";
 import RecentAndRanking from "@/components/content/RecentAndRanking";
 import NewsAndClub from "@/components/content/NewsAndClub";
+import LiveNetwork from "@/components/content/LiveNetwork";
+import SongRequest from "@/components/songrequest/SongRequest";
 import { useRadioPortal } from "@/hooks/useRadioPortal";
 
 export default function RadioPortal() {
@@ -42,12 +45,24 @@ export default function RadioPortal() {
           />
         </section>
 
+        <LiveNetwork
+          stations={radio.stations}
+          metadata={radio.metadata}
+          selected={radio.selected}
+          onSelect={(station) => void radio.playStation(station)}
+        />
+
         <StationsGrid
           stations={radio.stations}
           selected={radio.selected}
           metadata={radio.metadata}
           playing={radio.playing}
           onPlayStation={(station) => void radio.playStation(station)}
+        />
+
+        <SongRequest
+          stations={radio.stations}
+          selectedStationId={radio.selected.id}
         />
 
         <RecentAndRanking
@@ -61,6 +76,7 @@ export default function RadioPortal() {
       </main>
 
       <Footer />
+      <WhatsAppFloat />
 
       <StickyPlayer
         selected={radio.selected}
