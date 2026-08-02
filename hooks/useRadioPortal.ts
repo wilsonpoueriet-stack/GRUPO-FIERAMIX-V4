@@ -2,8 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { stationEngine } from "@/core/StationEngine";
-import type { Station } from "@/types/station";
+import type { Station, StationId } from "@/types/station";
 import type { HistoryItem, NowPlaying } from "@/types/radio";
+import type {
+  AllNowPlayingResult,
+  NowPlayingResult,
+} from "@/services/RadioBossService";
 
 const portalStations = [...stationEngine.getStations()];
 
@@ -17,14 +21,16 @@ export const emptyNowPlaying = (station: Station): NowPlaying => ({
 
 export function useRadioPortal() {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [selectedId, setSelectedId] = useState(
+  const [selectedId, setSelectedId] = useState<StationId>(
     stationEngine.getDefaultStation().id,
   );
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [volume, setVolume] = useState(0.85);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [metadata, setMetadata] = useState<Record<string, NowPlaying>>({});
+  const [metadata, setMetadata] = useState<
+    Partial<Record<StationId, NowPlayingResult>>
+  >({});
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
   const selected = useMemo(
@@ -46,58 +52,63 @@ export function useRadioPortal() {
     let cancelled = false;
 
     async function loadAllMetadata() {
-      const entries = await Promise.all(
-        portalStations.map(async (station) => {
-          try {
-            const response = await fetch(
-              `/api/now-playing?station=${station.id}`,
-              { cache: "no-store" },
-            );
+      try {
+        const response = await fetch("/api/now-playing/all", {
+          cache: "no-store",
+        });
 
-            if (!response.ok) {
-              throw new Error("No se pudieron cargar los metadatos.");
-            }
-
-            const data = (await response.json()) as NowPlaying;
-            return [station.id, data] as const;
-          } catch {
-            return [station.id, emptyNowPlaying(station)] as const;
-          }
-        }),
-      );
-
-      if (cancelled) {
-        return;
-      }
-
-      setMetadata((previous) => {
-        const next = Object.fromEntries(entries) as Record<string, NowPlaying>;
-        const selectedTrack = next[selectedId];
-        const previousTrack = previous[selectedId];
-
-        if (
-          selectedTrack &&
-          previousTrack &&
-          selectedTrack.title !== previousTrack.title &&
-          previousTrack.title !== "Programación en vivo"
-        ) {
-          setHistory((items) =>
-            [
-              {
-                ...previousTrack,
-                stationId: selectedId,
-                stamp: new Date().toLocaleTimeString("es-DO", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }),
-              },
-              ...items,
-            ].slice(0, 6),
-          );
+        if (!response.ok) {
+          throw new Error("No se pudieron cargar los metadatos.");
         }
 
-        return next;
-      });
+        const next = (await response.json()) as AllNowPlayingResult;
+
+        if (cancelled) {
+          return;
+        }
+
+        setMetadata((previous) => {
+          const selectedTrack = next[selectedId];
+          const previousTrack = previous[selectedId];
+
+          if (
+            selectedTrack &&
+            previousTrack &&
+            selectedTrack.title !== previousTrack.title &&
+            previousTrack.title !== "Programación en vivo"
+          ) {
+            setHistory((items) =>
+              [
+                {
+                  ...previousTrack,
+                  stationId: selectedId,
+                  stamp: new Date().toLocaleTimeString("es-DO", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }),
+                },
+                ...items,
+              ].slice(0, 6),
+            );
+          }
+
+          return next;
+        });
+      } catch {
+        if (cancelled) {
+          return;
+        }
+
+        const fallbackEntries = portalStations.map(
+          (station) => [station.id, emptyNowPlaying(station)] as const,
+        );
+
+        setMetadata(
+          Object.fromEntries(fallbackEntries) as Partial<
+            Record<StationId, NowPlayingResult>
+          >,
+        );
+      }
     }
 
     void loadAllMetadata();

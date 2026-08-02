@@ -22,6 +22,8 @@ export type NowPlayingResult = NowPlaying & {
   status: "ok" | "not-configured" | "upstream-error";
 };
 
+export type AllNowPlayingResult = Record<StationId, NowPlayingResult>;
+
 function splitTrack(value: string) {
   const separator = value.indexOf(" - ");
 
@@ -74,60 +76,74 @@ function getPrivateConfig(stationId: StationId) {
   return radioBossApi.stations[stationId];
 }
 
+async function getNowPlaying(stationId: StationId): Promise<NowPlayingResult> {
+  const station = stationEngine.getStation(stationId);
+
+  if (!station) {
+    throw new Error(`Emisora no encontrada: ${stationId}`);
+  }
+
+  const config = getPrivateConfig(stationId);
+
+  if (!config?.stationId || !radioBossApi.apiKey) {
+    return createFallback(station, false, "not-configured");
+  }
+
+  const endpoint =
+    `${config.apiBase}/api/info/${encodeURIComponent(config.stationId)}` +
+    `?key=${encodeURIComponent(radioBossApi.apiKey)}`;
+
+  try {
+    const response = await fetch(endpoint, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!response.ok) {
+      throw new Error(`RadioBOSS respondió ${response.status}`);
+    }
+
+    const payload = (await response.json()) as RadioBossPayload;
+
+    const rawTitle =
+      payload.track?.title ??
+      payload.nowplaying ??
+      payload.title ??
+      "Programación en vivo";
+
+    const parsed = splitTrack(rawTitle);
+
+    return {
+      title: parsed.title || rawTitle,
+      artist: payload.track?.artist || parsed.artist || station.name,
+      artwork: payload.track?.artwork || payload.artwork || station.logo,
+      listeners: normalizeListeners(payload.listeners),
+      configured: true,
+      source: "radioboss",
+      status: "ok",
+    };
+  } catch (error) {
+    console.error("RadioBOSS now-playing error", {
+      stationId,
+      message: error instanceof Error ? error.message : "Error desconocido",
+    });
+
+    return createFallback(station, true, "upstream-error");
+  }
+}
+
+async function getAllNowPlaying(): Promise<AllNowPlayingResult> {
+  const entries = await Promise.all(
+    stationEngine.getStations().map(async (station) => {
+      const result = await getNowPlaying(station.id);
+      return [station.id, result] as const;
+    }),
+  );
+
+  return Object.fromEntries(entries) as AllNowPlayingResult;
+}
+
 export const radioBossService = {
-  async getNowPlaying(stationId: StationId): Promise<NowPlayingResult> {
-    const station = stationEngine.getStation(stationId);
-
-    if (!station) {
-      throw new Error(`Emisora no encontrada: ${stationId}`);
-    }
-
-    const config = getPrivateConfig(stationId);
-
-    if (!config?.stationId || !radioBossApi.apiKey) {
-      return createFallback(station, false, "not-configured");
-    }
-
-    const endpoint =
-      `${config.apiBase}/api/info/${encodeURIComponent(config.stationId)}` +
-      `?key=${encodeURIComponent(radioBossApi.apiKey)}`;
-
-    try {
-      const response = await fetch(endpoint, {
-        cache: "no-store",
-        signal: AbortSignal.timeout(8000),
-      });
-
-      if (!response.ok) {
-        throw new Error(`RadioBOSS respondió ${response.status}`);
-      }
-
-      const payload = (await response.json()) as RadioBossPayload;
-
-      const rawTitle =
-        payload.track?.title ??
-        payload.nowplaying ??
-        payload.title ??
-        "Programación en vivo";
-
-      const parsed = splitTrack(rawTitle);
-
-      return {
-        title: parsed.title || rawTitle,
-        artist: payload.track?.artist || parsed.artist || station.name,
-        artwork: payload.track?.artwork || payload.artwork || station.logo,
-        listeners: normalizeListeners(payload.listeners),
-        configured: true,
-        source: "radioboss",
-        status: "ok",
-      };
-    } catch (error) {
-      console.error("RadioBOSS now-playing error", {
-        stationId,
-        message: error instanceof Error ? error.message : "Error desconocido",
-      });
-
-      return createFallback(station, true, "upstream-error");
-    }
-  },
+  getNowPlaying,
+  getAllNowPlaying,
 };
