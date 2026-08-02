@@ -1,0 +1,23 @@
+GRUPO FIERAMIX.COM ENTERPRISE 2026 — PRIMER ENTREGABLE
+
+ARCHIVOS PRINCIPALES MODIFICADOS
+- components/RadioPortal.tsx
+- app/globals.css
+- app/api/now-playing/route.ts
+- data/radioboss-api.ts
+- package.json
+- README.md
+
+FUNCIONES INCLUIDAS
+- Diseño oficial oscuro/premium basado en la plantilla aprobada.
+- Reproductor principal y barra inferior persistente.
+- Metadatos RadioBOSS para las nueve emisoras.
+- Canción, artista y oyentes en vivo.
+- Tarjetas dinámicas y responsive.
+- Historial visual de canciones.
+- Secciones Top 10, noticias y Club de Oyentes.
+
+IMPORTANTE
+- No suba .env.local ni la API Key a GitHub.
+- Las variables existentes de Netlify se mantienen.
+- Antes de publicar ejecute npm install y npm run build en su computadora.
