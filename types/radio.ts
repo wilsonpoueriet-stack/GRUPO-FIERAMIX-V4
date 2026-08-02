@@ -1,4 +1,11 @@
-import type { Station } from "@/types/station";
+import type { StationId } from "@/types/station";
+
+export type RecentTrack = {
+  title: string;
+  artist: string;
+  artwork: string;
+  started: string;
+};
 
 export type NowPlaying = {
   title: string;
@@ -6,18 +13,29 @@ export type NowPlaying = {
   artwork: string;
   listeners: number | null;
   configured: boolean;
+  source?: "radioboss" | "fallback";
+  status?: "ok" | "not-configured" | "upstream-error";
+  recent?: RecentTrack[];
 };
 
 export type HistoryItem = NowPlaying & {
-  stationId: string;
+  stationId: StationId;
   stamp: string;
 };
 
+export type NowPlayingResult = NowPlaying & {
+  source: "radioboss" | "fallback";
+  status: "ok" | "not-configured" | "upstream-error";
+  recent: RecentTrack[];
+};
+
+export type AllNowPlayingResult = Record<StationId, NowPlayingResult>;
+
 export type RadioPortalController = {
-  stations: Station[];
-  selected: Station;
+  stations: import("@/types/station").Station[];
+  selected: import("@/types/station").Station;
   current: NowPlaying;
-  metadata: Record<string, NowPlaying>;
+  metadata: Partial<Record<StationId, NowPlayingResult>>;
   history: HistoryItem[];
   playing: boolean;
   loading: boolean;
@@ -27,6 +45,6 @@ export type RadioPortalController = {
   setMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setVolume: React.Dispatch<React.SetStateAction<number>>;
   togglePlayback: () => Promise<void>;
-  playStation: (station: Station) => Promise<void>;
+  playStation: (station: import("@/types/station").Station) => Promise<void>;
   moveStation: (direction: number) => void;
 };

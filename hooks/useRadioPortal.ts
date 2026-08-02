@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { stationEngine } from "@/core/StationEngine";
 import type { Station, StationId } from "@/types/station";
-import type { HistoryItem, NowPlaying } from "@/types/radio";
 import type {
   AllNowPlayingResult,
+  HistoryItem,
+  NowPlaying,
   NowPlayingResult,
-} from "@/services/RadioBossService";
+} from "@/types/radio";
 
 const portalStations = [...stationEngine.getStations()];
 
@@ -17,6 +18,7 @@ export const emptyNowPlaying = (station: Station): NowPlaying => ({
   artwork: station.logo,
   listeners: null,
   configured: false,
+  recent: [],
 });
 
 export function useRadioPortal() {

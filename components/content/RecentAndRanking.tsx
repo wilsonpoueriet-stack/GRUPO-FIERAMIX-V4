@@ -1,6 +1,11 @@
 import { stations } from "@/data/stations";
-import type { HistoryItem, NowPlaying } from "@/types/radio";
-import type { Station } from "@/types/station";
+import type {
+  HistoryItem,
+  NowPlaying,
+  NowPlayingResult,
+  RecentTrack,
+} from "@/types/radio";
+import type { Station, StationId } from "@/types/station";
 import { emptyNowPlaying } from "@/hooks/useRadioPortal";
 
 const topSongs = [
@@ -20,8 +25,43 @@ type Props = {
   history: HistoryItem[];
   current: NowPlaying;
   selected: Station;
-  metadata: Record<string, NowPlaying>;
+  metadata: Partial<Record<StationId, NowPlayingResult>>;
 };
+
+function formatStarted(value: string): string {
+  if (!value) {
+    return "Reciente";
+  }
+
+  const parsed = new Date(value.replace(" ", "T"));
+
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleTimeString("es-DO", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function realHistoryToDisplay(
+  tracks: RecentTrack[],
+  selected: Station,
+): HistoryItem[] {
+  return tracks.slice(0, 10).map((track) => ({
+    title: track.title,
+    artist: track.artist,
+    artwork: track.artwork,
+    listeners: null,
+    configured: true,
+    source: "radioboss",
+    status: "ok",
+    recent: [],
+    stationId: selected.id,
+    stamp: formatStarted(track.started),
+  }));
+}
 
 export default function RecentAndRanking({
   history,
@@ -29,8 +69,14 @@ export default function RecentAndRanking({
   selected,
   metadata,
 }: Props) {
+  const realHistory = realHistoryToDisplay(current.recent ?? [], selected);
+
   const fallbackHistory: HistoryItem[] = [
-    { ...current, stationId: selected.id, stamp: "Ahora" },
+    {
+      ...current,
+      stationId: selected.id,
+      stamp: "Ahora",
+    },
     ...stations.slice(1, 5).map((station) => ({
       ...(metadata[station.id] ?? emptyNowPlaying(station)),
       stationId: station.id,
@@ -38,28 +84,29 @@ export default function RecentAndRanking({
     })),
   ];
 
+  const displayHistory =
+    realHistory.length > 0
+      ? realHistory
+      : history.length > 0
+        ? history
+        : fallbackHistory;
+
   return (
     <section className="contentBand">
       <div className="historyPanel">
         <div className="panelHeading">
           <span>RECIENTEMENTE</span>
-          <h2>Últimas canciones</h2>
+          <h2>Últimas canciones de {selected.shortName ?? selected.name}</h2>
         </div>
 
         <div className="historyList">
-          {(history.length ? history : fallbackHistory).map((item, index) => (
+          {displayHistory.map((item, index) => (
             <div
               className="historyItem"
-              key={`${item.stationId}-${item.title}-${index}`}
+              key={`${item.stationId}-${item.title}-${item.stamp}-${index}`}
             >
               <span>{String(index + 1).padStart(2, "0")}</span>
-              <img
-                src={
-                  item.artwork ||
-                  stations.find((station) => station.id === item.stationId)?.logo
-                }
-                alt=""
-              />
+              <img src={item.artwork} alt="" />
               <div>
                 <b>{item.title}</b>
                 <small>{item.artist}</small>

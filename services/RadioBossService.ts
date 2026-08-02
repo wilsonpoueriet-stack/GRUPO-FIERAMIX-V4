@@ -3,7 +3,19 @@ import "server-only";
 import { stationEngine } from "@/core/StationEngine";
 import { radioBossApi } from "@/data/radioboss-api";
 import type { Station, StationId } from "@/types/station";
-import type { NowPlaying } from "@/types/radio";
+import type {
+  AllNowPlayingResult,
+  NowPlayingResult,
+  RecentTrack,
+} from "@/types/radio";
+
+type RadioBossRecentTrack = {
+  title?: string;
+  tracktitle?: string;
+  trackartist?: string;
+  started?: string;
+  artworkid?: string;
+};
 
 type RadioBossPayload = {
   title?: string;
@@ -15,14 +27,11 @@ type RadioBossPayload = {
     artist?: string;
     artwork?: string;
   };
+  links?: {
+    artwork_recent?: string;
+  };
+  recent?: RadioBossRecentTrack[];
 };
-
-export type NowPlayingResult = NowPlaying & {
-  source: "radioboss" | "fallback";
-  status: "ok" | "not-configured" | "upstream-error";
-};
-
-export type AllNowPlayingResult = Record<StationId, NowPlayingResult>;
 
 function splitTrack(value: string) {
   const separator = value.indexOf(" - ");
@@ -56,6 +65,46 @@ function normalizeListeners(value: number | string | undefined): number | null {
   return null;
 }
 
+function buildRecentArtwork(
+  pattern: string | undefined,
+  artworkId: string | undefined,
+  fallback: string,
+): string {
+  if (!pattern || !artworkId) {
+    return fallback;
+  }
+
+  return pattern.replace("ARTID", encodeURIComponent(artworkId));
+}
+
+function normalizeRecent(
+  payload: RadioBossPayload,
+  station: Station,
+): RecentTrack[] {
+  if (!Array.isArray(payload.recent)) {
+    return [];
+  }
+
+  return payload.recent
+    .map((track) => {
+      const parsed = splitTrack(track.title ?? "");
+      const title = track.tracktitle?.trim() || parsed.title;
+      const artist = track.trackartist?.trim() || parsed.artist;
+
+      return {
+        title: title || "Programación en vivo",
+        artist: artist || station.name,
+        artwork: buildRecentArtwork(
+          payload.links?.artwork_recent,
+          track.artworkid,
+          station.logo,
+        ),
+        started: track.started ?? "",
+      };
+    })
+    .filter((track) => track.title !== "");
+}
+
 function createFallback(
   station: Station,
   configured: boolean,
@@ -69,6 +118,7 @@ function createFallback(
     configured,
     source: "fallback",
     status,
+    recent: [],
   };
 }
 
@@ -121,6 +171,7 @@ async function getNowPlaying(stationId: StationId): Promise<NowPlayingResult> {
       configured: true,
       source: "radioboss",
       status: "ok",
+      recent: normalizeRecent(payload, station),
     };
   } catch (error) {
     console.error("RadioBOSS now-playing error", {
