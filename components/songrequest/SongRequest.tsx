@@ -1,6 +1,6 @@
 "use client";
 
-import Script from "next/script";
+import { useEffect, useRef } from "react";
 
 declare global {
   interface Window {
@@ -14,10 +14,15 @@ declare global {
 }
 
 export default function SongRequest() {
-  if (typeof window !== "undefined") {
+  const initialized = useRef(false);
+
+  useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+
     window.rbcloudSongRequest7164 = {
       requestBtn: "Solicitar",
-      requested: "Solicitud enviada correctamente",
+      requested: "¡Solicitud enviada correctamente!",
       noTracks: "No se encontraron canciones.",
       errors: {
         1: "La búsqueda es demasiado corta.",
@@ -28,7 +33,27 @@ export default function SongRequest() {
         6: "No fue posible enviar la solicitud.",
       },
     };
-  }
+
+    const oldScript = document.getElementById("radioboss-songrequest-7164");
+    oldScript?.remove();
+
+    const script = document.createElement("script");
+    script.id = "radioboss-songrequest-7164";
+    script.src =
+      "https://c15.radioboss.fm/w/songrequest.js?u=221&wid=7164";
+    script.async = true;
+
+    script.onerror = () => {
+      console.error("No se pudo cargar el widget Song Request de RadioBOSS.");
+    };
+
+    document.body.appendChild(script);
+
+    return () => {
+      script.remove();
+      initialized.current = false;
+    };
+  }, []);
 
   return (
     <section id="solicita" className="songRequestSection">
@@ -83,12 +108,6 @@ export default function SongRequest() {
           la emisora.
         </p>
       </div>
-
-      <Script
-        id="radioboss-songrequest-7164"
-        src="https://c15.radioboss.fm/w/songrequest.js?u=221&wid=7164"
-        strategy="afterInteractive"
-      />
     </section>
   );
 }
