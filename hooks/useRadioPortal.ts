@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { stations } from "@/data/stations";
+import { stationEngine } from "@/core/StationEngine";
 import type { Station } from "@/types/station";
 import type { HistoryItem, NowPlaying } from "@/types/radio";
+
+const portalStations = [...stationEngine.getStations()];
 
 export const emptyNowPlaying = (station: Station): NowPlaying => ({
   title: "Programación en vivo",
@@ -15,7 +17,9 @@ export const emptyNowPlaying = (station: Station): NowPlaying => ({
 
 export function useRadioPortal() {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [selectedId, setSelectedId] = useState(stations[0].id);
+  const [selectedId, setSelectedId] = useState(
+    stationEngine.getDefaultStation().id,
+  );
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [volume, setVolume] = useState(0.85);
@@ -24,7 +28,7 @@ export function useRadioPortal() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
 
   const selected = useMemo(
-    () => stations.find((station) => station.id === selectedId) ?? stations[0],
+    () => stationEngine.getStationOrDefault(selectedId),
     [selectedId],
   );
 
@@ -32,7 +36,10 @@ export function useRadioPortal() {
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (audio) audio.volume = volume;
+
+    if (audio) {
+      audio.volume = volume;
+    }
   }, [volume]);
 
   useEffect(() => {
@@ -40,14 +47,16 @@ export function useRadioPortal() {
 
     async function loadAllMetadata() {
       const entries = await Promise.all(
-        stations.map(async (station) => {
+        portalStations.map(async (station) => {
           try {
             const response = await fetch(
               `/api/now-playing?station=${station.id}`,
               { cache: "no-store" },
             );
 
-            if (!response.ok) throw new Error("No se pudieron cargar los metadatos.");
+            if (!response.ok) {
+              throw new Error("No se pudieron cargar los metadatos.");
+            }
 
             const data = (await response.json()) as NowPlaying;
             return [station.id, data] as const;
@@ -57,7 +66,9 @@ export function useRadioPortal() {
         }),
       );
 
-      if (cancelled) return;
+      if (cancelled) {
+        return;
+      }
 
       setMetadata((previous) => {
         const next = Object.fromEntries(entries) as Record<string, NowPlaying>;
@@ -90,7 +101,10 @@ export function useRadioPortal() {
     }
 
     void loadAllMetadata();
-    const timer = window.setInterval(loadAllMetadata, 20_000);
+
+    const timer = window.setInterval(() => {
+      void loadAllMetadata();
+    }, 20_000);
 
     return () => {
       cancelled = true;
@@ -102,7 +116,10 @@ export function useRadioPortal() {
     setSelectedId(station.id);
 
     const audio = audioRef.current;
-    if (!audio) return;
+
+    if (!audio) {
+      return;
+    }
 
     setLoading(true);
 
@@ -123,7 +140,10 @@ export function useRadioPortal() {
 
   async function togglePlayback() {
     const audio = audioRef.current;
-    if (!audio) return;
+
+    if (!audio) {
+      return;
+    }
 
     if (!audio.src) {
       await playStation(selected);
@@ -132,12 +152,14 @@ export function useRadioPortal() {
 
     if (audio.paused) {
       setLoading(true);
+
       try {
         await audio.play();
         setPlaying(true);
       } finally {
         setLoading(false);
       }
+
       return;
     }
 
@@ -146,17 +168,16 @@ export function useRadioPortal() {
   }
 
   function moveStation(direction: number) {
-    const currentIndex = stations.findIndex(
-      (station) => station.id === selected.id,
-    );
     const next =
-      stations[(currentIndex + direction + stations.length) % stations.length];
+      direction >= 0
+        ? stationEngine.getNextStation(selected.id)
+        : stationEngine.getPreviousStation(selected.id);
 
     void playStation(next);
   }
 
   return {
-    stations,
+    stations: portalStations,
     selected,
     current,
     metadata,
