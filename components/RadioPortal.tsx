@@ -60,10 +60,7 @@ export default function RadioPortal() {
           onPlayStation={(station) => void radio.playStation(station)}
         />
 
-        <SongRequest
-          stations={radio.stations}
-          selectedStationId={radio.selected.id}
-        />
+        <SongRequest />
 
         <RecentAndRanking
           history={radio.history}
