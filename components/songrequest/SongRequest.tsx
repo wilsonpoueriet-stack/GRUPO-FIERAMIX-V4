@@ -1,58 +1,29 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
-declare global {
-  interface Window {
-    rbcloudSongRequest7164?: {
-      requestBtn: string;
-      requested: string;
-      noTracks: string;
-      errors: Record<number, string>;
-    };
-  }
-}
+import { useEffect, useState } from "react";
 
 export default function SongRequest() {
-  const initialized = useRef(false);
+  const [height, setHeight] = useState(150);
 
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
+    function receiveMessage(event: MessageEvent) {
+      if (event.origin !== window.location.origin) return;
 
-    window.rbcloudSongRequest7164 = {
-      requestBtn: "Solicitar",
-      requested: "¡Solicitud enviada correctamente!",
-      noTracks: "No se encontraron canciones.",
-      errors: {
-        1: "La búsqueda es demasiado corta.",
-        2: "Error al cargar los datos.",
-        3: "Las solicitudes están desactivadas.",
-        4: "Inténtalo nuevamente más tarde.",
-        5: "Canción no encontrada.",
-        6: "No fue posible enviar la solicitud.",
-      },
-    };
+      const data = event.data as {
+        type?: string;
+        height?: number;
+      };
 
-    const oldScript = document.getElementById("radioboss-songrequest-7164");
-    oldScript?.remove();
+      if (
+        data.type === "fieramix-songrequest-height" &&
+        typeof data.height === "number"
+      ) {
+        setHeight(Math.min(Math.max(data.height, 150), 900));
+      }
+    }
 
-    const script = document.createElement("script");
-    script.id = "radioboss-songrequest-7164";
-    script.src =
-      "https://c15.radioboss.fm/w/songrequest.js?u=221&wid=7164";
-    script.async = true;
-
-    script.onerror = () => {
-      console.error("No se pudo cargar el widget Song Request de RadioBOSS.");
-    };
-
-    document.body.appendChild(script);
-
-    return () => {
-      script.remove();
-      initialized.current = false;
-    };
+    window.addEventListener("message", receiveMessage);
+    return () => window.removeEventListener("message", receiveMessage);
   }, []);
 
   return (
@@ -90,18 +61,18 @@ export default function SongRequest() {
           <img src="/logos/solo-bachata.png" alt="Solo Bachata" />
         </div>
 
-        <div className="rbcloud_songrequest" id="rbcloud_songrequest7164">
-          <div className="rbc_search">
-            <input
-              className="rbc_ed_query"
-              placeholder="Busca artista o canción..."
-            />
-            <button className="rbc_bt_search" type="button">
-              🔎 Buscar
-            </button>
-          </div>
-          <div className="rbc_result" />
-        </div>
+        <iframe
+          title="Buscador de canciones de Solo Bachata"
+          src="/widgets/songrequest-bachata.html"
+          style={{
+            width: "100%",
+            height,
+            border: 0,
+            display: "block",
+            overflow: "hidden",
+          }}
+          scrolling="no"
+        />
 
         <p className="requestNotice">
           Las canciones se programan conforme a las reglas y disponibilidad de
