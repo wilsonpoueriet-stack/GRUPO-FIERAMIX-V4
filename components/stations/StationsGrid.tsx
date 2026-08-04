@@ -34,33 +34,110 @@ export default function StationsGrid({
 
       <div className="stationGrid">
         {stations.map((station) => {
-          const info = metadata[station.id] ?? emptyNowPlaying(station);
+          const info =
+            metadata[station.id] ?? emptyNowPlaying(station);
+
           const active = station.id === selected.id;
+
+          const artwork =
+            info.artwork &&
+            info.artwork !== station.logo
+              ? info.artwork
+              : station.logo;
 
           return (
             <article
               key={station.id}
-              className={active ? "stationCard active" : "stationCard"}
-              style={{ "--accent": station.accent } as CSSProperties}
+              className={
+                active
+                  ? "stationCard active"
+                  : "stationCard"
+              }
+              style={
+                {
+                  "--accent": station.accent,
+                } as CSSProperties
+              }
             >
               <div className="stationBadge">
-                <i /> EN VIVO
+                <i />
+                {info.configured ? " AL AIRE" : " DISPONIBLE"}
               </div>
 
-              <img src={station.logo} alt={station.name} />
+              <div
+                style={{
+                  position: "relative",
+                  width: 118,
+                  height: 118,
+                  margin: "0 auto 14px",
+                }}
+              >
+                <img
+                  src={artwork}
+                  alt={`Portada actual de ${station.name}`}
+                  width={118}
+                  height={118}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: 18,
+                  }}
+                  onError={(event) => {
+                    event.currentTarget.src = station.logo;
+                  }}
+                />
+
+                <img
+                  src={station.logo}
+                  alt=""
+                  width={38}
+                  height={38}
+                  style={{
+                    position: "absolute",
+                    right: -6,
+                    bottom: -6,
+                    width: 38,
+                    height: 38,
+                    objectFit: "cover",
+                    border: "3px solid #080d23",
+                    borderRadius: "50%",
+                    background: "#080d23",
+                  }}
+                />
+              </div>
+
               <span>{station.genre}</span>
               <h3>{station.name}</h3>
-              <p className="stationSlogan">{station.slogan}</p>
+
+              <p className="stationSlogan">
+                {station.slogan}
+              </p>
 
               <div className="stationNow">
-                <b>{info.title}</b>
-                <small>{info.artist}</small>
+                <b title={info.title}>{info.title}</b>
+                <small title={info.artist}>
+                  {info.artist}
+                </small>
               </div>
 
               <div className="stationFooter">
-                <span>👥 {info.listeners ?? "—"}</span>
-                <button onClick={() => onPlayStation(station)}>
-                  {active && playing ? "❚❚ PAUSAR" : "▶ ESCUCHAR"}
+                <span>
+                  👥 {info.listeners ?? "—"} oyentes
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => onPlayStation(station)}
+                  aria-label={
+                    active && playing
+                      ? `Pausar ${station.name}`
+                      : `Escuchar ${station.name}`
+                  }
+                >
+                  {active && playing
+                    ? "❚❚ PAUSAR"
+                    : "▶ ESCUCHAR"}
                 </button>
               </div>
 
