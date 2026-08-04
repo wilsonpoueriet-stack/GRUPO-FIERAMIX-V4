@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { stationEngine } from "@/core/StationEngine";
 import type { Station, StationId } from "@/types/station";
 import type {
-  AllNowPlayingResult,
   HistoryItem,
   NowPlaying,
   NowPlayingResult,
@@ -21,26 +20,47 @@ export const emptyNowPlaying = (station: Station): NowPlaying => ({
   recent: [],
 });
 
+function createInitialMetadata(): Partial<
+  Record<StationId, NowPlayingResult>
+> {
+  return Object.fromEntries(
+    portalStations.map((station) => [
+      station.id,
+      {
+        ...emptyNowPlaying(station),
+        source: "fallback",
+        status: "not-configured",
+        recent: [],
+      },
+    ]),
+  ) as Partial<Record<StationId, NowPlayingResult>>;
+}
+
 export function useRadioPortal() {
   const audioRef = useRef<HTMLAudioElement>(null);
+
   const [selectedId, setSelectedId] = useState<StationId>(
     stationEngine.getDefaultStation().id,
   );
+
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [volume, setVolume] = useState(0.85);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [metadata, setMetadata] = useState<
+
+  const [metadata] = useState<
     Partial<Record<StationId, NowPlayingResult>>
-  >({});
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+  >(createInitialMetadata);
+
+  const [history] = useState<HistoryItem[]>([]);
 
   const selected = useMemo(
     () => stationEngine.getStationOrDefault(selectedId),
     [selectedId],
   );
 
-  const current = metadata[selected.id] ?? emptyNowPlaying(selected);
+  const current =
+    metadata[selected.id] ?? emptyNowPlaying(selected);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -49,81 +69,6 @@ export function useRadioPortal() {
       audio.volume = volume;
     }
   }, [volume]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadAllMetadata() {
-      try {
-        const response = await fetch("/api/now-playing/all", {
-          cache: "no-store",
-        });
-
-        if (!response.ok) {
-          throw new Error("No se pudieron cargar los metadatos.");
-        }
-
-        const next = (await response.json()) as AllNowPlayingResult;
-
-        if (cancelled) {
-          return;
-        }
-
-        setMetadata((previous) => {
-          const selectedTrack = next[selectedId];
-          const previousTrack = previous[selectedId];
-
-          if (
-            selectedTrack &&
-            previousTrack &&
-            selectedTrack.title !== previousTrack.title &&
-            previousTrack.title !== "Programación en vivo"
-          ) {
-            setHistory((items) =>
-              [
-                {
-                  ...previousTrack,
-                  stationId: selectedId,
-                  stamp: new Date().toLocaleTimeString("es-DO", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }),
-                },
-                ...items,
-              ].slice(0, 6),
-            );
-          }
-
-          return next;
-        });
-      } catch {
-        if (cancelled) {
-          return;
-        }
-
-        const fallbackEntries = portalStations.map(
-          (station) => [station.id, emptyNowPlaying(station)] as const,
-        );
-
-        setMetadata(
-          Object.fromEntries(fallbackEntries) as Partial<
-            Record<StationId, NowPlayingResult>
-          >,
-        );
-      }
-    }
-
-    void loadAllMetadata();
-
-    const timer = window.setInterval(() => {
-      void loadAllMetadata();
-    }, 20_000);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-    };
-  }, [selectedId]);
 
   async function playStation(station: Station) {
     setSelectedId(station.id);
@@ -169,6 +114,8 @@ export function useRadioPortal() {
       try {
         await audio.play();
         setPlaying(true);
+      } catch {
+        setPlaying(false);
       } finally {
         setLoading(false);
       }
