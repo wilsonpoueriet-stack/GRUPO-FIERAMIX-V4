@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { stationEngine } from "@/core/StationEngine";
+import { radioBossStations } from "@/config/radiobossStations";
 import type { Station, StationId } from "@/types/station";
 import type {
   HistoryItem,
@@ -10,6 +11,17 @@ import type {
 } from "@/types/radio";
 
 const portalStations = [...stationEngine.getStations()];
+
+type RadioBossAllItem = {
+  id: string;
+  success?: boolean;
+  currenttrack?: string;
+  currenttrack_artist?: string;
+  currenttrack_title?: string;
+  listeners?: number;
+  live?: boolean;
+  autodj?: boolean;
+};
 
 export const emptyNowPlaying = (station: Station): NowPlaying => ({
   title: "Programación en vivo",
@@ -48,11 +60,11 @@ export function useRadioPortal() {
   const [volume, setVolume] = useState(0.85);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const [metadata] = useState<
+  const [metadata, setMetadata] = useState<
     Partial<Record<StationId, NowPlayingResult>>
   >(createInitialMetadata);
 
-  const [history] = useState<HistoryItem[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
 
   const selected = useMemo(
     () => stationEngine.getStationOrDefault(selectedId),
@@ -69,6 +81,124 @@ export function useRadioPortal() {
       audio.volume = volume;
     }
   }, [volume]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAllMetadata() {
+      try {
+        const response = await fetch("/api/now-playing-all", {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            `La API respondió ${response.status}`,
+          );
+        }
+
+        const items =
+          (await response.json()) as RadioBossAllItem[];
+
+        if (cancelled || !Array.isArray(items)) {
+          return;
+        }
+
+        setMetadata((previousMetadata) => {
+          const nextMetadata = {
+            ...previousMetadata,
+          };
+
+          for (const item of items) {
+            const station = portalStations.find(
+              (candidate) => candidate.id === item.id,
+            );
+
+            if (!station) {
+              continue;
+            }
+
+            const stationId = station.id;
+            const config =
+              radioBossStations[
+                stationId as keyof typeof radioBossStations
+              ];
+
+            if (!config || item.success === false) {
+              continue;
+            }
+
+            const previousTrack =
+              previousMetadata[stationId];
+
+            const nextTitle =
+              item.currenttrack_title ||
+              item.currenttrack ||
+              "Programación en vivo";
+
+            const nextArtist =
+              item.currenttrack_artist ||
+              station.name;
+
+            if (
+              stationId === selectedId &&
+              previousTrack &&
+              previousTrack.title !== nextTitle &&
+              previousTrack.title !== "Programación en vivo"
+            ) {
+              setHistory((currentHistory) =>
+                [
+                  {
+                    ...previousTrack,
+                    stationId,
+                    stamp: new Date().toLocaleTimeString(
+                      "es-DO",
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      },
+                    ),
+                  },
+                  ...currentHistory,
+                ].slice(0, 10),
+              );
+            }
+
+            nextMetadata[stationId] = {
+              title: nextTitle,
+              artist: nextArtist,
+              artwork:
+                `https://${config.server}/w/artwork/` +
+                `${config.stationId}.jpg?_=${Date.now()}`,
+              listeners: item.listeners ?? null,
+              configured: true,
+              source: "radioboss",
+              status: "ok",
+              recent: [],
+            };
+          }
+
+          return nextMetadata;
+        });
+      } catch (error) {
+        console.error(
+          "No se pudieron cargar las emisoras:",
+          error,
+        );
+      }
+    }
+
+    void loadAllMetadata();
+
+    const timer = window.setInterval(() => {
+      void loadAllMetadata();
+    }, 15_000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [selectedId]);
 
   async function playStation(station: Station) {
     setSelectedId(station.id);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stationEngine } from "@/core/StationEngine";
+import { radioBossStations } from "@/config/radiobossStations";
 
 export const dynamic = "force-dynamic";
 
@@ -18,13 +19,6 @@ type RadioBossPayload = {
   listeners?: number;
   recent?: RecentPayload[];
 };
-
-const radioBossStations = {
-  bachata: {
-    server: "c15.radioboss.fm",
-    stationId: 221,
-  },
-} as const;
 
 export async function GET(request: NextRequest) {
   const requestedStationId =
