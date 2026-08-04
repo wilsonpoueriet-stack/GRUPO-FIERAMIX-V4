@@ -1,41 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stationEngine } from "@/core/StationEngine";
 import { radioBossStations } from "@/config/radiobossStations";
+import {
+  getCurrentArtworkUrl,
+  getRecentArtworkUrl,
+  getStationData,
+} from "@/lib/radioboss";
 
 export const dynamic = "force-dynamic";
 
-type RecentPayload = {
-  title?: string;
-  trackartist?: string;
-  tracktitle?: string;
-  artworkid?: string;
-  started?: string;
-};
-
-type RadioBossPayload = {
-  currenttrack?: string;
-  currenttrack_artist?: string;
-  currenttrack_title?: string;
-  listeners?: number;
-  recent?: RecentPayload[];
-};
-
 export async function GET(request: NextRequest) {
   const requestedStationId =
-  request.nextUrl.searchParams.get("station");
+    request.nextUrl.searchParams.get("station");
 
-const station = stationEngine
-  .getStations()
-  .find((item) => item.id === requestedStationId);
+  const station = stationEngine
+    .getStations()
+    .find((item) => item.id === requestedStationId);
 
-if (!station) {
-  return NextResponse.json(
-    { error: "Emisora no encontrada" },
-    { status: 404 },
-  );
-}
+  if (!station) {
+    return NextResponse.json(
+      { error: "Emisora no encontrada" },
+      { status: 404 },
+    );
+  }
 
-const portalStationId = station.id;
+  const portalStationId = station.id;
+
   const radioBossConfig =
     radioBossStations[
       portalStationId as keyof typeof radioBossStations
@@ -54,21 +44,8 @@ const portalStationId = station.id;
     });
   }
 
-  const apiUrl =
-    `${request.nextUrl.origin}/api/radioboss-public` +
-    `?server=${encodeURIComponent(radioBossConfig.server)}` +
-    `&station=${radioBossConfig.stationId}`;
-
   try {
-    const response = await fetch(apiUrl, {
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      throw new Error(`RadioBOSS respondió ${response.status}`);
-    }
-
-    const data = (await response.json()) as RadioBossPayload;
+    const data = await getStationData(radioBossConfig, 10);
 
     return NextResponse.json({
       title:
@@ -81,15 +58,15 @@ const portalStationId = station.id;
         station.name,
 
       artwork:
-        `https://${radioBossConfig.server}/w/artwork/` +
-        `${radioBossConfig.stationId}.jpg?_=${Date.now()}`,
+        `${getCurrentArtworkUrl(radioBossConfig)}` +
+        `?_=${Date.now()}`,
 
       listeners: data.listeners ?? null,
       configured: true,
       source: "radioboss",
       status: "ok",
 
-      recent: (data.recent ?? []).map((track) => ({
+      recent: data.recent.map((track) => ({
         title:
           track.tracktitle ||
           track.title ||
@@ -99,17 +76,22 @@ const portalStationId = station.id;
           track.trackartist ||
           station.name,
 
-        artwork: track.artworkid
-          ? `https://${radioBossConfig.server}/w/` +
-            `artwork_recent_${track.artworkid}/` +
-            `${radioBossConfig.stationId}.jpg`
-          : station.logo,
+        artwork: getRecentArtworkUrl(
+          radioBossConfig,
+          track.artworkid,
+        ),
 
         started: track.started ?? "",
       })),
     });
   } catch (error) {
-    console.error("Error cargando RadioBOSS:", error);
+    console.error("Error cargando RadioBOSS:", {
+      stationId: portalStationId,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Error desconocido",
+    });
 
     return NextResponse.json({
       title: "Programación en vivo",
