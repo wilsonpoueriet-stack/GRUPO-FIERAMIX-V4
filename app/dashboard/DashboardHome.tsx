@@ -1,6 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { MetricCard } from "@/components/dashboard";
+import {
+  getActiveStreams,
+  getAudienceRanking,
+  getLeaderStation,
+  getTotalListeners,
+} from "@/lib/dashboard";
 
 type DashboardStation = {
   id: string;
@@ -105,25 +112,18 @@ export default function DashboardHome() {
     [stations],
   );
 
-  const totalListeners = useMemo(
-    () =>
-      activeStations.reduce(
-        (total, station) => total + (station.listeners ?? 0),
-        0,
-      ),
-    [activeStations],
-  );
+  const totalListeners = getTotalListeners(
+  activeStations.map(
+    (station) => station.listeners ?? 0,
+  ),
+);
 
   const ranking = useMemo(
-    () =>
-      [...activeStations].sort(
-        (first, second) =>
-          (second.listeners ?? 0) - (first.listeners ?? 0),
-      ),
-    [activeStations],
-  );
+  () => getAudienceRanking(activeStations),
+  [activeStations],
+);
 
-  const leader = ranking[0];
+  const leader = getLeaderStation(ranking);
 
   return (
     <main
@@ -236,7 +236,15 @@ export default function DashboardHome() {
 
         <MetricCard
           label="Streams con respuesta"
-          value={loading ? "..." : String(activeStations.length)}
+          value={
+  loading
+    ? "..."
+    : String(
+        getActiveStreams(
+          stations.map((station) => station.success),
+        ),
+      )
+}
           icon="🟢"
         />
 
@@ -587,50 +595,7 @@ export default function DashboardHome() {
     </main>
   );
 }
-
-function MetricCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: string;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div
-      style={{
-        background: "rgba(19,35,63,.92)",
-        border: "1px solid rgba(255,255,255,.08)",
-        borderRadius: 18,
-        padding: 24,
-      }}
-    >
-      <div style={{ fontSize: "1.4rem" }}>{icon}</div>
-
-      <div
-        style={{
-          marginTop: 14,
-          opacity: 0.68,
-          fontSize: ".85rem",
-        }}
-      >
-        {label}
-      </div>
-
-      <div
-        style={{
-          marginTop: 5,
-          fontSize: "2rem",
-          fontWeight: 900,
-        }}
-      >
-        {value}
-      </div>
-    </div>
-  );
-}
-
+  
 function StatusBadge({
   station,
 }: {
