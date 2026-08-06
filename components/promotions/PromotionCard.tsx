@@ -1,6 +1,9 @@
 import Link from "next/link";
 import type { Promotion } from "@/types/promotion";
 import { colors } from "@/styles/colors";
+import { radius } from "@/styles/radius";
+import { spacing } from "@/styles/spacing";
+import { typography } from "@/styles/typography";
 
 type PromotionCardProps = {
   promotion: Promotion;
@@ -18,7 +21,7 @@ export default function PromotionCard({
         willChange: "transform",
         backfaceVisibility: "hidden",
         border: `1px solid ${colors.border}`,
-        borderRadius: 20,
+        borderRadius: radius.card,
         background: colors.surface,
         transition: "transform .25s ease",
       }}
@@ -43,7 +46,7 @@ height: 380,
           inset: 0,
           display: "flex",
           alignItems: "flex-end",
-          padding: 24,
+          padding: spacing.lg,
           background: `linear-gradient(180deg, transparent 25%, ${colors.overlay} 100%)`,
         }}
       >
@@ -51,11 +54,11 @@ height: 380,
           <span
             style={{
               display: "inline-block",
-              marginBottom: 10,
+              marginBottom: spacing.sm,
               color: colors.primary,
-              fontSize: ".7rem",
-              fontWeight: 900,
-              letterSpacing: 1.5,
+              fontSize: typography.label,
+              fontWeight: typography.weightBold,
+              letterSpacing: typography.letterSpacingLabel,
               textTransform: "uppercase",
             }}
           >
@@ -66,7 +69,7 @@ height: 380,
             style={{
               margin: 0,
               color: colors.textSecondary,
-              fontSize: "1.7rem",
+              fontSize: typography.subtitle,
             }}
           >
             {promotion.title}
@@ -76,9 +79,9 @@ height: 380,
             <p
               style={{
                 maxWidth: 520,
-                margin: "10px 0 18px",
+                margin: `${spacing.sm}px 0 ${spacing.md}px`,
                 color: colors.textSecondary,
-                lineHeight: 1.5,
+                lineHeight: typography.lineHeightBody,
               }}
             >
               {promotion.description}
@@ -89,12 +92,12 @@ height: 380,
             href={promotion.href}
             style={{
               display: "inline-block",
-              padding: "11px 16px",
+              padding: `${spacing.sm}px ${spacing.md}px`,
               color: colors.text,
-              fontSize: ".75rem",
-              fontWeight: 900,
+              fontSize: typography.button,
+              fontWeight: typography.weightBlack,
               textDecoration: "none",
-              borderRadius: 999,
+              borderRadius: radius.badge,
               background: colors.primary,
             }}
           >
