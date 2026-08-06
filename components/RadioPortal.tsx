@@ -12,6 +12,7 @@ import NewsAndClub from "@/components/content/NewsAndClub";
 import LiveNetwork from "@/components/content/LiveNetwork";
 import SongRequest from "@/components/songrequest/SongRequest";
 import { useRadioPortal } from "@/hooks/useRadioPortal";
+import PromotionCarousel from "@/components/promotions/PromotionCarousel";
 
 export default function RadioPortal() {
   const radio = useRadioPortal();
@@ -27,7 +28,7 @@ export default function RadioPortal() {
 
       <main id="inicio">
         <section className="heroShell">
-          <Hero
+              <Hero
             current={radio.current}
             playing={radio.playing}
             onPlaybackToggle={() => void radio.togglePlayback()}
