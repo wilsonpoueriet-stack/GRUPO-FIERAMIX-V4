@@ -22,10 +22,10 @@ export default function StationsGrid({
   onPlayStation,
 }: StationsGridProps) {
   return (
-    <section id="emisoras" className="section stationsSection">
+    <section id="emisoras" className="section">
       <div className="sectionTitle">
         <span>NUESTRA RED</span>
-        <h2>Nueve emisoras. Una sola pasión.</h2>
+        <h2>Explora nuestras emisoras</h2>
         <p>
           Elige tu género, escucha en vivo o entra a la página individual de
           cada emisora.
@@ -40,27 +40,23 @@ export default function StationsGrid({
           const active = station.id === selected.id;
 
           const artwork =
-            info.artwork &&
-            info.artwork !== station.logo
+            info.artwork && info.artwork !== station.logo
               ? info.artwork
               : station.logo;
 
           return (
             <article
               key={station.id}
-              className={
-                active
-                  ? "stationCard active"
-                  : "stationCard"
-              }
+              className={active ? "stationCard active" : "stationCard"}
               style={
                 {
                   "--accent": station.accent,
                 } as CSSProperties
               }
+              aria-current={active ? "true" : undefined}
             >
               <div className="stationBadge">
-                <i />
+                <i aria-hidden="true" />
                 {info.configured ? " AL AIRE" : " DISPONIBLE"}
               </div>
 
@@ -110,15 +106,11 @@ export default function StationsGrid({
               <span>{station.genre}</span>
               <h3>{station.name}</h3>
 
-              <p className="stationSlogan">
-                {station.slogan}
-              </p>
+              <p className="stationSlogan">{station.slogan}</p>
 
-              <div className="stationNow">
+              <div className="stationNow" aria-live="polite">
                 <b title={info.title}>{info.title}</b>
-                <small title={info.artist}>
-                  {info.artist}
-                </small>
+                <small title={info.artist}>{info.artist}</small>
               </div>
 
               <div className="stationFooter">
@@ -134,29 +126,14 @@ export default function StationsGrid({
                       ? `Pausar ${station.name}`
                       : `Escuchar ${station.name}`
                   }
+                  aria-pressed={active && playing}
                 >
-                  {active && playing
-                    ? "❚❚ PAUSAR"
-                    : "▶ ESCUCHAR"}
+                  {active && playing ? "❚❚ PAUSAR" : "▶ ESCUCHAR"}
                 </button>
               </div>
 
-              <Link
-                href={`/emisoras/${station.id}`}
-                style={{
-                  marginTop: 12,
-                  display: "block",
-                  padding: "10px 12px",
-                  color: "white",
-                  fontSize: ".7rem",
-                  fontWeight: 900,
-                  textAlign: "center",
-                  textDecoration: "none",
-                  border: `1px solid ${station.accent}`,
-                  borderRadius: 999,
-                }}
-              >
-                VER PÁGINA DE LA EMISORA
+              <Link href={`/emisoras/${station.id}`}>
+                PÁGINA DE LA EMISORA
               </Link>
             </article>
           );
