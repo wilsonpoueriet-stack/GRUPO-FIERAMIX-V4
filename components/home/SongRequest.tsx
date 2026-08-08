@@ -66,12 +66,12 @@ export default function SongRequest() {
       aria-labelledby="song-request-title"
     >
       <div className="songRequestIntro">
-        <span>SOLICITA TU CANCIÓN</span>
+        <span>TU MÚSICA. TU ELECCIÓN.</span>
 
         <h2 id="song-request-title">
-          Tu música.
+          SOLICITA TU CANCIÓN.
           <br />
-          <em>Tu elección.</em>
+          <em>ASISTENTE VIRTUAL</em>
         </h2>
 
         <p>
