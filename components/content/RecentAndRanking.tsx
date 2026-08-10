@@ -301,28 +301,6 @@ function sameArtworkSource(
   );
 }
 
-function isKnownStationFallbackArtwork(
-  artwork: string,
-  fallback: string,
-): boolean {
-  const source = clean(artwork);
-
-  if (!source) {
-    return true;
-  }
-
-  if (
-    sameArtworkSource(source, fallback) ||
-    sameArtworkSource(source, OFFICIAL_FIERAMIX_LOGO)
-  ) {
-    return true;
-  }
-
-  return stations.some((station) =>
-    sameArtworkSource(source, station.logo),
-  );
-}
-
 type RankingSocialIconType =
   | "facebook"
   | "instagram"
@@ -837,34 +815,60 @@ export default function RecentAndRanking({
       : "";
   }
 
+  function buildDirectArtistGalleryArtwork(
+    artistName: string,
+    fallbackArtwork: string,
+  ): string {
+    const cleanArtist = clean(artistName);
+
+    if (!cleanArtist) {
+      return "";
+    }
+
+    const fallback =
+      clean(fallbackArtwork) ||
+      OFFICIAL_FIERAMIX_LOGO;
+
+    return `/api/artist-gallery?artist=${encodeURIComponent(
+      cleanArtist,
+    )}&fallback=${encodeURIComponent(
+      fallback,
+    )}`;
+  }
+
   function resolveRankingArtwork(
     artistName: string,
     artwork: string | null | undefined,
     fallback: string,
   ): string {
     const cleanArtwork = clean(artwork);
+    const finalFallback =
+      cleanArtwork ||
+      fallback ||
+      OFFICIAL_FIERAMIX_LOGO;
+
     const galleryArtwork =
       getArtistGalleryArtwork(artistName);
 
-    const artworkIsFallback =
-      isKnownStationFallbackArtwork(
-        cleanArtwork,
-        fallback,
-      );
-
-    if (galleryArtwork && artworkIsFallback) {
+    // La galería es siempre la primera fuente visual.
+    // Si el listado todavía no terminó de cargar, consultamos directamente
+    // el endpoint por nombre de artista. Si el artista no está registrado,
+    // el onError recupera la portada normal de RadioBOSS o el logo.
+    if (galleryArtwork) {
       return galleryArtwork;
     }
 
-    if (cleanArtwork && !artworkIsFallback) {
-      return cleanArtwork;
+    const directGalleryArtwork =
+      buildDirectArtistGalleryArtwork(
+        artistName,
+        finalFallback,
+      );
+
+    if (directGalleryArtwork) {
+      return directGalleryArtwork;
     }
 
-    return (
-      galleryArtwork ||
-      fallback ||
-      OFFICIAL_FIERAMIX_LOGO
-    );
+    return finalFallback;
   }
 
   function handleRankingArtworkError(
@@ -887,6 +891,38 @@ export default function RecentAndRanking({
     ) {
       image.src = galleryArtwork;
       return;
+    }
+
+    // Cuando la consulta directa a la galería devuelve 404 porque el
+    // artista no está registrado, recuperamos la portada original que
+    // quedó codificada en la propia URL.
+    try {
+      const currentUrl =
+        new URL(
+          currentSource,
+          window.location.origin,
+        );
+
+      const encodedFallback =
+        currentUrl.searchParams.get(
+          "fallback",
+        );
+
+      const decodedFallback =
+        clean(encodedFallback);
+
+      if (
+        decodedFallback &&
+        !sameArtworkSource(
+          currentSource,
+          decodedFallback,
+        )
+      ) {
+        image.src = decodedFallback;
+        return;
+      }
+    } catch {
+      // Continuamos con el fallback general.
     }
 
     image.onerror = null;
