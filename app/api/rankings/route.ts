@@ -86,7 +86,7 @@ const periodConfig: Record<RankingPeriod, RankingPeriodConfig> = {
     id: "actual",
     label: "TOP 25 ACTUAL",
     limit: 25,
-    days: null,
+    days: 1,
   },
   weekly: {
     id: "weekly",
@@ -447,7 +447,7 @@ async function readDaysInBatches(
 }
 
 async function buildHistoricalRanking(
-  period: Exclude<RankingPeriod, "actual">,
+  period: RankingPeriod,
   stationFilter: string | null,
 ): Promise<Response> {
   const config = periodConfig[period];
@@ -611,7 +611,7 @@ async function buildHistoricalRanking(
         collectorStatus: collector ?? null,
         ranking,
       },
-      300,
+      period === "actual" ? 30 : 300,
     );
   } catch (error) {
     return rankingResponse(
@@ -684,10 +684,6 @@ export async function GET(request: Request): Promise<Response> {
       },
       { status: 404 },
     );
-  }
-
-  if (period === "actual") {
-    return buildActualRanking(request, stationFilter);
   }
 
   return buildHistoricalRanking(period, stationFilter);

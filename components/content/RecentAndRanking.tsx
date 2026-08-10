@@ -40,6 +40,7 @@ type ChartTrack = {
   live: boolean;
   score: number;
   plays: number;
+  stationCount?: number;
 };
 
 type RankingPeriod = "actual" | "weekly" | "monthly" | "annual";
@@ -121,8 +122,8 @@ const stationRankingPeriods: RankingPeriodConfig[] = [
     label: "TOP 10 ACTUAL",
     shortLabel: "ACTUAL",
     limit: 10,
-    windowLabel: "EN VIVO",
-    description: "Rotación actual de esta emisora.",
+    windowLabel: "HOY",
+    description: "Las canciones más tocadas hoy en esta emisora.",
   },
   {
     id: "weekly",
@@ -156,8 +157,8 @@ const rankingPeriods: RankingPeriodConfig[] = [
     label: "TOP 25 ACTUAL",
     shortLabel: "ACTUAL",
     limit: 25,
-    windowLabel: "EN VIVO",
-    description: "Pulso musical de la rotación disponible ahora mismo.",
+    windowLabel: "HOY",
+    description: "Las canciones más tocadas hoy en toda la red.",
   },
   {
     id: "weekly",
@@ -931,13 +932,6 @@ export default function RecentAndRanking({
   }
 
   useEffect(() => {
-    if (rankingPeriod === "actual") {
-      setHistoricalRanking(null);
-      setHistoricalRankingError("");
-      setHistoricalRankingLoading(false);
-      return;
-    }
-
     let cancelled = false;
 
     async function loadHistoricalRanking() {
@@ -993,13 +987,6 @@ export default function RecentAndRanking({
   }, [rankingPeriod]);
 
   useEffect(() => {
-    if (stationRankingPeriod === "actual") {
-      setStationHistoricalRanking(null);
-      setStationHistoricalError("");
-      setStationHistoricalLoading(false);
-      return;
-    }
-
     let cancelled = false;
 
     async function loadStationHistoricalRanking() {
@@ -1091,7 +1078,7 @@ export default function RecentAndRanking({
         )
       : 0;
 
-  const stationTop10 = useMemo(
+  const liveStationTop10 = useMemo(
     () => buildStationRotation(chartStation, chartStationNow),
     [chartStation, chartStationNow],
   );
@@ -1109,6 +1096,17 @@ export default function RecentAndRanking({
     stationHistoricalRanking?.station === chartStation.id
       ? stationHistoricalRanking.ranking
       : [];
+
+  const stationTop10: StationRotationTrack[] =
+    isCurrentStationRanking
+      ? stationHistoricalTracks.slice(0, 10).map((track) => ({
+          title: track.title,
+          artist: track.artist,
+          artwork: track.artwork,
+          started: track.lastPlayedAt,
+          plays: track.plays,
+        }))
+      : liveStationTop10;
 
   const visibleStationHistoricalTracks =
     showAllStationRanking
@@ -1131,18 +1129,16 @@ export default function RecentAndRanking({
 
   const stationRankingRange =
     isCurrentStationRanking
-      ? "ROTACIÓN EN VIVO"
+      ? "HOY"
       : formatRankingRange(
           stationHistoricalRanking?.windowStart,
           stationHistoricalRanking?.windowEnd,
         );
 
   const stationRankingUpdatedAtValue =
-    isCurrentStationRanking
-      ? liveRankingUpdatedAt
-      : stationHistoricalRanking?.collectorLastRunAt ||
-        stationHistoricalRanking?.generatedAt ||
-        "";
+    stationHistoricalRanking?.collectorLastRunAt ||
+    stationHistoricalRanking?.generatedAt ||
+    liveRankingUpdatedAt;
 
   const stationRankingUpdateClock =
     formatRankingClock(stationRankingUpdatedAtValue);
@@ -1150,7 +1146,7 @@ export default function RecentAndRanking({
   const stationRankingUpdateDateTime =
     formatRankingDateTime(stationRankingUpdatedAtValue);
 
-  const networkTop25 = useMemo(
+  const liveNetworkTop25 = useMemo(
     () => buildNetworkChart(metadata),
     [metadata],
   );
@@ -1165,6 +1161,45 @@ export default function RecentAndRanking({
     historicalRanking?.period === rankingPeriod
       ? historicalRanking.ranking
       : [];
+
+  const networkTop25: ChartTrack[] =
+    isCurrentRanking
+      ? historicalTracks.map((track) => {
+          const validStationId = track.stationIds.find((stationId) =>
+            stations.some((station) => station.id === stationId),
+          ) as StationId | undefined;
+
+          const station =
+            stations.find((item) => item.id === validStationId) ??
+            selected;
+
+          const info =
+            metadata[station.id] ?? emptyNowPlaying(station);
+
+          const listeners =
+            typeof info.listeners === "number"
+              ? Math.max(info.listeners, 0)
+              : 0;
+
+          return {
+            title: track.title,
+            artist: track.artist,
+            artwork: track.artwork,
+            stationId: station.id,
+            stationName:
+              track.stationNames[0] ||
+              station.shortName ||
+              station.name,
+            stationLogo: station.logo,
+            stationAccent: station.accent,
+            listeners,
+            live: false,
+            score: track.plays,
+            plays: track.plays,
+            stationCount: track.stationCount,
+          };
+        })
+      : liveNetworkTop25;
 
   const visibleHistoricalTracks = showAllNetwork
     ? historicalTracks
@@ -1184,18 +1219,16 @@ export default function RecentAndRanking({
 
   const networkRankingRange =
     isCurrentRanking
-      ? "ROTACIÓN EN VIVO"
+      ? "HOY"
       : formatRankingRange(
           historicalRanking?.windowStart,
           historicalRanking?.windowEnd,
         );
 
   const networkRankingUpdatedAtValue =
-    isCurrentRanking
-      ? liveRankingUpdatedAt
-      : historicalRanking?.collectorLastRunAt ||
-        historicalRanking?.generatedAt ||
-        "";
+    historicalRanking?.collectorLastRunAt ||
+    historicalRanking?.generatedAt ||
+    liveRankingUpdatedAt;
 
   const networkRankingUpdateClock =
     formatRankingClock(networkRankingUpdatedAtValue);
@@ -1211,35 +1244,12 @@ export default function RecentAndRanking({
 
   const networkLeaderTrack = networkTop25[0] ?? null;
 
-  const networkLiveTrackCount = networkTop25.filter(
-    (track) => track.live,
-  ).length;
-
   const networkRepresentedStationIds = new Set(
-    networkTop25.map((track) => track.stationId),
+    historicalTracks.flatMap((track) => track.stationIds),
   );
 
   const networkRepresentedStationCount =
     networkRepresentedStationIds.size;
-
-  const networkRepresentedAudience = stations.reduce(
-    (total, station) => {
-      if (!networkRepresentedStationIds.has(station.id)) {
-        return total;
-      }
-
-      const info =
-        metadata[station.id] ?? emptyNowPlaying(station);
-
-      return (
-        total +
-        (typeof info.listeners === "number"
-          ? Math.max(info.listeners, 0)
-          : 0)
-      );
-    },
-    0,
-  );
   const stationExportRows: RankingExportRow[] =
     isCurrentStationRanking
       ? stationTop10.map((track, index) => ({
@@ -1252,10 +1262,7 @@ export default function RecentAndRanking({
             chartStation.logo,
           ),
           plays: track.plays,
-          detail:
-            index === 0
-              ? "AHORA EN ROTACIÓN"
-              : "ROTACIÓN ACTUAL",
+          detail: "TOCADAS DE HOY",
         }))
       : stationHistoricalTracks.map((track) => ({
           position: track.position,
@@ -1284,7 +1291,9 @@ export default function RecentAndRanking({
             track.stationLogo || OFFICIAL_FIERAMIX_LOGO,
           ),
           plays: track.plays,
-          detail: `${track.stationName} · ${track.listeners} OY`,
+          detail: `${track.stationCount ?? 1} ${
+            (track.stationCount ?? 1) === 1 ? "EMISORA" : "EMISORAS"
+          } · HOY`,
         }))
       : historicalTracks.map((track) => ({
           position: track.position,
@@ -1722,7 +1731,7 @@ export default function RecentAndRanking({
         </div>
 
         <p>
-          Rotación real por emisora y pulso general de
+          Tocadas reales por emisora y ranking general de
           <br />
           EL GRUPO FIERAMIX.COM.
         </p>
@@ -1979,7 +1988,7 @@ export default function RecentAndRanking({
                 </strong>
                 <span>
                   {isCurrentStationRanking
-                    ? "ROTACIÓN ACTUAL"
+                    ? "TOCADAS HOY"
                     : `${stationHistoricalTracks.length} POSICIONES`}
                 </span>
               </div>
@@ -2025,7 +2034,7 @@ export default function RecentAndRanking({
                         {formatPlayCount(track.plays)}
                       </strong>
                       <span>
-                        {index === 0 ? "AHORA" : "ROTACIÓN"}
+                        HOY
                       </span>
                     </em>
                   </li>
@@ -2033,9 +2042,9 @@ export default function RecentAndRanking({
               </ol>
             ) : (
               <div className="chartEmpty">
-                <strong>CARGANDO ROTACIÓN</strong>
+                <strong>CARGANDO TOCADAS DE HOY</strong>
                 <span>
-                  Esperando canciones recientes de{" "}
+                  Consultando las tocadas acumuladas de{" "}
                   {chartStation.name}.
                 </span>
               </div>
@@ -2289,8 +2298,8 @@ export default function RecentAndRanking({
 
               <div className="networkChartPulseMetrics">
                 <span>
-                  <strong>{networkLiveTrackCount}</strong>
-                  <small>EN VIVO</small>
+                  <strong>{historicalTotalPlays}</strong>
+                  <small>TOCADAS HOY</small>
                 </span>
 
                 <span>
@@ -2301,10 +2310,8 @@ export default function RecentAndRanking({
                 </span>
 
                 <span>
-                  <strong>
-                    {networkRepresentedAudience}
-                  </strong>
-                  <small>OYENTES</small>
+                  <strong>{networkTop25.length}</strong>
+                  <small>CANCIONES</small>
                 </span>
               </div>
             </div>
@@ -2392,10 +2399,11 @@ export default function RecentAndRanking({
                 </strong>
                 <span>
                   {formatPlayCount(networkLeaderTrack.plays)} ·{" "}
-                  {networkLeaderTrack.listeners} OY ·{" "}
-                  {networkLeaderTrack.live
-                    ? "EN VIVO"
-                    : "ROTACIÓN"}
+                  {networkLeaderTrack.stationCount ?? 1}{" "}
+                  {(networkLeaderTrack.stationCount ?? 1) === 1
+                    ? "EMISORA"
+                    : "EMISORAS"}{" "}
+                  · HOY
                 </span>
 
                 <a
@@ -2455,20 +2463,24 @@ export default function RecentAndRanking({
                             ? "networkTrackStation live"
                             : "networkTrackStation"
                         }
-                        title={
-                          track.live
-                            ? `Sonando ahora en ${track.stationName} · ${track.listeners} oyentes en vivo`
-                            : `Rotación reciente de ${track.stationName} · ${track.listeners} oyentes en vivo`
-                        }
+                        title={`${formatPlayCount(track.plays)} hoy · ${
+                          track.stationCount ?? 1
+                        } ${
+                          (track.stationCount ?? 1) === 1
+                            ? "emisora"
+                            : "emisoras"
+                        }`}
                       >
                         <strong className="networkPlayCount">
                           {formatPlayCount(track.plays)}
                         </strong>
                         <span className="networkTrackDetail">
-                          {track.live ? "● " : ""}
-                          {track.stationName}
+                          {track.stationCount ?? 1}{" "}
+                          {(track.stationCount ?? 1) === 1
+                            ? "EMISORA"
+                            : "EMISORAS"}
                           <span className="networkTrackListeners">
-                            · {track.listeners} OY
+                            · HOY
                           </span>
                         </span>
                       </em>
@@ -2694,7 +2706,7 @@ export default function RecentAndRanking({
 
             <strong>
               {isCurrentRanking
-                ? "RED EN VIVO"
+                ? "TOCADAS DE HOY"
                 : historicalRanking?.isOfficial
                   ? "DATOS OFICIALES"
                   : "RANKING HISTÓRICO"}
