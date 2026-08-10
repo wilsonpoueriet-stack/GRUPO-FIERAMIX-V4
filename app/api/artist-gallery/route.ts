@@ -845,9 +845,11 @@ export async function GET(
             ) ||
             "image/webp",
           "Cache-Control":
-            "public, max-age=3600, stale-while-revalidate=86400",
-          "Netlify-Vary":
-            "query",
+            "no-store, max-age=0, must-revalidate",
+          "CDN-Cache-Control":
+            "no-store",
+          "Netlify-CDN-Cache-Control":
+            "no-store",
           "X-Fieramix-Artist":
             clean(
               metadata.artist,
