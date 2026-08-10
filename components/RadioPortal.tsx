@@ -40,6 +40,8 @@ export default function RadioPortal() {
             playing={radio.playing}
             loading={radio.loading}
             volume={radio.volume}
+            fieramixSoundStatus={radio.fieramixSoundStatus}
+            fieramixSoundActive={radio.fieramixSoundActive}
             onPlaybackToggle={() => void radio.togglePlayback()}
             onMoveStation={radio.moveStation}
             onVolumeChange={radio.setVolume}
@@ -81,6 +83,8 @@ export default function RadioPortal() {
         current={radio.current}
         playing={radio.playing}
         loading={radio.loading}
+        fieramixSoundStatus={radio.fieramixSoundStatus}
+        fieramixSoundActive={radio.fieramixSoundActive}
         onPlaybackToggle={() => void radio.togglePlayback()}
         onMoveStation={radio.moveStation}
       />

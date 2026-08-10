@@ -16,13 +16,12 @@ export default function Header({
   return (
     <header className="siteHeader">
       <a href="#inicio" className="brand" aria-label="Ir al inicio">
-        <img src="/logos/grupo-fieramix.png" alt="GRUPO FIERAMIX.COM" />
+        <img src="/logos/grupo-fieramix.png" alt="EL GRUPO FIERAMIX.COM" />
         <div>
-          <strong>GRUPO FIERAMIX.COM</strong>
-          <span>La red latina que mueve el mundo</span>
+          <strong>EL GRUPO FIERAMIX.COM</strong>
+          <span>LA RED LATINA QUE MUEVE AL MUNDO</span>
         </div>
       </a>
-
       <button
         className="menuButton"
         onClick={onMenuToggle}
@@ -39,7 +38,6 @@ export default function Header({
         <a href="#noticias">Noticias</a>
         <a href="#club">Club de oyentes</a>
       </nav>
-
       <button className="liveButton" onClick={onPlaybackToggle}>
         <i /> {playing ? "EN VIVO" : "ESCUCHA EN VIVO"}
       </button>
