@@ -285,19 +285,50 @@ export default function ArtistGalleryPage() {
     setUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append("artist", cleanArtist);
-      formData.append("file", selectedFile);
+      const imageBase64 = await new Promise<string>(
+        (resolve, reject) => {
+          const reader = new FileReader();
 
-      if (adminKey.trim()) {
-        formData.append("adminKey", adminKey.trim());
-      }
+          reader.onload = () => {
+            const result = String(reader.result ?? "");
+            const commaIndex = result.indexOf(",");
+
+            resolve(
+              commaIndex >= 0
+                ? result.slice(commaIndex + 1)
+                : result,
+            );
+          };
+
+          reader.onerror = () => {
+            reject(
+              reader.error ??
+                new Error(
+                  "No fue posible leer la imagen seleccionada.",
+                ),
+            );
+          };
+
+          reader.readAsDataURL(selectedFile);
+        },
+      );
 
       const response = await fetch(
         "/api/artist-gallery",
         {
           method: "POST",
-          body: formData,
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            artist: cleanArtist,
+            adminKey:
+              adminKey.trim() || undefined,
+            imageBase64,
+            contentType:
+              selectedFile.type ||
+              "image/webp",
+          }),
         },
       );
 
