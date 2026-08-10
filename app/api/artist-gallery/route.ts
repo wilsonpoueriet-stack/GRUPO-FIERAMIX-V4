@@ -261,6 +261,161 @@ function getStoreInstance() {
   });
 }
 
+type ParsedUpload = {
+  artist: string;
+  adminKey: string;
+  originalBytes: ArrayBuffer;
+  originalContentType: string;
+  originalSize: number;
+};
+
+function decodeBase64Image(
+  value: string,
+): {
+  data: ArrayBuffer;
+  contentType: string;
+} {
+  const trimmed = clean(value);
+
+  const dataUriMatch =
+    trimmed.match(
+      /^data:([^;]+);base64,([\s\S]+)$/,
+    );
+
+  const contentType =
+    dataUriMatch
+      ? clean(dataUriMatch[1])
+      : "";
+
+  const base64 =
+    dataUriMatch
+      ? dataUriMatch[2]
+      : trimmed;
+
+  if (!base64) {
+    return {
+      data: new ArrayBuffer(0),
+      contentType,
+    };
+  }
+
+  const buffer =
+    Buffer.from(
+      base64,
+      "base64",
+    );
+
+  return {
+    data:
+      arrayBufferFromBuffer(
+        buffer,
+      ),
+    contentType,
+  };
+}
+
+async function parseUploadRequest(
+  request: Request,
+): Promise<ParsedUpload> {
+  const requestContentType =
+    clean(
+      request.headers.get(
+        "content-type",
+      ),
+    ).toLowerCase();
+
+  if (
+    requestContentType.includes(
+      "application/json",
+    )
+  ) {
+    const body =
+      (await request.json()) as {
+        artist?: string;
+        adminKey?: string;
+        imageBase64?: string;
+        contentType?: string;
+      };
+
+    const decoded =
+      decodeBase64Image(
+        clean(
+          body.imageBase64,
+        ),
+      );
+
+    const originalContentType =
+      clean(
+        body.contentType,
+      ) ||
+      decoded.contentType ||
+      "image/webp";
+
+    return {
+      artist:
+        clean(body.artist),
+      adminKey:
+        clean(body.adminKey),
+      originalBytes:
+        decoded.data,
+      originalContentType,
+      originalSize:
+        decoded.data.byteLength,
+    };
+  }
+
+  const formData =
+    await request.formData();
+
+  const artist =
+    clean(
+      String(
+        formData.get(
+          "artist",
+        ) ?? "",
+      ),
+    );
+
+  const adminKey =
+    clean(
+      String(
+        formData.get(
+          "adminKey",
+        ) ?? "",
+      ),
+    );
+
+  const fileValue =
+    formData.get("file");
+
+  if (
+    !(
+      fileValue instanceof
+      File
+    )
+  ) {
+    return {
+      artist,
+      adminKey,
+      originalBytes:
+        new ArrayBuffer(0),
+      originalContentType: "",
+      originalSize: 0,
+    };
+  }
+
+  return {
+    artist,
+    adminKey,
+    originalBytes:
+      await fileValue.arrayBuffer(),
+    originalContentType:
+      fileValue.type,
+    originalSize:
+      fileValue.size,
+  };
+}
+
 function publicArtistItem(
   metadata: ArtistImageMetadata,
 ) {
@@ -728,27 +883,16 @@ export async function POST(
   request: Request,
 ): Promise<Response> {
   try {
-    const formData =
-      await request.formData();
+    const upload =
+      await parseUploadRequest(
+        request,
+      );
 
-    const artist = clean(
-      String(
-        formData.get(
-          "artist",
-        ) ?? "",
-      ),
-    );
+    const artist =
+      upload.artist;
 
-    const adminKey = clean(
-      String(
-        formData.get(
-          "adminKey",
-        ) ?? "",
-      ),
-    );
-
-    const fileValue =
-      formData.get("file");
+    const adminKey =
+      upload.adminKey;
 
     if (
       !isAuthorized(
@@ -784,26 +928,8 @@ export async function POST(
     }
 
     if (
-      !(
-        fileValue instanceof
-        File
-      )
-    ) {
-      return json(
-        {
-          ok: false,
-          error:
-            "Debes seleccionar una imagen.",
-        },
-        {
-          status: 400,
-        },
-      );
-    }
-
-    if (
       !ALLOWED_TYPES.has(
-        fileValue.type,
+        upload.originalContentType,
       )
     ) {
       return json(
@@ -819,7 +945,7 @@ export async function POST(
     }
 
     if (
-      fileValue.size <= 0
+      upload.originalSize <= 0
     ) {
       return json(
         {
@@ -834,7 +960,7 @@ export async function POST(
     }
 
     if (
-      fileValue.size >
+      upload.originalSize >
       MAX_FILE_SIZE
     ) {
       return json(
@@ -872,12 +998,9 @@ export async function POST(
       );
     }
 
-    const originalBytes =
-      await fileValue.arrayBuffer();
-
     const enhanced =
       await enhanceArtistImage(
-        originalBytes,
+        upload.originalBytes,
       );
 
     const uploadedAt =
@@ -946,9 +1069,9 @@ export async function POST(
         height:
           enhanced.originalHeight,
         size:
-          fileValue.size,
+          upload.originalSize,
         contentType:
-          fileValue.type,
+          upload.originalContentType,
       },
       processed: {
         width:
