@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 type RequestStation = {
-  id: "bachata" | "merengue";
+  id: "bachata" | "merengue" | "salsa";
   name: string;
   shortName: string;
   logo: string;
@@ -33,6 +33,16 @@ const REQUEST_STATIONS: RequestStation[] = [
     accent2: "#2563eb",
     radioBossUser: 223,
     widgetId: 3191,
+  },
+  {
+    id: "salsa",
+    name: "SOLO SALSA",
+    shortName: "SALSA",
+    logo: "/logos/solo-salsa.png",
+    accent: "#f4b000",
+    accent2: "#f97316",
+    radioBossUser: 230,
+    widgetId: 14480,
   },
 ];
 
@@ -459,7 +469,7 @@ export default function SongRequest() {
 
         .requestStationSelector {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 8px;
           margin: 0 0 12px;
         }
@@ -477,7 +487,7 @@ export default function SongRequest() {
           border: 1px solid rgba(255, 255, 255, 0.09);
           border-radius: 10px;
           cursor: pointer;
-          font-size: 0.67rem;
+          font-size: 0.64rem;
           font-weight: 900;
           letter-spacing: 0.045em;
           transition:
@@ -596,6 +606,18 @@ export default function SongRequest() {
 
           .radioBossRequestFrame {
             min-height: 70px;
+          }
+        }
+
+
+        @media (max-width: 480px) {
+          .requestStationSelector {
+            grid-template-columns: 1fr;
+          }
+
+          .requestStationOption {
+            justify-content: flex-start;
+            padding-inline: 12px;
           }
         }
 
