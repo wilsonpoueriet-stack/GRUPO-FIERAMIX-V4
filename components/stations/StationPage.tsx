@@ -91,7 +91,7 @@ export default function StationPage() {
       <main className={styles.notFound}>
         <span>404</span>
         <h1>Emisora no encontrada</h1>
-        <p>La señal solicitada no forma parte de GRUPO FIERAMIX.COM.</p>
+        <p>La señal solicitada no forma parte de EL GRUPO FIERAMIX.COM.</p>
         <Link href="/">Volver al portal</Link>
       </main>
     );
@@ -141,7 +141,7 @@ export default function StationPage() {
 const currentStation = station;
     const shareData = {
       title: currentStation.name,
-      text: `Escucha ${station.name} en GRUPO FIERAMIX.COM`,
+      text: `Escucha ${station.name} en EL GRUPO FIERAMIX.COM`,
       url: window.location.href,
     };
 
@@ -170,8 +170,8 @@ const currentStation = station;
         <Link href="/" className={styles.brand}>
           <img src="/logos/grupo-fieramix.png" alt="" />
           <span>
-            <strong>GRUPO FIERAMIX.COM</strong>
-            <small>La red latina que mueve el mundo</small>
+            <strong>EL GRUPO FIERAMIX.COM</strong>
+            <small>LA RED LATINA QUE MUEVE AL MUNDO</small>
           </span>
         </Link>
 
@@ -317,7 +317,7 @@ const currentStation = station;
       ) : null}
 
       <footer className={styles.footer}>
-        <span>© 2026 GRUPO FIERAMIX.COM</span>
+        <span>© 2026 EL GRUPO FIERAMIX.COM</span>
         <Link href="/">Volver al portal principal</Link>
       </footer>
 
