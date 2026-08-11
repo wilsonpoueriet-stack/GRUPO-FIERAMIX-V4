@@ -4,8 +4,8 @@ export default function Footer() {
       <div className="footerBrand">
         <img src="/logos/grupo-fieramix.png" alt="" />
         <div>
-          <strong>GRUPO FIERAMIX.COM</strong>
-          <span>La red latina que mueve el mundo</span>
+          <strong>EL GRUPO FIERAMIX.COM</strong>
+          <span>La red latina que mueve al mundo</span>
         </div>
       </div>
 
@@ -15,7 +15,7 @@ export default function Footer() {
         <a href="https://www.youtube.com/@fieramixtv5937">YouTube</a>
       </div>
 
-      <small>© 2026 GRUPO FIERAMIX.COM</small>
+      <small>© 2026 EL GRUPO FIERAMIX.COM</small>
     </footer>
   );
 }

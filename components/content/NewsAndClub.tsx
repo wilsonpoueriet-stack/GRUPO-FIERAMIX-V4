@@ -1,36 +1,53 @@
 export default function NewsAndClub() {
   return (
     <>
-      <section id="noticias" className="newsSection">
+      <section
+        id="noticias"
+        className="newsSection"
+        style={{ scrollMarginTop: "210px" }}
+      >
         <div className="sectionTitle light">
           <span>FIERAMIX NOTICIAS</span>
-          <h2>Actualidad que conecta</h2>
+          <h2>Informaciones que mueven al mundo</h2>
+          <p>
+            Actualidad, música, entretenimiento y los acontecimientos que
+            conectan a la comunidad latina.
+          </p>
         </div>
 
         <div className="newsGrid">
           <article className="newsLead">
             <span>DESTACADA</span>
-            <h3>GRUPO FIERAMIX.COM expande su plataforma de radio digital</h3>
+            <h3
+              style={{
+                fontSize: "clamp(1.8rem, 3.2vw, 2.9rem)",
+                lineHeight: 1.05,
+                maxWidth: "760px",
+              }}
+            >
+              EL GRUPO FIERAMIX.COM fortalece su plataforma de radio digital
+            </h3>
             <p>
-              Nueve señales, música en vivo y una experiencia diseñada para la
-              comunidad latina.
+              Música en vivo, información y participación en una experiencia
+              digital creada para conectar a la comunidad latina.
             </p>
           </article>
 
           <article>
             <span>MÚSICA</span>
-            <h3>Los ritmos latinos que siguen conquistando al mundo</h3>
+            <h3>Los ritmos latinos continúan conquistando nuevas audiencias</h3>
             <p>
-              Bachata, merengue y salsa viven un nuevo momento digital.
+              Bachata, merengue, salsa y los sonidos urbanos amplían su alcance
+              dentro y fuera de Latinoamérica.
             </p>
           </article>
 
           <article>
-            <span>COMUNIDAD</span>
-            <h3>Únete al Club de Oyentes Fieramix</h3>
+            <span>ACTUALIDAD</span>
+            <h3>FIERAMIX NOTICIAS amplía su espacio informativo</h3>
             <p>
-              Promociones, saludos, concursos y conexión directa con nuestras
-              emisoras.
+              Noticias nacionales, internacionales, deportes, tecnología,
+              música y entretenimiento en un mismo punto de encuentro.
             </p>
           </article>
         </div>
