@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFloat from "@/components/layout/WhatsAppFloat";
@@ -12,10 +13,46 @@ import NewsAndClub from "@/components/content/NewsAndClub";
 import LiveNetwork from "@/components/content/LiveNetwork";
 import SongRequest from "@/components/songrequest/SongRequest";
 import { useRadioPortal } from "@/hooks/useRadioPortal";
-import PromotionCarousel from "@/components/promotions/PromotionCarousel";
 
 export default function RadioPortal() {
   const radio = useRadioPortal();
+
+  useEffect(() => {
+    if (window.location.hash) {
+      return;
+    }
+
+    const previousScrollRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+
+    const moveToTop = () => {
+      window.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: "auto",
+      });
+    };
+
+    moveToTop();
+
+    const frameOne = window.requestAnimationFrame(() => {
+      moveToTop();
+
+      window.requestAnimationFrame(() => {
+        moveToTop();
+      });
+    });
+
+    const timerOne = window.setTimeout(moveToTop, 120);
+    const timerTwo = window.setTimeout(moveToTop, 420);
+
+    return () => {
+      window.cancelAnimationFrame(frameOne);
+      window.clearTimeout(timerOne);
+      window.clearTimeout(timerTwo);
+      window.history.scrollRestoration = previousScrollRestoration;
+    };
+  }, []);
 
   return (
     <>
@@ -28,7 +65,7 @@ export default function RadioPortal() {
 
       <main id="inicio">
         <section className="heroShell">
-              <Hero
+          <Hero
             current={radio.current}
             playing={radio.playing}
             onPlaybackToggle={() => void radio.togglePlayback()}
