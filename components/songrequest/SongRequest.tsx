@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 type RequestStation = {
-  id: "bachata" | "merengue" | "salsa";
+  id: "bachata" | "merengue" | "salsa" | "baladas";
   name: string;
   shortName: string;
   logo: string;
@@ -43,6 +43,16 @@ const REQUEST_STATIONS: RequestStation[] = [
     accent2: "#f97316",
     radioBossUser: 230,
     widgetId: 14480,
+  },
+  {
+    id: "baladas",
+    name: "SOLO BALADAS",
+    shortName: "BALADAS",
+    logo: "/logos/solo-baladas.png",
+    accent: "#8c52ff",
+    accent2: "#c026d3",
+    radioBossUser: 222,
+    widgetId: 7162,
   },
 ];
 
@@ -469,7 +479,7 @@ export default function SongRequest() {
 
         .requestStationSelector {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 8px;
           margin: 0 0 12px;
         }
@@ -590,6 +600,7 @@ export default function SongRequest() {
           }
 
           .requestStationSelector {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 7px;
           }
 
