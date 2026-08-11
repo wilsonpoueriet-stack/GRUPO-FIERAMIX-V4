@@ -1,8 +1,43 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-const RADIOBOSS_WIDGET_HTML = String.raw`
+type RequestStation = {
+  id: "bachata" | "merengue";
+  name: string;
+  shortName: string;
+  logo: string;
+  accent: string;
+  accent2: string;
+  radioBossUser: number;
+  widgetId: number;
+};
+
+const REQUEST_STATIONS: RequestStation[] = [
+  {
+    id: "bachata",
+    name: "SOLO BACHATA",
+    shortName: "BACHATA",
+    logo: "/logos/solo-bachata.png",
+    accent: "#ff2d76",
+    accent2: "#a855f7",
+    radioBossUser: 221,
+    widgetId: 14858,
+  },
+  {
+    id: "merengue",
+    name: "SOLO MERENGUE",
+    shortName: "MERENGUE",
+    logo: "/logos/solo-merengue.png",
+    accent: "#00a8ff",
+    accent2: "#2563eb",
+    radioBossUser: 223,
+    widgetId: 3191,
+  },
+];
+
+function createRadioBossWidgetHtml(station: RequestStation): string {
+  return String.raw`
 <!doctype html>
 <html lang="es">
 <head>
@@ -54,8 +89,8 @@ const RADIOBOSS_WIDGET_HTML = String.raw`
   }
 
   .rbcloud_songrequest input:focus {
-    border-color: rgba(255,45,118,.70);
-    box-shadow: 0 0 0 3px rgba(255,45,118,.10);
+    border-color: ${station.accent};
+    box-shadow: 0 0 0 3px rgba(255,255,255,.05);
   }
 
   .rbcloud_songrequest button {
@@ -63,7 +98,7 @@ const RADIOBOSS_WIDGET_HTML = String.raw`
     padding: 0 14px;
     border: 0;
     color: #ffffff;
-    background: linear-gradient(135deg, #ff2d76, #a855f7);
+    background: linear-gradient(135deg, ${station.accent}, ${station.accent2});
     cursor: pointer;
     font-size: 12px;
     font-weight: 800;
@@ -120,7 +155,7 @@ const RADIOBOSS_WIDGET_HTML = String.raw`
 </head>
 <body>
 
-<div class="rbcloud_songrequest" id="rbcloud_songrequest14858">
+<div class="rbcloud_songrequest" id="rbcloud_songrequest${station.widgetId}">
   <div class="rbc_search">
     <input class="rbc_ed_query" placeholder="Busca artista o canción..." />
     <button class="rbc_bt_search" type="button">🔎 Buscar</button>
@@ -129,7 +164,7 @@ const RADIOBOSS_WIDGET_HTML = String.raw`
 </div>
 
 <script>
-window.rbcloudSongRequest14858 = {
+window.rbcloudSongRequest${station.widgetId} = {
   requestBtn: "SOLICITAR CANCIÓN",
   requested: "¡Solicitud enviada correctamente!",
   noTracks: "No se encontraron canciones.",
@@ -144,7 +179,7 @@ window.rbcloudSongRequest14858 = {
 };
 </script>
 
-<script src="https://c15.radioboss.fm/w/songrequest.js?u=221&wid=14858"></script>
+<script src="https://c15.radioboss.fm/w/songrequest.js?u=${station.radioBossUser}&wid=${station.widgetId}"></script>
 
 <script>
 (function () {
@@ -161,7 +196,7 @@ window.rbcloudSongRequest14858 = {
   }
 
   function reportHeight() {
-    const widget = document.getElementById("rbcloud_songrequest14858");
+    const widget = document.getElementById("rbcloud_songrequest${station.widgetId}");
 
     if (!widget) return;
 
@@ -171,6 +206,7 @@ window.rbcloudSongRequest14858 = {
     parent.postMessage(
       {
         type: "fieramix-songrequest-height",
+        widgetId: ${station.widgetId},
         height: height
       },
       "*"
@@ -179,7 +215,7 @@ window.rbcloudSongRequest14858 = {
 
   window.addEventListener("load", reportHeight);
 
-  const widget = document.getElementById("rbcloud_songrequest14858");
+  const widget = document.getElementById("rbcloud_songrequest${station.widgetId}");
 
   const observer = new MutationObserver(function () {
     window.requestAnimationFrame(reportHeight);
@@ -209,9 +245,21 @@ window.rbcloudSongRequest14858 = {
 </body>
 </html>
 `;
+}
 
 export default function SongRequest() {
+  const [selectedStationId, setSelectedStationId] =
+    useState<RequestStation["id"]>("bachata");
   const [frameHeight, setFrameHeight] = useState(70);
+
+  const selectedStation =
+    REQUEST_STATIONS.find((station) => station.id === selectedStationId) ??
+    REQUEST_STATIONS[0];
+
+  const radioBossWidgetHtml = useMemo(
+    () => createRadioBossWidgetHtml(selectedStation),
+    [selectedStation],
+  );
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -220,6 +268,7 @@ export default function SongRequest() {
       if (
         !data ||
         data.type !== "fieramix-songrequest-height" ||
+        data.widgetId !== selectedStation.widgetId ||
         typeof data.height !== "number"
       ) {
         return;
@@ -234,7 +283,16 @@ export default function SongRequest() {
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, []);
+  }, [selectedStation.widgetId]);
+
+  const selectStation = (stationId: RequestStation["id"]) => {
+    if (stationId === selectedStationId) {
+      return;
+    }
+
+    setFrameHeight(70);
+    setSelectedStationId(stationId);
+  };
 
   return (
     <section id="solicita" className="songRequestSection">
@@ -248,19 +306,19 @@ export default function SongRequest() {
         </h2>
 
         <p>
-          Busca tu canción favorita y envíala directamente a la programación
-          de Solo Bachata.
+          Elige tu emisora, busca tu canción favorita y envíala directamente a
+          su programación.
         </p>
 
         <div className="requestSteps">
           <div>
             <b>01</b>
-            <span>Busca la canción</span>
+            <span>Elige la emisora</span>
           </div>
 
           <div>
             <b>02</b>
-            <span>Elige el resultado</span>
+            <span>Busca la canción</span>
           </div>
 
           <div>
@@ -270,20 +328,57 @@ export default function SongRequest() {
         </div>
       </div>
 
-      <div className="songRequestCard">
+      <div
+        className="songRequestCard"
+        style={{
+          borderColor: `${selectedStation.accent}66`,
+          boxShadow: `0 30px 70px rgba(0,0,0,.35), 0 0 34px ${selectedStation.accent}12`,
+        }}
+      >
         <div className="requestCardHeader">
           <div>
-            <small>PIDE TU CANCIÓN AQUÍ</small>
-            <h3>SOLO BACHATA</h3>
+            <small style={{ color: selectedStation.accent }}>
+              PIDE TU CANCIÓN AQUÍ
+            </small>
+            <h3>{selectedStation.name}</h3>
           </div>
 
-          <img src="/logos/solo-bachata.png" alt="Solo Bachata" />
+          <img src={selectedStation.logo} alt={selectedStation.name} />
+        </div>
+
+        <div className="requestStationSelector" aria-label="Elige tu emisora">
+          {REQUEST_STATIONS.map((station) => {
+            const active = station.id === selectedStation.id;
+
+            return (
+              <button
+                key={station.id}
+                type="button"
+                className={active ? "requestStationOption active" : "requestStationOption"}
+                aria-pressed={active}
+                onClick={() => selectStation(station.id)}
+                style={
+                  active
+                    ? {
+                        borderColor: `${station.accent}99`,
+                        color: station.accent,
+                        background: `${station.accent}12`,
+                      }
+                    : undefined
+                }
+              >
+                <img src={station.logo} alt="" aria-hidden="true" />
+                <span>{station.shortName}</span>
+              </button>
+            );
+          })}
         </div>
 
         <iframe
+          key={selectedStation.widgetId}
           className="radioBossRequestFrame"
-          title="Solicita tu canción en Solo Bachata"
-          srcDoc={RADIOBOSS_WIDGET_HTML}
+          title={`Solicita tu canción en ${selectedStation.name}`}
+          srcDoc={radioBossWidgetHtml}
           style={{ height: frameHeight }}
         />
 
@@ -294,7 +389,6 @@ export default function SongRequest() {
       </div>
 
       <style jsx>{`
-        /* PROPORCIÓN V1 — compacta el módulo sin tocar RadioBOSS */
         .songRequestSection {
           padding: clamp(52px, 5vw, 70px) 5vw;
           grid-template-columns: minmax(0, 0.96fr) minmax(440px, 1.04fr);
@@ -349,15 +443,75 @@ export default function SongRequest() {
           align-self: center;
           padding: 24px 26px;
           transform: none;
+          transition:
+            border-color 0.22s ease,
+            box-shadow 0.22s ease;
         }
 
         .requestCardHeader {
-          margin-bottom: 15px;
+          margin-bottom: 13px;
         }
 
         .requestCardHeader img {
           width: 66px;
           height: 66px;
+        }
+
+        .requestStationSelector {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 8px;
+          margin: 0 0 12px;
+        }
+
+        .requestStationOption {
+          min-width: 0;
+          min-height: 38px;
+          padding: 6px 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          color: #aeb7d4;
+          background: rgba(255, 255, 255, 0.025);
+          border: 1px solid rgba(255, 255, 255, 0.09);
+          border-radius: 10px;
+          cursor: pointer;
+          font-size: 0.67rem;
+          font-weight: 900;
+          letter-spacing: 0.045em;
+          transition:
+            transform 0.18s ease,
+            border-color 0.18s ease,
+            color 0.18s ease,
+            background 0.18s ease;
+        }
+
+        .requestStationOption:hover {
+          transform: translateY(-1px);
+          color: #ffffff;
+          border-color: rgba(255, 255, 255, 0.18);
+        }
+
+        .requestStationOption.active {
+          color: #ffffff;
+        }
+
+        .requestStationOption img {
+          width: 25px;
+          height: 25px;
+          flex: 0 0 auto;
+          object-fit: contain;
+          padding: 2px;
+          background: #ffffff;
+          border-radius: 7px;
+        }
+
+        .requestStationOption span {
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         .requestNotice {
@@ -425,14 +579,35 @@ export default function SongRequest() {
             height: 62px;
           }
 
+          .requestStationSelector {
+            gap: 7px;
+          }
+
+          .requestStationOption {
+            min-height: 40px;
+            padding-inline: 8px;
+            font-size: 0.63rem;
+          }
+
+          .requestStationOption img {
+            width: 23px;
+            height: 23px;
+          }
+
           .radioBossRequestFrame {
             min-height: 70px;
           }
         }
 
         @media (prefers-reduced-motion: reduce) {
+          .songRequestCard,
+          .requestStationOption,
           .radioBossRequestFrame {
             transition: none;
+          }
+
+          .requestStationOption:hover {
+            transform: none;
           }
         }
       `}</style>
