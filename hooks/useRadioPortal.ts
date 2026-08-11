@@ -163,12 +163,11 @@ function isCristianaStation(station: Station): boolean {
   );
 }
 
-function isBravaStation(station: Station): boolean {
-  const fingerprint = normalizeStationText(
-    `${station.id} ${station.name}`,
-  );
+function isFieramixStation(station: Station): boolean {
+  const stationId = normalizeStationText(String(station.id)).trim();
+  const stationName = normalizeStationText(station.name).trim();
 
-  return fingerprint.includes("brava");
+  return stationId === "fieramix" || stationName === "fieramix";
 }
 
 function isRadioAhoraStation(station: Station): boolean {
@@ -195,7 +194,7 @@ function hasFieramixSoundProfile(
     isRancherasStation(station) ||
     isInternacionalStation(station) ||
     isCristianaStation(station) ||
-    isBravaStation(station) ||
+    isFieramixStation(station) ||
     isRadioAhoraStation(station)
   );
 }
@@ -1045,8 +1044,8 @@ function applyFieramixSoundProfile(
     return;
   }
 
-  if (isBravaStation(station)) {
-    // FIERAMIX SOUND WEB — FIERAMIX LA BRAVA V1 / IMPACTO
+  if (isFieramixStation(station)) {
+    // FIERAMIX SOUND WEB — FIERAMIX V1 / IMPACTO
     // Perfil generalista y dinámico para mezcla de ritmos latinos.
     // Busca pegada, presencia y amplitud sin favorecer un solo género.
 
