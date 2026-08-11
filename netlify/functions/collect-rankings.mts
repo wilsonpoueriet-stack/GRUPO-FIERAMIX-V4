@@ -105,7 +105,7 @@ function isPlayableTrack(title: string, artist: string): boolean {
     /^promocion(?:\s|$)/,
     /^publicidad(?:\s|$)/,
     /^comercial(?:\s|$)/,
-    /^cuña(?:\s|$)/,
+    /^cuna(?:\s|$)/,
     /^la hora(?:\s|$)/,
   ];
 
@@ -114,22 +114,6 @@ function isPlayableTrack(title: string, artist: string): boolean {
   }
 
   return true;
-}
-  const safeTitle = normalize(title);
-  const safeArtist = normalize(artist);
-
-  if (!safeTitle || !safeArtist) {
-    return false;
-  }
-
-  const blockedTitles = new Set([
-    "programacion en vivo",
-    "en vivo",
-    "sin informacion",
-    "sin información",
-  ]);
-
-  return !blockedTitles.has(safeTitle);
 }
 
 function getDominicanParts(date: Date): DominicanDateParts {
