@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 type RequestStation = {
-  id: "bachata" | "merengue" | "salsa" | "baladas" | "reggaeton" | "rancheras" | "internacional";
+  id: "bachata" | "merengue" | "salsa" | "baladas" | "reggaeton" | "rancheras" | "internacional" | "cristiana";
   name: string;
   shortName: string;
   logo: string;
@@ -91,6 +91,17 @@ const REQUEST_STATIONS: RequestStation[] = [
     radioBossHost: "c13.radioboss.fm",
     radioBossUser: 188,
     widgetId: 10077,
+  },
+  {
+    id: "cristiana",
+    name: "SOLO MÚSICA CRISTIANA",
+    shortName: "CRISTIANA",
+    logo: "/logos/solo-cristiana.png",
+    accent: "#14b8a6",
+    accent2: "#22c55e",
+    radioBossHost: "c11.radioboss.fm",
+    radioBossUser: 211,
+    widgetId: 12771,
   },
 ];
 
@@ -517,7 +528,7 @@ export default function SongRequest() {
 
         .requestStationSelector {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 8px;
           margin: 0 0 12px;
         }
@@ -529,13 +540,13 @@ export default function SongRequest() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 6px;
+          gap: 5px;
           color: #aeb7d4;
           background: rgba(255, 255, 255, 0.025);
           border: 1px solid rgba(255, 255, 255, 0.09);
           border-radius: 10px;
           cursor: pointer;
-          font-size: 0.64rem;
+          font-size: 0.58rem;
           font-weight: 900;
           letter-spacing: 0.045em;
           transition:
@@ -556,8 +567,8 @@ export default function SongRequest() {
         }
 
         .requestStationOption img {
-          width: 23px;
-          height: 23px;
+          width: 22px;
+          height: 22px;
           flex: 0 0 auto;
           object-fit: contain;
           padding: 2px;
@@ -570,10 +581,6 @@ export default function SongRequest() {
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
-        }
-
-        .requestStationOption:last-child:nth-child(3n + 1) {
-          grid-column: 2;
         }
 
         .requestNotice {
@@ -644,10 +651,6 @@ export default function SongRequest() {
           .requestStationSelector {
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 7px;
-          }
-
-          .requestStationOption:last-child:nth-child(3n + 1) {
-            grid-column: auto;
           }
 
           .requestStationOption {
