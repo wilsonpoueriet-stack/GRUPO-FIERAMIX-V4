@@ -294,9 +294,21 @@ export default function SongRequest() {
       </div>
 
       <style jsx>{`
+        /* PROPORCIÓN V1 — compacta el módulo sin tocar RadioBOSS */
+        .songRequestSection {
+          padding: clamp(52px, 5vw, 70px) 5vw;
+          grid-template-columns: minmax(0, 0.96fr) minmax(440px, 1.04fr);
+          gap: clamp(30px, 4vw, 54px);
+          align-items: center;
+        }
+
+        .songRequestIntro {
+          align-self: center;
+        }
+
         .songRequestIntro h2 {
           max-width: 520px;
-          margin-top: 8px;
+          margin: 8px 0 14px;
           font-size: clamp(1.9rem, 3vw, 3.15rem);
           line-height: 1;
           letter-spacing: -0.04em;
@@ -311,8 +323,45 @@ export default function SongRequest() {
           letter-spacing: -0.025em;
         }
 
+        .songRequestIntro > p {
+          margin-bottom: 0;
+          line-height: 1.55;
+        }
+
+        .requestSteps {
+          margin-top: 24px;
+          gap: 10px;
+        }
+
+        .requestSteps > div {
+          min-height: 78px;
+          padding: 14px 16px;
+          align-content: center;
+          gap: 5px;
+        }
+
+        .requestSteps b {
+          font-size: 1.35rem;
+          line-height: 1;
+        }
+
         .songRequestCard {
-          transform: translateY(-6px);
+          align-self: center;
+          padding: 24px 26px;
+          transform: none;
+        }
+
+        .requestCardHeader {
+          margin-bottom: 15px;
+        }
+
+        .requestCardHeader img {
+          width: 66px;
+          height: 66px;
+        }
+
+        .requestNotice {
+          margin-top: 12px;
         }
 
         .radioBossRequestFrame {
@@ -325,12 +374,29 @@ export default function SongRequest() {
         }
 
         @media (max-width: 1050px) {
+          .songRequestSection {
+            padding: 58px 5vw;
+            grid-template-columns: 1fr;
+            gap: 32px;
+          }
+
+          .songRequestIntro {
+            max-width: 760px;
+          }
+
           .songRequestCard {
-            transform: none;
+            width: 100%;
+            max-width: 780px;
+            margin-inline: auto;
           }
         }
 
         @media (max-width: 680px) {
+          .songRequestSection {
+            padding: 48px 18px;
+            gap: 26px;
+          }
+
           .songRequestIntro h2 {
             max-width: 420px;
             font-size: clamp(1.85rem, 8.8vw, 2.55rem);
@@ -339,6 +405,24 @@ export default function SongRequest() {
 
           .songRequestIntro h2 em {
             font-size: 0.8em;
+          }
+
+          .requestSteps {
+            margin-top: 20px;
+          }
+
+          .requestSteps > div {
+            min-height: 0;
+            padding: 13px 15px;
+          }
+
+          .songRequestCard {
+            padding: 20px;
+          }
+
+          .requestCardHeader img {
+            width: 62px;
+            height: 62px;
           }
 
           .radioBossRequestFrame {
