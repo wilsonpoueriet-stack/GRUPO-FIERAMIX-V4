@@ -374,7 +374,19 @@ export default function StationPage() {
           />
 
           <span className={styles.genre}>{currentStation.genre}</span>
-          <h1>{currentStation.name}</h1>
+          <h1>
+            {currentStation.name.startsWith("SOLO MÚSICA ") ? (
+              <>
+                SOLO
+                <br />
+                MÚSICA
+                <br />
+                {currentStation.name.replace("SOLO MÚSICA ", "")}
+              </>
+            ) : (
+              currentStation.name
+            )}
+          </h1>
           <p>{currentStation.slogan}</p>
 
           <div className={styles.actions}>
