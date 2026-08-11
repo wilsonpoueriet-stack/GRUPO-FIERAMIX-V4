@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 type RequestStation = {
-  id: "bachata" | "merengue" | "salsa" | "baladas" | "reggaeton" | "rancheras" | "internacional" | "cristiana";
+  id: "bachata" | "merengue" | "salsa" | "baladas" | "reggaeton" | "rancheras" | "internacional" | "cristiana" | "fieramix";
   name: string;
   shortName: string;
   logo: string;
@@ -102,6 +102,17 @@ const REQUEST_STATIONS: RequestStation[] = [
     radioBossHost: "c11.radioboss.fm",
     radioBossUser: 211,
     widgetId: 12771,
+  },
+  {
+    id: "fieramix",
+    name: "FIERAMIX",
+    shortName: "FIERAMIX",
+    logo: "/logos/fieramix.png",
+    accent: "#ff5a1f",
+    accent2: "#ef4444",
+    radioBossHost: "c11.radioboss.fm",
+    radioBossUser: 269,
+    widgetId: 15352,
   },
 ];
 
@@ -528,7 +539,7 @@ export default function SongRequest() {
 
         .requestStationSelector {
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
+          grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 8px;
           margin: 0 0 12px;
         }
@@ -540,13 +551,13 @@ export default function SongRequest() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 5px;
+          gap: 7px;
           color: #aeb7d4;
           background: rgba(255, 255, 255, 0.025);
           border: 1px solid rgba(255, 255, 255, 0.09);
           border-radius: 10px;
           cursor: pointer;
-          font-size: 0.58rem;
+          font-size: 0.64rem;
           font-weight: 900;
           letter-spacing: 0.045em;
           transition:
@@ -567,8 +578,8 @@ export default function SongRequest() {
         }
 
         .requestStationOption img {
-          width: 22px;
-          height: 22px;
+          width: 24px;
+          height: 24px;
           flex: 0 0 auto;
           object-fit: contain;
           padding: 2px;
