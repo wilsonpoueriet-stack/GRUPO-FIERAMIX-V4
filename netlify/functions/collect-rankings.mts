@@ -86,6 +86,42 @@ function isPlayableTrack(title: string, artist: string): boolean {
     return false;
   }
 
+  const blockedExactTitles = new Set([
+    "programacion en vivo",
+    "en vivo",
+    "sin informacion",
+  ]);
+
+  if (blockedExactTitles.has(safeTitle)) {
+    return false;
+  }
+
+  const blockedTitlePatterns = [
+    /^identificacion(?:\s|$)/,
+    /^identificador(?:\s|$)/,
+    /^id fieramix(?:\s|$)/,
+    /^jingle(?:\s|$)/,
+    /^promo(?:\s|$)/,
+    /^promocion(?:\s|$)/,
+    /^publicidad(?:\s|$)/,
+    /^comercial(?:\s|$)/,
+    /^cuña(?:\s|$)/,
+    /^la hora(?:\s|$)/,
+  ];
+
+  if (blockedTitlePatterns.some((pattern) => pattern.test(safeTitle))) {
+    return false;
+  }
+
+  return true;
+}
+  const safeTitle = normalize(title);
+  const safeArtist = normalize(artist);
+
+  if (!safeTitle || !safeArtist) {
+    return false;
+  }
+
   const blockedTitles = new Set([
     "programacion en vivo",
     "en vivo",
