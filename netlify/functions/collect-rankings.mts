@@ -449,5 +449,5 @@ export default async function collectRankings(): Promise<Response> {
 }
 
 export const config: Config = {
-  schedule: SCHEDULE,
+  schedule: "*/15 * * * *",
 };
