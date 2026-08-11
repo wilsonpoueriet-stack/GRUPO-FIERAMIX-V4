@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 type RequestStation = {
-  id: "bachata" | "merengue" | "salsa" | "baladas" | "reggaeton" | "rancheras";
+  id: "bachata" | "merengue" | "salsa" | "baladas" | "reggaeton" | "rancheras" | "internacional";
   name: string;
   shortName: string;
   logo: string;
@@ -80,6 +80,17 @@ const REQUEST_STATIONS: RequestStation[] = [
     radioBossHost: "c11.radioboss.fm",
     radioBossUser: 212,
     widgetId: 424,
+  },
+  {
+    id: "internacional",
+    name: "SOLO MÚSICA INTERNACIONAL",
+    shortName: "INTERNACIONAL",
+    logo: "/logos/solo-internacional.png",
+    accent: "#2563eb",
+    accent2: "#06b6d4",
+    radioBossHost: "c13.radioboss.fm",
+    radioBossUser: 188,
+    widgetId: 10077,
   },
 ];
 
@@ -561,6 +572,10 @@ export default function SongRequest() {
           white-space: nowrap;
         }
 
+        .requestStationOption:last-child:nth-child(3n + 1) {
+          grid-column: 2;
+        }
+
         .requestNotice {
           margin-top: 12px;
         }
@@ -629,6 +644,10 @@ export default function SongRequest() {
           .requestStationSelector {
             grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 7px;
+          }
+
+          .requestStationOption:last-child:nth-child(3n + 1) {
+            grid-column: auto;
           }
 
           .requestStationOption {
