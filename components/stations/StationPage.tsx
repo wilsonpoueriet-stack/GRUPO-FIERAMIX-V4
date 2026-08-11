@@ -1,9 +1,19 @@
 "use client";
 
+// FIERAMIX SOUND PAGINAS INTERNAS V2 — TYPE SAFE
+
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { stations } from "@/data/stations";
+import {
+  applyFieramixSoundProfile,
+  createFieramixSoundGraph,
+  hasFieramixSoundProfile,
+  streamAllowsWebAudio,
+  type FieramixSoundGraph,
+  type FieramixSoundStatus,
+} from "@/hooks/useRadioPortal";
 import type { NowPlaying } from "@/types/radio";
 import styles from "./StationPage.module.css";
 
@@ -19,16 +29,60 @@ function fallback(stationId: string): NowPlaying {
   };
 }
 
+function getSoundBadge(
+  status: FieramixSoundStatus,
+  active: boolean,
+) {
+  if (status === "checking") {
+    return {
+      label: "FIERAMIX SOUND · COMPROBANDO",
+      dot: "#f5b942",
+      text: "#ffe5a3",
+      border: "rgba(245, 185, 66, .32)",
+      background: "rgba(245, 185, 66, .09)",
+      glow: "rgba(245, 185, 66, .16)",
+    };
+  }
+
+  if (status === "bypass") {
+    return {
+      label: "FIERAMIX SOUND · BYPASS",
+      dot: "#9ca3af",
+      text: "#d1d5db",
+      border: "rgba(156, 163, 175, .25)",
+      background: "rgba(156, 163, 175, .07)",
+      glow: "rgba(156, 163, 175, .10)",
+    };
+  }
+
+  if (status === "active" && active) {
+    return {
+      label: "FIERAMIX SOUND · ACTIVO",
+      dot: "#7bf5be",
+      text: "#bdfbdc",
+      border: "rgba(123, 245, 190, .32)",
+      background: "rgba(123, 245, 190, .08)",
+      glow: "rgba(123, 245, 190, .18)",
+    };
+  }
+
+  return null;
+}
+
 export default function StationPage() {
   const params = useParams<{ id: string }>();
   const stationId = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const station = useMemo(
-  () => stations.find((item) => item.id === stationId),
-  [stationId],
-);
+    () => stations.find((item) => item.id === stationId),
+    [stationId],
+  );
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const fieramixSoundGraphRef = useRef<FieramixSoundGraph | null>(null);
+  const fieramixSoundInitPromiseRef = useRef<Promise<boolean> | null>(null);
+  const fieramixSoundCheckedRef = useRef(false);
+
   const [metadata, setMetadata] = useState<NowPlaying>(() =>
     fallback(stationId),
   );
@@ -36,17 +90,27 @@ export default function StationPage() {
   const [loading, setLoading] = useState(false);
   const [volume, setVolume] = useState(0.85);
   const [copied, setCopied] = useState(false);
+  const [fieramixSoundStatus, setFieramixSoundStatus] =
+    useState<FieramixSoundStatus>("idle");
+
+  const fieramixSoundActive =
+    fieramixSoundStatus === "active" &&
+    Boolean(station && hasFieramixSoundProfile(station));
+  const soundBadge = getSoundBadge(
+    fieramixSoundStatus,
+    fieramixSoundActive,
+  );
 
   useEffect(() => {
-  if (!station) {
-    return;
-  }
+    if (!station) {
+      return;
+    }
 
-  const currentStation = station;
-  let cancelled = false;
+    const currentStation = station;
+    let cancelled = false;
 
-  async function loadMetadata(): Promise<void> {
-    try {
+    async function loadMetadata(): Promise<void> {
+      try {
       const response = await fetch(
         `/api/now-playing?station=${encodeURIComponent(currentStation.id)}`,
         {
@@ -86,6 +150,17 @@ export default function StationPage() {
     if (audioRef.current) audioRef.current.volume = volume;
   }, [volume]);
 
+  useEffect(() => {
+    return () => {
+      const graph = fieramixSoundGraphRef.current;
+
+      if (graph) {
+        void graph.context.close();
+        fieramixSoundGraphRef.current = null;
+      }
+    };
+  }, []);
+
   if (!station) {
     return (
       <main className={styles.notFound}>
@@ -97,51 +172,155 @@ export default function StationPage() {
     );
   }
 
-  async function togglePlayback() {
-    if (!station) {
-      return;
+  // Capturamos la emisora ya validada para que TypeScript mantenga
+  // el tipo Station dentro de las funciones asíncronas anidadas.
+  const currentStation = station;
+
+  async function ensureFieramixSound(): Promise<boolean> {
+    const audio = audioRef.current;
+
+    if (!audio) {
+      return false;
     }
 
-    const currentStation = station;
+    const existingGraph = fieramixSoundGraphRef.current;
+
+    if (existingGraph) {
+      applyFieramixSoundProfile(existingGraph, currentStation);
+
+      if (existingGraph.context.state === "suspended") {
+        try {
+          await existingGraph.context.resume();
+        } catch {
+          // La reproducción normal puede continuar aunque el contexto
+          // permanezca suspendido hasta la interacción del usuario.
+        }
+      }
+
+      setFieramixSoundStatus(
+        hasFieramixSoundProfile(currentStation) ? "active" : "idle",
+      );
+      return true;
+    }
+
+    if (fieramixSoundCheckedRef.current) {
+      return false;
+    }
+
+    if (fieramixSoundInitPromiseRef.current) {
+      return fieramixSoundInitPromiseRef.current;
+    }
+
+    fieramixSoundInitPromiseRef.current = (async () => {
+      setFieramixSoundStatus("checking");
+
+      const corsReady = await streamAllowsWebAudio(currentStation.streamUrl);
+      fieramixSoundCheckedRef.current = true;
+
+      if (!corsReady) {
+        console.info(
+          `FIERAMIX SOUND: bypass en ${currentStation.name}. El stream no confirmó compatibilidad CORS para Web Audio.`,
+        );
+        setFieramixSoundStatus("bypass");
+        return false;
+      }
+
+      // Debe establecerse antes de cargar el stream en el elemento de audio.
+      audio.crossOrigin = "anonymous";
+
+      const graph = createFieramixSoundGraph(audio);
+
+      if (!graph) {
+        setFieramixSoundStatus("bypass");
+        return false;
+      }
+
+      fieramixSoundGraphRef.current = graph;
+      applyFieramixSoundProfile(graph, currentStation);
+
+      try {
+        await graph.context.resume();
+      } catch {
+        // El navegador puede completar la activación al ejecutar audio.play().
+      }
+
+      const profileActive = hasFieramixSoundProfile(currentStation);
+      setFieramixSoundStatus(profileActive ? "active" : "idle");
+
+      if (profileActive) {
+        console.info(`FIERAMIX SOUND: ${currentStation.name} activo.`);
+      }
+
+      return true;
+    })();
+
+    try {
+      return await fieramixSoundInitPromiseRef.current;
+    } finally {
+      fieramixSoundInitPromiseRef.current = null;
+    }
+  }
+
+  async function togglePlayback() {
     const audio = audioRef.current;
 
     if (!audio) {
       return;
     }
 
-    if (!audio.src) {
-      audio.src = currentStation.streamUrl;
-      audio.load();
-    }
-
-    if (audio.paused) {
-      setLoading(true);
-
-      try {
-        await audio.play();
-        setPlaying(true);
-      } catch {
-        setPlaying(false);
-      } finally {
-        setLoading(false);
-      }
-
+    if (!audio.paused) {
+      audio.pause();
+      setPlaying(false);
       return;
     }
 
-    audio.pause();
-    setPlaying(false);
+    setLoading(true);
+
+    try {
+      if (
+        hasFieramixSoundProfile(currentStation) ||
+        fieramixSoundGraphRef.current
+      ) {
+        await ensureFieramixSound();
+      }
+
+      const graph = fieramixSoundGraphRef.current;
+
+      if (graph) {
+        audio.crossOrigin = "anonymous";
+        applyFieramixSoundProfile(graph, currentStation);
+
+        if (graph.context.state === "suspended") {
+          try {
+            await graph.context.resume();
+          } catch {
+            // audio.play() mantiene la autoridad sobre la reproducción.
+          }
+        }
+      }
+
+      if (audio.src !== currentStation.streamUrl) {
+        audio.src = currentStation.streamUrl;
+        audio.load();
+      }
+
+      await audio.play();
+      setPlaying(true);
+    } catch (error) {
+      console.error(
+        `No se pudo iniciar la reproducción de ${currentStation.name}:`,
+        error,
+      );
+      setPlaying(false);
+    } finally {
+      setLoading(false);
+    }
   }
 
   async function shareStation() {
-    if (!station) {
-  return;
-}
-
-const currentStation = station;
     const shareData = {
       title: currentStation.name,
-      text: `Escucha ${station.name} en EL GRUPO FIERAMIX.COM`,
+      text: `Escucha ${currentStation.name} en EL GRUPO FIERAMIX.COM`,
       url: window.location.href,
     };
 
@@ -162,7 +341,7 @@ const currentStation = station;
   return (
     <main
       className={styles.page}
-      style={{ "--station-accent": station.accent } as React.CSSProperties}
+      style={{ "--station-accent": currentStation.accent } as React.CSSProperties}
     >
       <div className={styles.background} />
 
@@ -190,13 +369,13 @@ const currentStation = station;
 
           <img
             className={styles.stationLogo}
-            src={station.logo}
-            alt={station.name}
+            src={currentStation.logo}
+            alt={currentStation.name}
           />
 
-          <span className={styles.genre}>{station.genre}</span>
-          <h1>{station.name}</h1>
-          <p>{station.slogan}</p>
+          <span className={styles.genre}>{currentStation.genre}</span>
+          <h1>{currentStation.name}</h1>
+          <p>{currentStation.slogan}</p>
 
           <div className={styles.actions}>
             <button className={styles.primaryButton} onClick={togglePlayback}>
@@ -212,12 +391,58 @@ const currentStation = station;
         <article className={styles.player}>
           <div className={styles.playerTop}>
             <span>SONANDO AHORA</span>
-            <b>{metadata.listeners ?? "—"} oyentes</b>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                gap: "8px",
+                flexWrap: "wrap",
+              }}
+            >
+              {soundBadge ? (
+                <span
+                  title="Procesamiento FIERAMIX SOUND en el reproductor web"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "7px",
+                    padding: "5px 9px",
+                    borderRadius: "999px",
+                    border: `1px solid ${soundBadge.border}`,
+                    background: soundBadge.background,
+                    color: soundBadge.text,
+                    boxShadow: `0 0 18px ${soundBadge.glow}`,
+                    fontSize: ".56rem",
+                    fontWeight: 900,
+                    lineHeight: 1,
+                    letterSpacing: ".06em",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      width: "6px",
+                      height: "6px",
+                      borderRadius: "999px",
+                      background: soundBadge.dot,
+                      boxShadow: `0 0 10px ${soundBadge.dot}`,
+                      flex: "0 0 auto",
+                    }}
+                  />
+                  {soundBadge.label}
+                </span>
+              ) : null}
+
+              <b>{metadata.listeners ?? "—"} oyentes</b>
+            </div>
           </div>
 
           <div className={styles.artworkShell}>
             <img
-              src={metadata.artwork || station.logo}
+              src={metadata.artwork || currentStation.logo}
               alt={`${metadata.title} — ${metadata.artist}`}
             />
 
@@ -259,7 +484,7 @@ const currentStation = station;
           <span>SEÑAL DIGITAL</span>
           <h2>Radio latina sin fronteras</h2>
           <p>
-            Disfruta de {station.name} las 24 horas desde cualquier dispositivo.
+            Disfruta de {currentStation.name} las 24 horas desde cualquier dispositivo.
             La canción, el artista y la audiencia se actualizan directamente
             desde RadioBOSS Cloud.
           </p>
@@ -289,7 +514,7 @@ const currentStation = station;
 
         <div className={styles.stationRail}>
           {stations
-            .filter((item) => item.id !== station.id)
+            .filter((item) => item.id !== currentStation.id)
             .map((item) => (
               <Link href={`/emisoras/${item.id}`} key={item.id}>
                 <img src={item.logo} alt="" />
@@ -302,7 +527,7 @@ const currentStation = station;
         </div>
       </section>
 
-      {station.id === "bachata" ? (
+      {currentStation.id === "bachata" ? (
         <section className={styles.requestCallout}>
           <div>
             <span>SOLO BACHATA</span>

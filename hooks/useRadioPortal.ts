@@ -27,13 +27,13 @@ type RadioBossAllItem = {
   error?: string;
 };
 
-type FieramixSoundStatus =
+export type FieramixSoundStatus =
   | "idle"
   | "checking"
   | "active"
   | "bypass";
 
-type FieramixSoundGraph = {
+export type FieramixSoundGraph = {
   context: AudioContext;
   source: MediaElementAudioSourceNode;
   lowShelf: BiquadFilterNode;
@@ -182,7 +182,7 @@ function isRadioAhoraStation(station: Station): boolean {
   );
 }
 
-function hasFieramixSoundProfile(
+export function hasFieramixSoundProfile(
   station: Station,
 ): boolean {
   return (
@@ -246,7 +246,7 @@ function setStereoWidth(
   );
 }
 
-function applyFieramixSoundProfile(
+export function applyFieramixSoundProfile(
   graph: FieramixSoundGraph,
   station: Station,
 ) {
@@ -1276,7 +1276,7 @@ function applyFieramixSoundProfile(
   );
 }
 
-async function streamAllowsWebAudio(
+export async function streamAllowsWebAudio(
   streamUrl: string,
 ): Promise<boolean> {
   const controller = new AbortController();
@@ -1324,7 +1324,7 @@ async function allStreamsAllowWebAudio(): Promise<boolean> {
   return results.every(Boolean);
 }
 
-function createFieramixSoundGraph(
+export function createFieramixSoundGraph(
   audio: HTMLAudioElement,
 ): FieramixSoundGraph | null {
   if (typeof window === "undefined") {
