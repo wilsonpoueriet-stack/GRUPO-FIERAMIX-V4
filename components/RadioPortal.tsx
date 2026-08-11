@@ -28,7 +28,7 @@ export default function RadioPortal() {
 
       <main id="inicio">
         <section className="heroShell">
-              <Hero
+          <Hero
             current={radio.current}
             playing={radio.playing}
             onPlaybackToggle={() => void radio.togglePlayback()}
@@ -47,6 +47,8 @@ export default function RadioPortal() {
             onVolumeChange={radio.setVolume}
           />
         </section>
+
+        <PromotionCarousel />
 
         <LiveNetwork
           stations={radio.stations}
