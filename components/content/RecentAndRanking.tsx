@@ -989,34 +989,63 @@ export default function RecentAndRanking({
   useEffect(() => {
     let cancelled = false;
 
+    async function waitForRetry(delayMs: number) {
+      await new Promise<void>((resolve) => {
+        window.setTimeout(resolve, delayMs);
+      });
+    }
+
     async function loadStationHistoricalRanking() {
       setStationHistoricalLoading(true);
       setStationHistoricalError("");
 
+      const maxAttempts =
+        stationRankingPeriod === "actual" ? 3 : 1;
+
       try {
-        const response = await fetch(
-          `/api/rankings?period=${encodeURIComponent(
-            stationRankingPeriod,
-          )}&station=${encodeURIComponent(chartStationId)}`,
-          {
-            cache: "no-store",
-          },
-        );
+        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+          if (attempt > 0) {
+            await waitForRetry(attempt === 1 ? 700 : 1400);
+          }
 
-        const data =
-          (await response.json()) as HistoricalRankingResponse;
+          if (cancelled) {
+            return;
+          }
 
-        if (cancelled) {
-          return;
-        }
-
-        setStationHistoricalRanking(data);
-
-        if (!response.ok || !data.ok) {
-          setStationHistoricalError(
-            data.error ||
-              "No fue posible cargar el ranking de esta emisora.",
+          const response = await fetch(
+            `/api/rankings?period=${encodeURIComponent(
+              stationRankingPeriod,
+            )}&station=${encodeURIComponent(chartStationId)}&t=${Date.now()}`,
+            {
+              cache: "no-store",
+            },
           );
+
+          const data =
+            (await response.json()) as HistoricalRankingResponse;
+
+          if (cancelled) {
+            return;
+          }
+
+          setStationHistoricalRanking(data);
+
+          if (!response.ok || !data.ok) {
+            setStationHistoricalError(
+              data.error ||
+                "No fue posible cargar el ranking de esta emisora.",
+            );
+            return;
+          }
+
+          setStationHistoricalError("");
+
+          if (
+            data.ranking.length > 0 ||
+            attempt === maxAttempts - 1
+          ) {
+            return;
+          }
         }
       } catch (error) {
         if (cancelled) {
