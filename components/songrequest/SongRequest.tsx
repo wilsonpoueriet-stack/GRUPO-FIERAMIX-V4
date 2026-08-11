@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 
 type RequestStation = {
-  id: "bachata" | "merengue" | "salsa" | "baladas";
+  id: "bachata" | "merengue" | "salsa" | "baladas" | "reggaeton";
   name: string;
   shortName: string;
   logo: string;
   accent: string;
   accent2: string;
+  radioBossHost: string;
   radioBossUser: number;
   widgetId: number;
 };
@@ -21,6 +22,7 @@ const REQUEST_STATIONS: RequestStation[] = [
     logo: "/logos/solo-bachata.png",
     accent: "#ff2d76",
     accent2: "#a855f7",
+    radioBossHost: "c15.radioboss.fm",
     radioBossUser: 221,
     widgetId: 14858,
   },
@@ -31,6 +33,7 @@ const REQUEST_STATIONS: RequestStation[] = [
     logo: "/logos/solo-merengue.png",
     accent: "#00a8ff",
     accent2: "#2563eb",
+    radioBossHost: "c15.radioboss.fm",
     radioBossUser: 223,
     widgetId: 3191,
   },
@@ -41,6 +44,7 @@ const REQUEST_STATIONS: RequestStation[] = [
     logo: "/logos/solo-salsa.png",
     accent: "#f4b000",
     accent2: "#f97316",
+    radioBossHost: "c15.radioboss.fm",
     radioBossUser: 230,
     widgetId: 14480,
   },
@@ -51,8 +55,20 @@ const REQUEST_STATIONS: RequestStation[] = [
     logo: "/logos/solo-baladas.png",
     accent: "#8c52ff",
     accent2: "#c026d3",
+    radioBossHost: "c15.radioboss.fm",
     radioBossUser: 222,
     widgetId: 7162,
+  },
+  {
+    id: "reggaeton",
+    name: "SOLO REGGAETÓN",
+    shortName: "REGGAETÓN",
+    logo: "/logos/solo-reggaeton.png",
+    accent: "#00c2a8",
+    accent2: "#0ea5e9",
+    radioBossHost: "c13.radioboss.fm",
+    radioBossUser: 182,
+    widgetId: 8150,
   },
 ];
 
@@ -199,7 +215,7 @@ window.rbcloudSongRequest${station.widgetId} = {
 };
 </script>
 
-<script src="https://c15.radioboss.fm/w/songrequest.js?u=${station.radioBossUser}&wid=${station.widgetId}"></script>
+<script src="https://${station.radioBossHost}/w/songrequest.js?u=${station.radioBossUser}&wid=${station.widgetId}"></script>
 
 <script>
 (function () {
@@ -479,7 +495,7 @@ export default function SongRequest() {
 
         .requestStationSelector {
           display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
+          grid-template-columns: repeat(5, minmax(0, 1fr));
           gap: 8px;
           margin: 0 0 12px;
         }
@@ -491,13 +507,13 @@ export default function SongRequest() {
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
+          gap: 6px;
           color: #aeb7d4;
           background: rgba(255, 255, 255, 0.025);
           border: 1px solid rgba(255, 255, 255, 0.09);
           border-radius: 10px;
           cursor: pointer;
-          font-size: 0.64rem;
+          font-size: 0.60rem;
           font-weight: 900;
           letter-spacing: 0.045em;
           transition:
@@ -518,8 +534,8 @@ export default function SongRequest() {
         }
 
         .requestStationOption img {
-          width: 25px;
-          height: 25px;
+          width: 23px;
+          height: 23px;
           flex: 0 0 auto;
           object-fit: contain;
           padding: 2px;
