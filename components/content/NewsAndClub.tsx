@@ -1,4 +1,12 @@
+import Link from "next/link";
 import { news } from "@/data/news";
+
+const newsLinkStyle = {
+  position: "absolute" as const,
+  inset: 0,
+  zIndex: 2,
+  borderRadius: "inherit",
+};
 
 export default function NewsAndClub() {
   const featuredNews = news.find((item) => item.featured) ?? news[0];
@@ -24,7 +32,15 @@ export default function NewsAndClub() {
 
         <div className="newsGrid">
           {featuredNews ? (
-            <article className="newsLead">
+            <article
+              className="newsLead"
+              style={{ position: "relative", cursor: "pointer" }}
+            >
+              <Link
+                href={`/noticias/${featuredNews.id}`}
+                aria-label={`Leer noticia: ${featuredNews.title}`}
+                style={newsLinkStyle}
+              />
               <span>{featuredNews.category}</span>
               <h3
                 style={{
@@ -40,7 +56,15 @@ export default function NewsAndClub() {
           ) : null}
 
           {secondaryNews.map((item) => (
-            <article key={item.id}>
+            <article
+              key={item.id}
+              style={{ position: "relative", cursor: "pointer" }}
+            >
+              <Link
+                href={`/noticias/${item.id}`}
+                aria-label={`Leer noticia: ${item.title}`}
+                style={newsLinkStyle}
+              />
               <span>{item.category}</span>
               <h3>{item.title}</h3>
               <p>{item.excerpt}</p>
