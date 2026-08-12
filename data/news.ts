@@ -69,6 +69,7 @@ export const news: NewsItem[] = [
       "El nuevo módulo permite destacar las informaciones principales y organizar contenidos por categorías, creando una base preparada para incorporar nuevas publicaciones de manera continua.",
       "De esta forma, FIERAMIX NOTICIAS se integra al ecosistema de la plataforma como un punto de encuentro entre música, radio e información.",
     ],
+    image: "/noticias/fieramix-noticias-espacio-informativo.png",
     publishedAt: "2026-08-11T21:01:09-04:00",
     source: "FIERAMIX NOTICIAS",
   },
