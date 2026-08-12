@@ -67,7 +67,8 @@ export default function StationsGrid({
     useState(false);
   const [rankingTrendCollapsed, setRankingTrendCollapsed] = useState(false);
   const [networkNowSummaryCollapsed, setNetworkNowSummaryCollapsed] =
-    useState(false);
+    useState(true);
+  const [networkDetailsExpanded, setNetworkDetailsExpanded] = useState(false);
   const [stationMetricsCollapsed, setStationMetricsCollapsed] =
     useState(false);
   const [rankingMovements, setRankingMovements] = useState<
@@ -2054,692 +2055,1943 @@ export default function StationsGrid({
         </p>
       </div>
 
-      <div className="stationMetricsHeader">
+      <div className="stationVisibleIntro">
         <span>
-          <i aria-hidden="true">◉</i>
-          <b>PULSO GENERAL DE LA RED</b>
-
-          <em
-            className={[
-              "stationMetricsNetworkStatus",
-              networkOperationalCoverage >= 90
-                ? "optimal"
-                : networkOperationalCoverage >= 60
-                  ? "partial"
-                  : "critical",
-            ].join(" ")}
-            title={`Cobertura operativa: ${networkOperationalCoverage}% · ${stationsOnline} de ${stations.length} emisoras al aire`}
-          >
-            <i aria-hidden="true">●</i>
-            RED {networkOperationalStatus}
-            <b aria-hidden="true">·</b>
-            <strong>{networkOperationalCoverage}%</strong>
-          </em>
-
-          <em
-            className="stationMetricsUpdatedAt"
-            title="Datos dinámicos de la red y hora de la última actualización"
-          >
-            <span
-              className="stationMetricsLivePulse"
-              aria-hidden="true"
-            >
-              <i />
-            </span>
-
-            <b>DATOS EN VIVO</b>
-
-            <span aria-hidden="true">·</span>
-
-            <strong>
-              {rankingUpdatedAt ?? "--:--:--"}
-            </strong>
-          </em>
-
-          <button
-            type="button"
-            className={
-              filtersAreActive
-                ? "stationMetricsFilterStatus active"
-                : "stationMetricsFilterStatus"
-            }
-            onClick={resetStationFilters}
-            aria-label={
-              filtersAreActive
-                ? `${activeFilterCount} ${
-                    activeFilterCount === 1
-                      ? "filtro activo"
-                      : "filtros activos"
-                  }, ${visibleStations.length} ${
-                    visibleStations.length === 1
-                      ? "emisora visible"
-                      : "emisoras visibles"
-                  }, ${visibleStationsListeners} ${
-                    visibleStationsListeners === 1
-                      ? "oyente"
-                      : "oyentes"
-                  }, ${visibleAudienceShare}% de la audiencia total de la red. Limpiar filtros`
-                : "No hay filtros activos"
-            }
-            title={
-              filtersAreActive
-                ? "Limpiar todos los filtros"
-                : "La red se está mostrando sin filtros"
-            }
-          >
-            <i aria-hidden="true">
-              {filtersAreActive ? "◆" : "◇"}
-            </i>
-
-            <b>
-              {filtersAreActive
-                ? `${activeFilterCount} ${
-                    activeFilterCount === 1
-                      ? "FILTRO"
-                      : "FILTROS"
-                  }`
-                : "SIN FILTROS"}
-            </b>
-
-            {filtersAreActive ? (
-              <>
-                <span aria-hidden="true">·</span>
-
-                <strong>
-                  {visibleStations.length}{" "}
-                  {visibleStations.length === 1
-                    ? "EMISORA"
-                    : "EMISORAS"}
-                </strong>
-
-                <span aria-hidden="true">·</span>
-
-                <strong className="listenersResult">
-                  <i aria-hidden="true">👥</i>
-                  {visibleStationsListeners}{" "}
-                  {visibleStationsListeners === 1
-                    ? "OYENTE"
-                    : "OYENTES"}
-                </strong>
-
-                <span aria-hidden="true">·</span>
-
-                <span
-                  className="audienceShareResult"
-                  title={`${visibleAudienceShare}% de la audiencia total de la red`}
-                >
-                  <strong>
-                    {visibleAudienceShare}% DE LA RED
-                  </strong>
-
-                  <span
-                    className="audienceShareMiniTrack"
-                    aria-hidden="true"
-                  >
-                    <i
-                      className="audienceShareMiniFill"
-                      style={{
-                        width: `${Math.min(
-                          100,
-                          Math.max(0, visibleAudienceShare),
-                        )}%`,
-                      }}
-                    />
-                  </span>
-                </span>
-
-                <em>LIMPIAR ↗</em>
-              </>
-            ) : null}
-          </button>
+          <i aria-hidden="true" />
+          EMISORAS AL AIRE
         </span>
-
-        <button
-          type="button"
-          className={
-            stationMetricsCollapsed
-              ? "stationMetricsToggle collapsed"
-              : "stationMetricsToggle"
-          }
-          onClick={() =>
-            setStationMetricsCollapsed((current) => !current)
-          }
-          aria-expanded={!stationMetricsCollapsed}
-          title={
-            stationMetricsCollapsed
-              ? "Mostrar métricas generales de la red"
-              : "Minimizar métricas generales de la red"
-          }
-        >
-          <i aria-hidden="true">
-            {stationMetricsCollapsed ? "+" : "−"}
-          </i>
-          {stationMetricsCollapsed
-            ? "MOSTRAR MÉTRICAS"
-            : "MINIMIZAR MÉTRICAS"}
-        </button>
+        <small>ELIGE UNA EMISORA Y ESCUCHA EN VIVO</small>
       </div>
-
-      {stationMetricsCollapsed ? (
-        <button
-          type="button"
-          className="stationMetricsCollapsedSummary"
-          onClick={() => setStationMetricsCollapsed(false)}
-          aria-label={
-            filtersAreActive
-              ? `Abrir métricas generales de la red. ${visibleStations.length} de ${stations.length} emisoras visibles con ${visibleStationsListeners} oyentes, equivalentes al ${visibleAudienceShare}% de la audiencia total`
-              : "Abrir métricas generales de la red"
-          }
-          title={
-            filtersAreActive
-              ? `${visibleStations.length} de ${stations.length} emisoras visibles · ${visibleStationsListeners} oyentes · ${visibleAudienceShare}% de la red. Abrir métricas`
-              : "Abrir métricas generales de la red"
-          }
-        >
-          <span
-            className={
-              filtersAreActive
-                ? "collapsedStationsCount filtered"
-                : "collapsedStationsCount"
-            }
-            title={
-              filtersAreActive
-                ? `${visibleStations.length} de ${stations.length} emisoras visibles`
-                : `${stations.length} emisoras en la red`
-            }
-          >
-            <i aria-hidden="true">◉</i>
-
-            <b>
-              {filtersAreActive ? (
-                <>
-                  {visibleStations.length}
-                  <small aria-hidden="true">/</small>
-                  <strong>{stations.length}</strong>
-                </>
-              ) : (
-                stations.length
-              )}
-            </b>
-
-            <em>
-              {filtersAreActive ? "VISIBLES / TOTAL" : "EMISORAS"}
-            </em>
-
-            {filtersAreActive ? (
-              <span
-                className="collapsedVisibleTrack"
-                aria-hidden="true"
-              >
-                <i
-                  className="collapsedVisibleFill"
-                  style={{
-                    width: `${
-                      stations.length > 0
-                        ? Math.round(
-                            (visibleStations.length / stations.length) * 100,
-                          )
-                        : 0
-                    }%`,
-                  }}
-                />
-              </span>
-            ) : null}
-          </span>
-
-          <span>
-            <i className="live" aria-hidden="true">●</i>
-            <b>{stationsOnline}</b>
-            <em>AL AIRE</em>
-          </span>
-
-          <span
-            className={
-              filtersAreActive
-                ? "collapsedListenersCount filtered"
-                : "collapsedListenersCount"
-            }
-            title={
-              filtersAreActive
-                ? `${visibleStationsListeners} oyentes en las emisoras visibles`
-                : `${networkListeners} oyentes en toda la red`
-            }
-          >
-            <i className="listeners" aria-hidden="true">👥</i>
-
-            <b>
-              {filtersAreActive
-                ? visibleStationsListeners
-                : networkListeners}
-            </b>
-
-            <em>
-              {filtersAreActive
-                ? "OYENTES VISIBLES"
-                : "OYENTES"}
-            </em>
-          </span>
-
-          {filtersAreActive ? (
-            <span
-              className="collapsedAudienceShare"
-              title={`${visibleAudienceShare}% de la audiencia total de la red`}
-            >
-              <i aria-hidden="true">◔</i>
-
-              <b>{visibleAudienceShare}%</b>
-
-              <em>DE LA RED</em>
-
-              <span
-                className="collapsedAudienceShareTrack"
-                aria-hidden="true"
-              >
-                <i
-                  className="collapsedAudienceShareFill"
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      Math.max(0, visibleAudienceShare),
-                    )}%`,
-                  }}
-                />
-              </span>
-            </span>
-          ) : null}
-
-          <span
-            className={[
-              "coverage",
-              networkOperationalCoverage >= 90
-                ? "optimal"
-                : networkOperationalCoverage >= 60
-                  ? "partial"
-                  : "critical",
-            ].join(" ")}
-            title={`${stationsOnline} de ${stations.length} emisoras al aire`}
-          >
-            <i aria-hidden="true">◒</i>
-            <b>{networkOperationalCoverage}%</b>
-            <em>RED {networkOperationalStatus}</em>
-          </span>
-
-          <small>ABRIR ↗</small>
-        </button>
-      ) : null}
 
       <div
+        id="station-ranking-grid"
         className={
-          stationMetricsCollapsed
-            ? "stationNetworkMetrics collapsed"
-            : "stationNetworkMetrics"
+          compactView
+            ? "stationGrid stationGridCompact"
+            : "stationGrid"
         }
-        aria-label="Estado general de la red"
       >
-        <button
-          type="button"
-          className={
-            !filtersAreActive && stationSortMode === "network"
-              ? "stationMetric stationMetricAction active allStationsAction"
-              : "stationMetric stationMetricAction allStationsAction"
-          }
-          onClick={resetStationFilters}
-          aria-pressed={!filtersAreActive && stationSortMode === "network"}
-          title="Mostrar toda la red y limpiar filtros"
-        >
-          <span
-            className="stationMetricIcon"
-            aria-hidden="true"
-          >
-            ◉
-          </span>
-
-          <div>
-            <strong
-              className={
-                filtersAreActive
-                  ? "stationMetricPrimaryCount filtered"
-                  : "stationMetricPrimaryCount"
-              }
-              title={
-                filtersAreActive
-                  ? `${visibleStations.length} de ${stations.length} emisoras visibles`
-                  : `${stations.length} emisoras en la red`
-              }
+        {visibleStations.length === 0 ? (
+          <div className="stationEmptyState">
+            <span aria-hidden="true">⌕</span>
+            <strong>NO ENCONTRAMOS ESA EMISORA</strong>
+            <small>
+              {activeGenre === "FAVORITAS"
+                ? "Aún no has guardado emisoras favoritas."
+                : activeGenre === "RECIENTES"
+                  ? "Aún no has escuchado emisoras en este navegador."
+                  : "Prueba otro nombre, género o selecciona TODAS."}
+            </small>
+            <button
+              type="button"
+              onClick={resetStationFilters}
             >
-              {filtersAreActive ? (
-                <>
-                  {visibleStations.length}
-                  <span aria-hidden="true">/</span>
-                  <small>{stations.length}</small>
-                </>
-              ) : (
-                stations.length
-              )}
-            </strong>
+              VER TODA LA RED
+            </button>
+          </div>
+        ) : null}
 
-            <small>EMISORAS EN LA RED</small>
+        {visibleStations.map((station, index) => {
+          const info =
+            metadata[station.id] ?? emptyNowPlaying(station);
 
-            {filtersAreActive ? (
-              <span
-                className="stationMetricVisibleTrack"
-                aria-label={`${visibleStations.length} de ${stations.length} emisoras visibles`}
-                title={`${visibleStations.length} de ${stations.length} emisoras visibles`}
-              >
-                <i
-                  className="stationMetricVisibleFill"
-                  style={{
-                    width: `${
-                      stations.length > 0
-                        ? Math.round(
-                            (visibleStations.length / stations.length) * 100,
-                          )
-                        : 0
-                    }%`,
+          const active = station.id === selected.id;
+          const stationListenerCount =
+            typeof info.listeners === "number" ? info.listeners : 0;
+
+          const stationNetworkAudienceShare =
+            networkListeners > 0
+              ? Math.round(
+                  (stationListenerCount / networkListeners) * 100,
+                )
+              : 0;
+
+          const stationAudienceShare =
+            visibleStationsListeners > 0
+              ? Math.round(
+                  (stationListenerCount / visibleStationsListeners) *
+                    100,
+                )
+              : 0;
+
+          const stationAudienceVsAverage =
+            Math.round(
+              (
+                (
+                  filtersAreActive
+                    ? stationAudienceShare
+                    : stationNetworkAudienceShare
+                ) - contextualAverageAudienceShare
+              ) * 10,
+            ) / 10;
+
+          const stationListenersVsAverage =
+            Math.round(
+              stationListenerCount -
+                contextualAverageStationListeners,
+            );
+
+          const stationAudienceGap =
+            index === 0
+              ? 0
+              : Math.max(
+                  topVisibleLeaderListeners - stationListenerCount,
+                  0,
+                );
+
+          const stationGapToSecond =
+            index === 2
+              ? Math.max(
+                  secondVisibleListeners - stationListenerCount,
+                  0,
+                )
+              : null;
+
+          const stationGapToSecondRate =
+            stationGapToSecond !== null &&
+            secondVisibleListeners > 0
+              ? Math.round(
+                  (stationGapToSecond /
+                    secondVisibleListeners) *
+                    1000,
+                ) / 10
+              : stationGapToSecond === 0
+                ? 0
+                : null;
+
+          const stationGapToTop3 =
+            stationSortMode === "audience" &&
+            index === 3 &&
+            thirdVisibleStation &&
+            thirdVisibleListeners !== null
+              ? Math.max(
+                  thirdVisibleListeners - stationListenerCount,
+                  0,
+                )
+              : null;
+
+          const stationGapToTop3Rate =
+            stationGapToTop3 !== null &&
+            thirdVisibleListeners !== null &&
+            thirdVisibleListeners > 0
+              ? Math.round(
+                  (stationGapToTop3 /
+                    thirdVisibleListeners) *
+                    1000,
+                ) / 10
+              : stationGapToTop3 === 0
+                ? 0
+                : null;
+
+          const stationThirdPressureLevel =
+            stationGapToSecond === null
+              ? null
+              : stationGapToSecond === 0 ||
+                  (stationGapToSecondRate !== null &&
+                    stationGapToSecondRate < 3)
+                ? "high"
+                : stationGapToSecondRate !== null &&
+                    stationGapToSecondRate < 10
+                  ? "medium"
+                  : "low";
+
+          const stationRankingMovement =
+            rankingMovements[station.id] ?? 0;
+          const stationRankingListenerChange =
+            rankingListenerChanges[station.id] ?? 0;
+
+          const stationThirdPressureDelta =
+            index === 2 &&
+            rankingMovementReady &&
+            secondVisibleRankingListenerChange !== null
+              ? stationRankingListenerChange -
+                secondVisibleRankingListenerChange
+              : null;
+
+          const stationThirdPressureMomentum =
+            stationThirdPressureDelta === null
+              ? null
+              : stationThirdPressureDelta > 0
+                ? "increasing"
+                : stationThirdPressureDelta < 0
+                  ? "decreasing"
+                  : "stable";
+
+          const stationCurrentRankingPosition = index + 1;
+          const stationPreviousRankingPosition = Math.min(
+            Math.max(
+              stationCurrentRankingPosition +
+                stationRankingMovement,
+              1,
+            ),
+            Math.max(visibleStations.length, 1),
+          );
+
+          const stationBecameLeader =
+            rankingMovementReady &&
+            stationCurrentRankingPosition === 1 &&
+            stationPreviousRankingPosition > 1;
+
+          const stationLostLeadership =
+            rankingMovementReady &&
+            stationCurrentRankingPosition > 1 &&
+            stationPreviousRankingPosition === 1;
+
+          const stationEnteredTop3 =
+            rankingMovementReady &&
+            stationCurrentRankingPosition <= 3 &&
+            stationPreviousRankingPosition > 3;
+
+          const stationExitedTop3 =
+            rankingMovementReady &&
+            stationCurrentRankingPosition > 3 &&
+            stationPreviousRankingPosition <= 3;
+
+          const stationPreviousListeners = Math.max(
+            0,
+            stationListenerCount - stationRankingListenerChange,
+          );
+
+          const stationListenerChangeRate =
+            stationPreviousListeners > 0
+              ? Math.round(
+                  (stationRankingListenerChange /
+                    stationPreviousListeners) *
+                    1000,
+                ) / 10
+              : stationRankingListenerChange === 0
+                ? 0
+                : null;
+
+          const stationListenerMovementStrength =
+            stationListenerChangeRate === null
+              ? "softMove"
+              : Math.abs(stationListenerChangeRate) >= 5
+                ? "strongMove"
+                : Math.abs(stationListenerChangeRate) >= 2
+                  ? "mediumMove"
+                  : "softMove";
+
+          const artwork =
+            info.artwork && info.artwork !== station.logo
+              ? info.artwork
+              : station.logo;
+
+          return (
+            <article
+              key={station.id}
+              id={`station-card-${station.id}`}
+              className={[
+                "stationCard",
+                active ? "active" : "",
+                rankingMovementReady &&
+                stationListenerMovementStrength === "mediumMove" &&
+                stationRankingListenerChange > 0
+                  ? "mediumAudienceUp"
+                  : "",
+                rankingMovementReady &&
+                stationListenerMovementStrength === "mediumMove" &&
+                stationRankingListenerChange < 0
+                  ? "mediumAudienceDown"
+                  : "",
+                rankingMovementReady &&
+                stationListenerMovementStrength === "strongMove" &&
+                stationRankingListenerChange > 0
+                  ? "strongAudienceUp"
+                  : "",
+                rankingMovementReady &&
+                stationListenerMovementStrength === "strongMove" &&
+                stationRankingListenerChange < 0
+                  ? "strongAudienceDown"
+                  : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              style={
+                {
+                  "--accent": station.accent,
+                } as CSSProperties
+              }
+              aria-current={active ? "true" : undefined}
+            >
+              <div className="stationBadge">
+                <i aria-hidden="true" />
+                {info.configured ? " AL AIRE" : " DISPONIBLE"}
+              </div>
+
+              {stationSortMode === "audience" ? (
+                <div
+                  className={
+                    index < 3
+                      ? `stationAudienceRank top${index + 1}${
+                          active ? " selectedRank" : ""
+                        }${
+                          active && selectedRankDetailsCollapsed
+                            ? " compactSelectedRank"
+                            : ""
+                        }`
+                      : `stationAudienceRank${
+                          active ? " selectedRank" : ""
+                        }${
+                          active && selectedRankDetailsCollapsed
+                            ? " compactSelectedRank"
+                            : ""
+                        }`
+                  }
+                  aria-label={
+                    active
+                      ? `Tu emisora está en la posición ${index + 1} por audiencia`
+                      : `Posición ${index + 1} por audiencia`
+                  }
+                >
+                  <small>
+                    {active ? "TU EMISORA" : "RANKING EN VIVO"}
+                  </small>
+                  <strong>#{index + 1}</strong>
+
+                  {rankingMovementReady ? (
+                    <span
+                      className={
+                        stationRankingMovement > 0
+                          ? `stationAudienceMovement up${
+                              active ? " selected" : ""
+                            }`
+                          : stationRankingMovement < 0
+                            ? `stationAudienceMovement down${
+                                active ? " selected" : ""
+                              }`
+                            : `stationAudienceMovement steady${
+                                active ? " selected" : ""
+                              }`
+                      }
+                      title={
+                        stationBecameLeader
+                          ? `Tomó el liderato: pasó de #${stationPreviousRankingPosition} a #1`
+                          : stationLostLeadership
+                            ? `Cedió el liderato: pasó de #1 a #${stationCurrentRankingPosition}`
+                            : stationEnteredTop3
+                              ? `Entró al TOP 3: pasó de #${stationPreviousRankingPosition} a #${stationCurrentRankingPosition}`
+                              : stationExitedTop3
+                                ? `Salió del TOP 3: pasó de #${stationPreviousRankingPosition} a #${stationCurrentRankingPosition}`
+                                : stationRankingMovement > 0
+                                  ? `Subió ${stationRankingMovement} ${
+                                      stationRankingMovement === 1
+                                        ? "posición"
+                                        : "posiciones"
+                                    }: de #${stationPreviousRankingPosition} a #${stationCurrentRankingPosition}`
+                                  : stationRankingMovement < 0
+                                    ? `Bajó ${Math.abs(
+                                        stationRankingMovement,
+                                      )} ${
+                                        Math.abs(
+                                          stationRankingMovement,
+                                        ) === 1
+                                          ? "posición"
+                                          : "posiciones"
+                                      }: de #${stationPreviousRankingPosition} a #${stationCurrentRankingPosition}`
+                                    : `Mantiene la posición #${stationCurrentRankingPosition}`
+                      }
+                    >
+                      <span aria-hidden="true">
+                        {stationRankingMovement > 0
+                          ? "↑"
+                          : stationRankingMovement < 0
+                            ? "↓"
+                            : "—"}
+                      </span>
+
+                      <span
+                        className={[
+                          "stationAudienceMovementPosition",
+                          stationBecameLeader
+                            ? "becameLeader"
+                            : stationLostLeadership
+                              ? "lostLeadership"
+                              : stationEnteredTop3
+                                ? "enteredTop3"
+                                : stationExitedTop3
+                                  ? "exitedTop3"
+                                  : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
+                      >
+                        {stationBecameLeader
+                          ? "TOMA EL #1"
+                          : stationLostLeadership
+                            ? "CEDE EL #1"
+                            : stationEnteredTop3
+                              ? "ENTRA TOP 3"
+                              : stationExitedTop3
+                                ? "SALE TOP 3"
+                                : stationRankingMovement > 0
+                                  ? `SUBE ${stationRankingMovement} · ANTES #${stationPreviousRankingPosition}`
+                                  : stationRankingMovement < 0
+                                    ? `BAJA ${Math.abs(
+                                        stationRankingMovement,
+                                      )} · ANTES #${stationPreviousRankingPosition}`
+                                    : `MANTIENE #${stationCurrentRankingPosition}`}
+                      </span>
+
+                      <em
+                        className={
+                          stationRankingListenerChange > 0
+                            ? "listenerUp"
+                            : stationRankingListenerChange < 0
+                              ? "listenerDown"
+                              : "listenerSteady"
+                        }
+                      >
+                        {stationRankingListenerChange > 0
+                          ? `+${stationRankingListenerChange} OY`
+                          : stationRankingListenerChange < 0
+                            ? `${stationRankingListenerChange} OY`
+                            : "0 OY"}
+                      </em>
+                    </span>
+                  ) : null}
+
+                  {active ? (
+                    <button
+                      type="button"
+                      className="stationAudienceRankDetailsToggle"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setSelectedRankDetailsCollapsed(
+                          (current) => !current,
+                        );
+                      }}
+                      aria-expanded={!selectedRankDetailsCollapsed}
+                      title={
+                        selectedRankDetailsCollapsed
+                          ? "Mostrar metas de tu emisora"
+                          : "Minimizar metas de tu emisora"
+                      }
+                    >
+                      <span aria-hidden="true">
+                        {selectedRankDetailsCollapsed ? "＋" : "−"}
+                      </span>
+
+                      {selectedRankDetailsCollapsed
+                        ? "MOSTRAR METAS"
+                        : "MINIMIZAR METAS"}
+                    </button>
+                  ) : null}
+
+                  {active && !selectedRankDetailsCollapsed ? (
+                    <>
+                      <span
+                        className={
+                          index === 0
+                            ? "stationAudienceNextMove leading"
+                            : "stationAudienceNextMove"
+                        }
+                      >
+                        {index === 0 ? (
+                          <>
+                            <span aria-hidden="true">★</span>
+                            LÍDER ACTUAL
+                          </>
+                        ) : selectedListenersToNextPosition !== null ? (
+                          <>
+                            <span aria-hidden="true">↑</span>
+                            SUBIR AL #{index} · +
+                            {selectedListenersToNextPosition}{" "}
+                            {selectedListenersToNextPosition === 1
+                              ? "OYENTE"
+                              : "OYENTES"}
+                          </>
+                        ) : null}
+                      </span>
+
+                      <span
+                        className={
+                          index < 3
+                            ? "stationAudiencePodiumGoal achieved"
+                            : "stationAudiencePodiumGoal"
+                        }
+                      >
+                        <span aria-hidden="true">
+                          {index < 3 ? "◆" : "△"}
+                        </span>
+
+                        {index < 3 ? (
+                          "YA ESTÁS EN EL TOP 3"
+                        ) : selectedListenersToTop3 !== null ? (
+                          <>
+                            ENTRAR AL TOP 3 · +
+                            {selectedListenersToTop3}{" "}
+                            {selectedListenersToTop3 === 1
+                              ? "OYENTE"
+                              : "OYENTES"}
+                          </>
+                        ) : (
+                          "META TOP 3"
+                        )}
+                      </span>
+
+                      {selectedTop3Progress !== null ? (
+                        <span
+                          className={
+                            index < 3
+                              ? "stationAudienceTop3Progress achieved"
+                              : "stationAudienceTop3Progress"
+                          }
+                        >
+                          <span className="stationAudienceTop3ProgressLabel">
+                            <small>
+                              {index < 3
+                                ? "PODIO ACTIVO"
+                                : "PROGRESO AL TOP 3"}
+                            </small>
+
+                            <b>{selectedTop3Progress}%</b>
+                          </span>
+
+                          <span
+                            className="stationAudienceTop3ProgressTrack"
+                            aria-hidden="true"
+                          >
+                            <i
+                              style={{
+                                width: `${Math.max(
+                                  selectedTop3Progress,
+                                  selectedTop3Progress > 0 ? 5 : 0,
+                                )}%`,
+                              }}
+                            />
+                          </span>
+                        </span>
+                      ) : null}
+
+                      {index >= 3 && thirdVisibleStation ? (
+                        <span className="stationAudiencePodiumTargetGroup">
+                          <span className="stationAudiencePodiumTargetNow">
+                            <span aria-hidden="true">♪</span>
+
+                            <span>
+                              <small>SONANDO EN #3</small>
+
+                              <strong
+                                title={
+                                  thirdVisibleStationInfo?.artist
+                                    ? `${thirdVisibleStationInfo.title} — ${thirdVisibleStationInfo.artist}`
+                                    : thirdVisibleStationInfo?.title
+                                }
+                              >
+                                {thirdVisibleStationInfo?.title ||
+                                  "Programación en vivo"}
+                              </strong>
+
+                              {thirdVisibleStationInfo?.artist ? (
+                                <em>
+                                  {thirdVisibleStationInfo.artist}
+                                </em>
+                              ) : null}
+                            </span>
+                          </span>
+
+                          <button
+                            type="button"
+                            className="stationAudiencePodiumTarget"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              playStation(thirdVisibleStation);
+                            }}
+                            aria-label={`Escuchar la emisora número tres ${thirdVisibleStation.name}`}
+                            title={`Escuchar ${thirdVisibleStation.name}, actual número tres`}
+                          >
+                            <span aria-hidden="true">▶</span>
+
+                            <span>
+                              <small>OBJETIVO #3</small>
+                              <strong>
+                                {thirdVisibleStation.shortName ||
+                                  thirdVisibleStation.name}
+                              </strong>
+                            </span>
+
+                            <b>ESCUCHAR #3</b>
+                          </button>
+
+                          <button
+                            type="button"
+                            className="stationAudiencePodiumTargetView"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              revealTop3TargetInRanking();
+                            }}
+                            aria-label={`Ver la emisora número tres ${thirdVisibleStation.name} dentro del ranking`}
+                            title={`Ir a ${thirdVisibleStation.name}, actual número tres`}
+                          >
+                            <span aria-hidden="true">↓</span>
+                            VER #3
+                          </button>
+                        </span>
+                      ) : null}
+                    </>
+                  ) : null}
+
+                  <span
+                    className="stationAudienceShare"
+                    title={`${stationAudienceShare}% de la audiencia de esta selección`}
+                  >
+                    <b>{stationAudienceShare}%</b>
+
+                    <i aria-hidden="true">
+                      <em
+                        style={{
+                          width: `${Math.max(
+                            stationAudienceShare,
+                            stationAudienceShare > 0 ? 5 : 0,
+                          )}%`,
+                        }}
+                      />
+                    </i>
+
+                    <small
+                      className={
+                        index > 0 && stationAudienceGap === 0
+                          ? "stationAudienceGap tied"
+                          : "stationAudienceGap"
+                      }
+                    >
+                      {index === 0
+                        ? "LÍDER"
+                        : stationAudienceGap === 0
+                          ? "EMPATE CON #1"
+                          : stationAudienceGap === 1
+                            ? "A 1 OYENTE DEL #1"
+                            : `A ${stationAudienceGap} OYENTES DEL #1`}
+                    </small>
+                  </span>
+                </div>
+              ) : null}
+
+              {active ? (
+                <div className="stationSelectedState" aria-live="polite">
+                  <span aria-hidden="true">{playing ? "◉" : "✓"}</span>
+                  <strong>
+                    {playing ? "EN REPRODUCCIÓN" : "EMISORA SELECCIONADA"}
+                  </strong>
+                </div>
+              ) : null}
+
+              <div className="stationArtwork">
+                <img
+                  className="stationArtworkMain"
+                  src={artwork}
+                  alt={`Portada actual de ${station.name}`}
+                  width={148}
+                  height={148}
+                  onError={(event) => {
+                    event.currentTarget.src = station.logo;
                   }}
                 />
-              </span>
-            ) : null}
 
-            <em>
-              {!filtersAreActive && stationSortMode === "network"
-                ? "MOSTRANDO TODA LA RED"
-                : `${visibleStations.length} ${
-                    visibleStations.length === 1
-                      ? "VISIBLE"
-                      : "VISIBLES"
-                  } · VER TODAS ↗`}
-            </em>
-          </div>
-        </button>
+                {rankingMovementReady &&
+                typeof info.listeners === "number" &&
+                stationRankingListenerChange !== 0 &&
+                stationListenerMovementStrength !== "softMove" ? (
+                  <span
+                    className={[
+                      "stationArtworkMomentum",
+                      stationRankingListenerChange > 0 ? "up" : "down",
+                      stationListenerMovementStrength,
+                    ].join(" ")}
+                    title={
+                      stationRankingListenerChange > 0
+                        ? `${
+                            stationListenerMovementStrength === "strongMove"
+                              ? "Subida fuerte"
+                              : "Subida moderada"
+                          } de audiencia`
+                        : `${
+                            stationListenerMovementStrength === "strongMove"
+                              ? "Caída fuerte"
+                              : "Caída moderada"
+                          } de audiencia`
+                    }
+                    aria-label={
+                      stationRankingListenerChange > 0
+                        ? `${
+                            stationListenerMovementStrength === "strongMove"
+                              ? "Subida fuerte"
+                              : "Subida moderada"
+                          } de audiencia`
+                        : `${
+                            stationListenerMovementStrength === "strongMove"
+                              ? "Caída fuerte"
+                              : "Caída moderada"
+                          } de audiencia`
+                    }
+                  >
+                    <span aria-hidden="true">
+                      {stationRankingListenerChange > 0 ? "▲" : "▼"}
+                    </span>
 
-        <button
-          type="button"
-          className={
-            onlyOnAir
-              ? "stationMetric stationMetricAction active liveAction"
-              : "stationMetric stationMetricAction liveAction"
-          }
-          onClick={() => {
-            setOnlyOnAir((current) => !current);
-            setStationQuery("");
-          }}
-          aria-pressed={onlyOnAir}
-          title={
-            onlyOnAir
-              ? "Mostrar también emisoras fuera del filtro SOLO AL AIRE"
-              : "Ver solo emisoras al aire"
-          }
-        >
-          <span
-            className="stationMetricIcon live"
-            aria-hidden="true"
-          >
-            ●
-          </span>
+                    {stationListenerChangeRate !== null ? (
+                      <strong className="stationArtworkMomentumRate">
+                        {stationListenerChangeRate > 0
+                          ? `+${stationListenerChangeRate.toFixed(1)}%`
+                          : `−${Math.abs(
+                              stationListenerChangeRate,
+                            ).toFixed(1)}%`}
+                      </strong>
+                    ) : null}
+                  </span>
+                ) : null}
 
-          <div>
-            <strong>{stationsOnline}</strong>
-            <small>AL AIRE</small>
-            <em>
-              {onlyOnAir
-                ? `MOSTRANDO AL AIRE · ${visibleStations.length} ${
-                    visibleStations.length === 1
-                      ? "EMISORA"
-                      : "EMISORAS"
-                  }`
-                : "VER SOLO AL AIRE ↗"}
-            </em>
-          </div>
-        </button>
+                <button
+                  type="button"
+                  className="stationArtworkPlay"
+                  onClick={() => playStation(station)}
+                  aria-label={
+                    active && playing
+                      ? `Pausar ${station.name}`
+                      : `Escuchar ${station.name}`
+                  }
+                  aria-pressed={active && playing}
+                >
+                  <span aria-hidden="true">
+                    {active && playing ? "❚❚" : "▶"}
+                  </span>
+                  <strong>
+                    {active && playing ? "PAUSAR" : "ESCUCHAR"}
+                  </strong>
+                </button>
 
-        <button
-          type="button"
-          className={
-            stationSortMode === "audience"
-              ? "stationMetric stationMetricAction active audienceAction"
-              : "stationMetric stationMetricAction audienceAction"
-          }
-          onClick={revealFullAudienceRanking}
-          aria-pressed={stationSortMode === "audience"}
-          title={
-            filtersAreActive
-              ? `Ver ranking completo por audiencia · Promedio ${Math.round(
-                  averageVisibleStationListeners,
-                )} oyentes entre ${visibleStations.length} ${
-                  visibleStations.length === 1
-                    ? "emisora visible"
-                    : "emisoras visibles"
-                }`
-              : `Ver ranking completo por audiencia · Promedio ${Math.round(
-                  averageStationListeners,
-                )} oyentes por emisora`
-          }
-        >
-          <span
-            className="stationMetricIcon listeners"
-            aria-hidden="true"
-          >
-            👥
-          </span>
+                <img
+                  className="stationLogoBadge"
+                  src={station.logo}
+                  alt=""
+                  width={44}
+                  height={44}
+                />
 
-          <div>
-            <strong>{networkListeners}</strong>
-            <small>OYENTES EN VIVO</small>
-            <em>
-              {stationSortMode === "audience"
-                ? `RANKING ACTIVO · ${visibleStations.length} ${
-                    visibleStations.length === 1
-                      ? "EMISORA"
-                      : "EMISORAS"
-                  } · PROM. ${Math.round(
-                    filtersAreActive
-                      ? averageVisibleStationListeners
-                      : averageStationListeners,
-                  )}`
-                : filtersAreActive
-                  ? `PROM. ${Math.round(
-                      averageVisibleStationListeners,
-                    )} ENTRE VISIBLES · VER RANKING ↗`
-                  : `PROM. ${Math.round(
-                      averageStationListeners,
-                    )} POR EMISORA · VER RANKING ↗`}
-            </em>
-          </div>
-        </button>
+                {active && playing ? (
+                  <span className="stationPlayingIndicator" aria-hidden="true">
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                ) : null}
+              </div>
 
-        <button
-          type="button"
-          className={[
-            "stationMetric",
-            "stationMetricAction",
-            "genresAction",
-            !["TODAS", "FAVORITAS", "RECIENTES"].includes(activeGenre)
-              ? "active"
-              : "",
-          ]
-            .filter(Boolean)
-            .join(" ")}
-          onClick={() => {
-            setControlsCollapsed(false);
+              <span>{station.genre}</span>
 
-            window.requestAnimationFrame(() => {
-              document
-                .getElementById("station-genre-filters")
-                ?.scrollIntoView({
-                  behavior: "smooth",
-                  block: "center",
-                });
-            });
-          }}
-          aria-pressed={
-            !["TODAS", "FAVORITAS", "RECIENTES"].includes(activeGenre)
-          }
-          title={
-            !["TODAS", "FAVORITAS", "RECIENTES"].includes(activeGenre)
-              ? `Género activo: ${activeGenre}. Abrir filtros por género`
-              : "Abrir filtros por género"
-          }
-        >
-          <span
-            className="stationMetricIcon genres"
-            aria-hidden="true"
-          >
-            ♫
-          </span>
+              <div className="stationNameRow">
+                <h3>
+                    {highlightSearchText(station.name, stationQuery)}
+                  </h3>
 
-          <div>
-            <strong>{Math.max(0, genres.length - 1)}</strong>
-            <small>GÉNEROS EN LA RED</small>
-            <em>
-              {!["TODAS", "FAVORITAS", "RECIENTES"].includes(activeGenre)
-                ? `${activeGenre} ACTIVA · ${visibleStations.length} ${
-                    visibleStations.length === 1
-                      ? "EMISORA"
-                      : "EMISORAS"
-                  }`
-                : "VER GÉNEROS ↗"}
-            </em>
-          </div>
-        </button>
+                <div className="stationQuickActions">
+                  <button
+                    type="button"
+                    className={
+                      favoriteStations.includes(station.id)
+                        ? "stationFavorite active"
+                        : "stationFavorite"
+                    }
+                    onClick={() => toggleFavorite(station.id)}
+                    aria-label={
+                      favoriteStations.includes(station.id)
+                        ? `Quitar ${station.name} de favoritas`
+                        : `Agregar ${station.name} a favoritas`
+                    }
+                    aria-pressed={favoriteStations.includes(station.id)}
+                    title={
+                      favoriteStations.includes(station.id)
+                        ? "Quitar de favoritas"
+                        : "Agregar a favoritas"
+                    }
+                  >
+                    <span aria-hidden="true">
+                      {favoriteStations.includes(station.id) ? "♥" : "♡"}
+                    </span>
+                  </button>
 
-        <button
-          type="button"
-          className={
-            activeGenre === "FAVORITAS"
-              ? "stationMetric stationMetricAction active favoritesAction"
-              : "stationMetric stationMetricAction favoritesAction"
-          }
-          onClick={() => {
-            setActiveGenre("FAVORITAS");
-            setStationQuery("");
-          }}
-          aria-pressed={activeGenre === "FAVORITAS"}
-          title="Ver solo tus emisoras favoritas"
-        >
-          <span
-            className="stationMetricIcon favorites"
-            aria-hidden="true"
-          >
-            ♥
-          </span>
+                  <button
+                    type="button"
+                    className={
+                      sharedStationId === station.id
+                        ? "stationShare active"
+                        : "stationShare"
+                    }
+                    onClick={() => shareStation(station)}
+                    aria-label={`Compartir ${station.name}`}
+                    title="Compartir emisora"
+                  >
+                    <span aria-hidden="true">
+                      {sharedStationId === station.id ? "✓" : "↗"}
+                    </span>
+                  </button>
+                </div>
+              </div>
 
-          <div>
-            <strong>{favoriteStations.length}</strong>
-            <small>FAVORITAS GUARDADAS</small>
-            <em>
-              {activeGenre === "FAVORITAS"
-                ? `MOSTRANDO FAVORITAS · ${visibleStations.length} ${
-                    visibleStations.length === 1
-                      ? "EMISORA"
-                      : "EMISORAS"
-                  }`
-                : "VER FAVORITAS ↗"}
-            </em>
-          </div>
-        </button>
+              <p className="stationSlogan">
+                {highlightSearchText(station.slogan, stationQuery)}
+              </p>
 
-        <div className="stationMetric operationalCoverageMetric">
-          <span
-            className="stationMetricIcon online"
-            aria-hidden="true"
-          >
-            ●
-          </span>
-
-          <div>
-            <span className="stationMetricCoverageHeading">
-              <strong>{networkOperationalCoverage}%</strong>
-
-              <em
-                className={[
-                  "stationMetricCoverageStatus",
-                  networkOperationalCoverage >= 90
-                    ? "optimal"
-                    : networkOperationalCoverage >= 60
-                      ? "partial"
-                      : "critical",
-                ].join(" ")}
+              <div
+                className={
+                  active && playing
+                    ? "stationNow stationNowPlaying"
+                    : "stationNow"
+                }
+                aria-live="polite"
               >
-                {networkOperationalStatus}
-              </em>
-            </span>
+                <div className="stationNowHeader">
+                  <span className="stationNowLabel">SONANDO AHORA</span>
 
-            <small>COBERTURA OPERATIVA</small>
+                  <div className="stationNowHeaderActions">
+                    {info.artist ? (
+                      <button
+                        type="button"
+                        className="stationNowArtistSearch"
+                        onClick={() =>
+                          searchArtistAcrossNetwork(info.artist)
+                        }
+                        aria-label={`Buscar ${info.artist} en toda la red`}
+                        title={`Buscar ${info.artist} en la red`}
+                      >
+                        <span aria-hidden="true">⌕</span>
+                        BUSCAR ARTISTA
+                      </button>
+                    ) : null}
 
-            <span
-              className="stationMetricCoverageTrack"
-              aria-label={`${networkOperationalCoverage}% de la red está al aire`}
-              title={`${stationsOnline} de ${stations.length} emisoras al aire`}
-            >
-              <span
-                className={[
-                  "stationMetricCoverageFill",
-                  networkOperationalCoverage >= 90
-                    ? "optimal"
-                    : networkOperationalCoverage >= 60
-                      ? "partial"
-                      : "critical",
-                ].join(" ")}
-                style={{
-                  width: `${networkOperationalCoverage}%`,
-                }}
-              />
-            </span>
+                    {info.title ? (
+                      <button
+                        type="button"
+                        className="stationNowSongSearch"
+                        onClick={() =>
+                          searchSongAcrossNetwork(info.title)
+                        }
+                        aria-label={`Buscar ${info.title} en toda la red`}
+                        title={`Buscar ${info.title} en la red`}
+                      >
+                        <span aria-hidden="true">♪</span>
+                        BUSCAR CANCIÓN
+                      </button>
+                    ) : null}
 
-            <span className="stationMetricCoverageDetail">
-              <b>
-                {stationsOnline} DE {stations.length} AL AIRE
-              </b>
+                    {active && playing ? (
+                      <span className="stationNowPulse" aria-hidden="true">
+                        <i />
+                        <i />
+                        <i />
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
 
-              {stations.length - stationsOnline > 0 ? (
-                <em>
-                  {stations.length - stationsOnline} FUERA DE LÍNEA
-                </em>
-              ) : (
-                <em className="allOnline">TODO OPERATIVO</em>
-              )}
-            </span>
-          </div>
-        </div>
+                <b title={info.title}>
+                  {highlightSearchText(info.title, stationQuery)}
+                </b>
+                <small title={info.artist}>
+                  {highlightSearchText(info.artist, stationQuery)}
+                </small>
+              </div>
 
-        <button
-          type="button"
-          className={
-            activeGenre === "RECIENTES"
-              ? "stationMetric stationMetricAction active recentAction"
-              : "stationMetric stationMetricAction recentAction"
-          }
-          onClick={() => {
-            setActiveGenre("RECIENTES");
-            setStationQuery("");
-          }}
-          aria-pressed={activeGenre === "RECIENTES"}
-          title="Ver emisoras escuchadas recientemente"
-        >
-          <span
-            className="stationMetricIcon recent"
-            aria-hidden="true"
-          >
-            ◷
-          </span>
+              <div className="stationFooter">
+                <span
+                  className="stationFooterAudience"
+                  title={
+                    typeof info.listeners === "number"
+                      ? `${stationNetworkAudienceShare}% de la audiencia total de la red`
+                      : "Audiencia no disponible"
+                  }
+                >
+                  <span className="stationFooterAudienceCount">
+                    <span>
+                      👥 {info.listeners ?? "—"} oyentes
+                    </span>
 
-          <div>
-            <strong>{recentStations.length}</strong>
-            <small>ESCUCHADAS RECIENTEMENTE</small>
-            <em>
-              {activeGenre === "RECIENTES"
-                ? `MOSTRANDO RECIENTES · ${visibleStations.length} ${
-                    visibleStations.length === 1
-                      ? "EMISORA"
-                      : "EMISORAS"
-                  }`
-                : "VER RECIENTES ↗"}
-            </em>
-          </div>
-        </button>
+                    {rankingMovementReady &&
+                    typeof info.listeners === "number" ? (
+                      <em
+                        className={[
+                          "stationFooterAudienceDelta",
+                          stationRankingListenerChange > 0
+                            ? "up"
+                            : stationRankingListenerChange < 0
+                              ? "down"
+                              : "steady",
+                          stationListenerMovementStrength,
+                        ].join(" ")}
+                        title={
+                          stationRankingListenerChange > 0
+                            ? `Ganó ${stationRankingListenerChange} ${
+                                stationRankingListenerChange === 1
+                                  ? "oyente"
+                                  : "oyentes"
+                              } desde la actualización anterior${
+                                stationListenerChangeRate !== null
+                                  ? ` · +${stationListenerChangeRate.toFixed(
+                                      1,
+                                    )}% · ${
+                                      stationListenerMovementStrength ===
+                                      "strongMove"
+                                        ? "movimiento fuerte"
+                                        : stationListenerMovementStrength ===
+                                            "mediumMove"
+                                          ? "movimiento moderado"
+                                          : "movimiento suave"
+                                    }`
+                                  : ""
+                              }`
+                            : stationRankingListenerChange < 0
+                              ? `Perdió ${Math.abs(
+                                  stationRankingListenerChange,
+                                )} ${
+                                  Math.abs(
+                                    stationRankingListenerChange,
+                                  ) === 1
+                                    ? "oyente"
+                                    : "oyentes"
+                                } desde la actualización anterior${
+                                  stationListenerChangeRate !== null
+                                    ? ` · −${Math.abs(
+                                        stationListenerChangeRate,
+                                      ).toFixed(
+                                        1,
+                                      )}% · ${
+                                        stationListenerMovementStrength ===
+                                        "strongMove"
+                                          ? "movimiento fuerte"
+                                          : stationListenerMovementStrength ===
+                                              "mediumMove"
+                                            ? "movimiento moderado"
+                                            : "movimiento suave"
+                                      }`
+                                    : ""
+                                }`
+                              : "Sin cambio de oyentes desde la actualización anterior · 0.0%"
+                        }
+                      >
+                        <span aria-hidden="true">
+                          {stationRankingListenerChange > 0
+                            ? "▲"
+                            : stationRankingListenerChange < 0
+                              ? "▼"
+                              : "—"}
+                        </span>
+
+                        {stationRankingListenerChange > 0
+                          ? `+${stationRankingListenerChange}`
+                          : stationRankingListenerChange < 0
+                            ? `−${Math.abs(
+                                stationRankingListenerChange,
+                              )}`
+                            : "0"}
+
+                        {stationListenerChangeRate !== null ? (
+                          <small
+                            className="stationFooterAudienceDeltaRate"
+                            aria-label={`Variación ${stationListenerChangeRate.toFixed(
+                              1,
+                            )} por ciento`}
+                          >
+                            <span aria-hidden="true">·</span>
+                            {stationListenerChangeRate > 0
+                              ? `+${stationListenerChangeRate.toFixed(
+                                  1,
+                                )}%`
+                              : stationListenerChangeRate < 0
+                                ? `−${Math.abs(
+                                    stationListenerChangeRate,
+                                  ).toFixed(
+                                    1,
+                                  )}%`
+                                : "0.0%"}
+                          </small>
+                        ) : null}
+
+                        {stationRankingListenerChange !== 0 ? (
+                          <span
+                            className={[
+                              "stationFooterAudienceStrength",
+                              stationListenerMovementStrength,
+                            ].join(" ")}
+                            aria-label={
+                              stationListenerMovementStrength ===
+                              "strongMove"
+                                ? "Movimiento fuerte"
+                                : stationListenerMovementStrength ===
+                                    "mediumMove"
+                                  ? "Movimiento moderado"
+                                  : "Movimiento suave"
+                            }
+                            title={
+                              stationListenerMovementStrength ===
+                              "strongMove"
+                                ? "Movimiento fuerte"
+                                : stationListenerMovementStrength ===
+                                    "mediumMove"
+                                  ? "Movimiento moderado"
+                                  : "Movimiento suave"
+                            }
+                          >
+                            <i />
+                            <i />
+                            <i />
+                          </span>
+                        ) : null}
+                      </em>
+                    ) : null}
+                  </span>
+
+                  {typeof info.listeners === "number" ? (
+                    <button
+                      type="button"
+                      className={[
+                        "stationFooterAudienceShare",
+                        stationSortMode === "audience"
+                          ? "rankingActive"
+                          : "",
+                        stationSortMode === "audience" &&
+                        index === 0
+                          ? "podiumGold"
+                          : "",
+                        stationSortMode === "audience" &&
+                        index === 1
+                          ? "podiumSilver"
+                          : "",
+                        stationSortMode === "audience" &&
+                        index === 2
+                          ? "podiumBronze"
+                          : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      onClick={() =>
+                        revealStationInAudienceRanking(station)
+                      }
+                      aria-label={
+                        stationSortMode === "audience"
+                          ? filtersAreActive
+                            ? `${station.shortName || station.name}, posición ${index + 1} de ${visibleStations.length} en el ranking visible por audiencia`
+                            : `${station.shortName || station.name}, posición ${index + 1} de ${stations.length} en el ranking por audiencia`
+                          : `Ver ${station.shortName || station.name} en el ranking por audiencia`
+                      }
+                      title={
+                        stationSortMode === "audience"
+                          ? filtersAreActive
+                            ? `#${index + 1} de ${visibleStations.length} en el ranking visible · ${stationAudienceShare}% entre las emisoras visibles · ${stationNetworkAudienceShare}% de la audiencia total de la red`
+                            : `#${index + 1} de ${stations.length} en el ranking · ${stationNetworkAudienceShare}% de la audiencia total de la red`
+                          : filtersAreActive
+                            ? `${stationAudienceShare}% entre las emisoras visibles · ${stationNetworkAudienceShare}% de la audiencia total de la red · Ver en ranking`
+                            : `${stationNetworkAudienceShare}% de la audiencia total de la red · Ver en ranking`
+                      }
+                    >
+                      <em className="stationFooterAudienceMain">
+                        {stationSortMode === "audience" ? (
+                          <>
+                            <strong
+                              className={[
+                                "stationFooterRankPosition",
+                                index === 0
+                                  ? "rankGold"
+                                  : index === 1
+                                    ? "rankSilver"
+                                    : index === 2
+                                      ? "rankBronze"
+                                      : "rankStandard",
+                              ].join(" ")}
+                            >
+                              {index === 0 ? (
+                                <span
+                                  className={[
+                                    "stationFooterLeaderCrown",
+                                    stationBecameLeader
+                                      ? "newLeader"
+                                      : "",
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" ")}
+                                  aria-label={
+                                    stationBecameLeader
+                                      ? "Nuevo líder"
+                                      : "Líder actual"
+                                  }
+                                  title={
+                                    stationBecameLeader
+                                      ? "Nuevo líder de audiencia"
+                                      : "Líder actual de audiencia"
+                                  }
+                                >
+                                  ♛
+
+                                  {leaderAudienceAdvantage !== null ? (
+                                    <small
+                                      className={[
+                                        "stationFooterLeaderGap",
+                                        leaderAudienceAdvantage === 0
+                                          ? "tied"
+                                          : "ahead",
+                                      ].join(" ")}
+                                      title={
+                                        leaderAudienceAdvantage === 0
+                                          ? "Empate en el liderato"
+                                          : `Ventaja de ${leaderAudienceAdvantage} ${
+                                              leaderAudienceAdvantage === 1
+                                                ? "oyente"
+                                                : "oyentes"
+                                            } sobre la emisora #2 · +${leaderRelativeAdvantagePrecise.toFixed(
+                                              1,
+                                            )}%`
+                                      }
+                                    >
+                                      {leaderAudienceAdvantage === 0 ? (
+                                        <>
+                                          EMPATE
+                                          <span
+                                            className="stationFooterLeaderStatus tight"
+                                            title={
+                                              leaderAdvantageMomentum === null
+                                                ? "Estado del liderato: EMPATE"
+                                                : leaderAdvantageMomentum > 0
+                                                  ? "Estado del liderato: EMPATE · La ventaja tiende a crecer"
+                                                  : leaderAdvantageMomentum < 0
+                                                    ? "Estado del liderato: EMPATE · La ventaja tiende a reducirse"
+                                                    : "Estado del liderato: EMPATE · Tendencia estable"
+                                            }
+                                          >
+                                            AJUSTADO
+
+                                            <span
+                                              className="stationFooterLeaderStrength tight"
+                                              aria-label="Fuerza del liderato: ajustado"
+                                              title="Fuerza del liderato: ajustado"
+                                            >
+                                              <i />
+                                              <i />
+                                              <i />
+                                            </span>
+
+                                            {leaderAdvantageMomentum !== null ? (
+                                              <i
+                                                className={[
+                                                  "stationFooterLeaderTrend",
+                                                  leaderAdvantageMomentum > 0
+                                                    ? "growing"
+                                                    : leaderAdvantageMomentum < 0
+                                                      ? "shrinking"
+                                                      : "stable",
+                                                ].join(" ")}
+                                                aria-label={
+                                                  leaderAdvantageMomentum > 0
+                                                    ? "Ventaja creciendo"
+                                                    : leaderAdvantageMomentum < 0
+                                                      ? "Ventaja reduciéndose"
+                                                      : "Ventaja estable"
+                                                }
+                                              >
+                                                {leaderAdvantageMomentum > 0
+                                                  ? "↑"
+                                                  : leaderAdvantageMomentum < 0
+                                                    ? "↓"
+                                                    : "—"}
+                                              </i>
+                                            ) : null}
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          +{leaderAudienceAdvantage} OY
+                                          <span
+                                            className="stationFooterLeaderGapRate"
+                                            aria-label={`Ventaja relativa ${leaderRelativeAdvantagePrecise.toFixed(
+                                              1,
+                                            )} por ciento`}
+                                          >
+                                            · +
+                                            {leaderRelativeAdvantagePrecise.toFixed(
+                                              1,
+                                            )}
+                                            %
+                                          </span>
+
+                                          {leaderAdvantageStatus ? (
+                                            <span
+                                              className={[
+                                                "stationFooterLeaderStatus",
+                                                leaderAdvantageStatus ===
+                                                "SÓLIDO"
+                                                  ? "solid"
+                                                  : leaderAdvantageStatus ===
+                                                      "FIRME"
+                                                    ? "firm"
+                                                    : "tight",
+                                              ].join(" ")}
+                                              title={
+                                                leaderAdvantageMomentum === null
+                                                  ? `Estado del liderato: ${leaderAdvantageStatus}`
+                                                  : leaderAdvantageMomentum > 0
+                                                    ? `Estado del liderato: ${leaderAdvantageStatus} · Ventaja creciendo`
+                                                    : leaderAdvantageMomentum < 0
+                                                      ? `Estado del liderato: ${leaderAdvantageStatus} · Ventaja reduciéndose`
+                                                      : `Estado del liderato: ${leaderAdvantageStatus} · Ventaja estable`
+                                              }
+                                            >
+                                              {leaderAdvantageStatus}
+
+                                              <span
+                                                className={[
+                                                  "stationFooterLeaderStrength",
+                                                  leaderAdvantageStatus ===
+                                                  "SÓLIDO"
+                                                    ? "solid"
+                                                    : leaderAdvantageStatus ===
+                                                        "FIRME"
+                                                      ? "firm"
+                                                      : "tight",
+                                                ].join(" ")}
+                                                aria-label={`Fuerza del liderato: ${leaderAdvantageStatus.toLowerCase()}`}
+                                                title={`Fuerza del liderato: ${leaderAdvantageStatus.toLowerCase()}`}
+                                              >
+                                                <i />
+                                                <i />
+                                                <i />
+                                              </span>
+
+                                              {leaderAdvantageMomentum !==
+                                              null ? (
+                                                <i
+                                                  className={[
+                                                    "stationFooterLeaderTrend",
+                                                    leaderAdvantageMomentum > 0
+                                                      ? "growing"
+                                                      : leaderAdvantageMomentum < 0
+                                                        ? "shrinking"
+                                                        : "stable",
+                                                  ].join(" ")}
+                                                  aria-label={
+                                                    leaderAdvantageMomentum > 0
+                                                      ? "Ventaja creciendo"
+                                                      : leaderAdvantageMomentum < 0
+                                                        ? "Ventaja reduciéndose"
+                                                        : "Ventaja estable"
+                                                  }
+                                                  title={
+                                                    leaderAdvantageMomentum > 0
+                                                      ? `La ventaja creció ${leaderAdvantageMomentum} ${
+                                                          leaderAdvantageMomentum ===
+                                                          1
+                                                            ? "oyente"
+                                                            : "oyentes"
+                                                        } respecto a la actualización anterior`
+                                                      : leaderAdvantageMomentum < 0
+                                                        ? `La ventaja se redujo ${Math.abs(
+                                                            leaderAdvantageMomentum,
+                                                          )} ${
+                                                            Math.abs(
+                                                              leaderAdvantageMomentum,
+                                                            ) === 1
+                                                              ? "oyente"
+                                                              : "oyentes"
+                                                          } respecto a la actualización anterior`
+                                                        : "La ventaja se mantiene estable"
+                                                  }
+                                                >
+                                                  {leaderAdvantageMomentum > 0
+                                                    ? "↑"
+                                                    : leaderAdvantageMomentum < 0
+                                                      ? "↓"
+                                                      : "—"}
+                                                </i>
+                                              ) : null}
+                                            </span>
+                                          ) : null}
+                                        </>
+                                      )}
+                                    </small>
+                                  ) : null}
+                                </span>
+                              ) : null}
+
+                              #{index + 1} DE{" "}
+                              {filtersAreActive
+                                ? visibleStations.length
+                                : stations.length}
+
+                              {index === 1 &&
+                              leaderAudienceAdvantage !== null ? (
+                                <span
+                                  className={[
+                                    "stationFooterPursuerGap",
+                                    leaderAudienceAdvantage === 0
+                                      ? "tied"
+                                      : "chasing",
+                                    (leaderAudienceAdvantage ?? 0) > 0 &&
+                                    pursuerPressureLevel === "high" &&
+                                    pursuerPressureMomentum === "increasing"
+                                      ? "pressureAlert"
+                                      : "",
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" ")}
+                                  title={
+                                    leaderAudienceAdvantage === 0
+                                      ? "La emisora #2 está empatada con el #1"
+                                      : `A ${leaderAudienceAdvantage} ${
+                                          leaderAudienceAdvantage === 1
+                                            ? "oyente"
+                                            : "oyentes"
+                                        } del líder · ${leaderRelativeAdvantagePrecise.toFixed(
+                                          1,
+                                        )}% de distancia relativa`
+                                  }
+                                  aria-label={
+                                    leaderAudienceAdvantage === 0
+                                      ? "Alcanzó al líder"
+                                      : `${leaderAudienceAdvantage} ${
+                                          leaderAudienceAdvantage === 1
+                                            ? "oyente"
+                                            : "oyentes"
+                                        } para alcanzar al líder, equivalente a ${leaderRelativeAdvantagePrecise.toFixed(
+                                          1,
+                                        )} por ciento`
+                                  }
+                                >
+                                  <i aria-hidden="true">◎</i>
+
+                                  {leaderAudienceAdvantage === 0 ? (
+                                    "ALCANZÓ AL #1"
+                                  ) : (
+                                    <>
+                                      {leaderAudienceAdvantage} OY
+                                      <span
+                                        className="stationFooterPursuerGapRate"
+                                        aria-label={`Distancia relativa ${leaderRelativeAdvantagePrecise.toFixed(
+                                          1,
+                                        )} por ciento`}
+                                      >
+                                        ·{" "}
+                                        {leaderRelativeAdvantagePrecise.toFixed(
+                                          1,
+                                        )}
+                                        %
+                                      </span>{" "}
+                                      AL #1
+                                    </>
+                                  )}
+
+                                  {pursuerPressureLevel ? (
+                                    <span
+                                      className={[
+                                        "stationFooterPursuerPressure",
+                                        pursuerPressureLevel,
+                                      ].join(" ")}
+                                      aria-label={
+                                        pursuerPressureLevel === "high"
+                                          ? "Presión alta sobre el líder"
+                                          : pursuerPressureLevel === "medium"
+                                            ? "Presión media sobre el líder"
+                                            : "Presión baja sobre el líder"
+                                      }
+                                      title={
+                                        pursuerPressureLevel === "high"
+                                          ? "Presión alta sobre el líder"
+                                          : pursuerPressureLevel === "medium"
+                                            ? "Presión media sobre el líder"
+                                            : "Presión baja sobre el líder"
+                                      }
+                                    >
+                                      <i />
+                                      <i />
+                                      <i />
+                                    </span>
+                                  ) : null}
+
+                                  {pursuerPressureMomentum ? (
+                                    <span
+                                      className={[
+                                        "stationFooterPursuerPressureTrend",
+                                        pursuerPressureMomentum,
+                                      ].join(" ")}
+                                      aria-label={
+                                        pursuerPressureMomentum === "increasing"
+                                          ? `La presión del perseguidor aumenta en ${Math.abs(
+                                              leaderAdvantageMomentum ?? 0,
+                                            )} ${
+                                              Math.abs(
+                                                leaderAdvantageMomentum ?? 0,
+                                              ) === 1
+                                                ? "oyente"
+                                                : "oyentes"
+                                            }`
+                                          : pursuerPressureMomentum ===
+                                              "decreasing"
+                                            ? `La presión del perseguidor disminuye en ${Math.abs(
+                                                leaderAdvantageMomentum ?? 0,
+                                              )} ${
+                                                Math.abs(
+                                                  leaderAdvantageMomentum ?? 0,
+                                                ) === 1
+                                                  ? "oyente"
+                                                  : "oyentes"
+                                              }`
+                                            : "La presión del perseguidor se mantiene"
+                                      }
+                                      title={
+                                        pursuerPressureMomentum === "increasing"
+                                          ? `El #2 cerró ${Math.abs(
+                                              leaderAdvantageMomentum ?? 0,
+                                            )} ${
+                                              Math.abs(
+                                                leaderAdvantageMomentum ?? 0,
+                                              ) === 1
+                                                ? "oyente"
+                                                : "oyentes"
+                                            } de diferencia con el líder`
+                                          : pursuerPressureMomentum ===
+                                              "decreasing"
+                                            ? `El líder amplió ${Math.abs(
+                                                leaderAdvantageMomentum ?? 0,
+                                              )} ${
+                                                Math.abs(
+                                                  leaderAdvantageMomentum ?? 0,
+                                                ) === 1
+                                                  ? "oyente"
+                                                  : "oyentes"
+                                              } sobre el #2`
+                                            : "La distancia entre #1 y #2 se mantiene estable"
+                                      }
+                                    >
+                                      {pursuerPressureMomentum === "increasing"
+                                        ? `↑ ${Math.abs(
+                                            leaderAdvantageMomentum ?? 0,
+                                          )} OY`
+                                        : pursuerPressureMomentum ===
+                                            "decreasing"
+                                          ? `↓ ${Math.abs(
+                                              leaderAdvantageMomentum ?? 0,
+                                            )} OY`
+                                          : "— 0"}
+                                    </span>
+                                  ) : null}
+                                </span>
+                              ) : null}
+
+                              {index === 2 &&
+                              stationGapToSecond !== null ? (
+                                <span
+                                  className={[
+                                    "stationFooterThirdGap",
+                                    stationGapToSecond === 0
+                                      ? "tied"
+                                      : "chasing",
+                                    stationGapToSecond > 0 &&
+                                    stationThirdPressureLevel === "high" &&
+                                    stationThirdPressureMomentum === "increasing"
+                                      ? "pressureAlert"
+                                      : "",
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" ")}
+                                  title={
+                                    stationGapToSecond === 0
+                                      ? "La emisora #3 está empatada con la #2"
+                                      : `A ${stationGapToSecond} ${
+                                          stationGapToSecond === 1
+                                            ? "oyente"
+                                            : "oyentes"
+                                        } de la emisora #2${
+                                          stationGapToSecondRate !== null
+                                            ? ` · ${stationGapToSecondRate.toFixed(
+                                                1,
+                                              )}% de distancia relativa`
+                                            : ""
+                                        }`
+                                  }
+                                  aria-label={
+                                    stationGapToSecond === 0
+                                      ? "Empate con la emisora número 2"
+                                      : `${stationGapToSecond} ${
+                                          stationGapToSecond === 1
+                                            ? "oyente"
+                                            : "oyentes"
+                                        } para alcanzar la posición número 2${
+                                          stationGapToSecondRate !== null
+                                            ? `, equivalente a ${stationGapToSecondRate.toFixed(
+                                                1,
+                                              )} por ciento`
+                                            : ""
+                                        }`
+                                  }
+                                >
+                                  <i aria-hidden="true">△</i>
+                                  {stationGapToSecond === 0 ? (
+                                    "EMPATE CON #2"
+                                  ) : (
+                                    <>
+                                      {stationGapToSecond} OY
+
+                                      {stationGapToSecondRate !== null ? (
+                                        <span
+                                          className="stationFooterThirdGapRate"
+                                          aria-label={`Distancia relativa ${stationGapToSecondRate.toFixed(
+                                            1,
+                                          )} por ciento`}
+                                        >
+                                          ·{" "}
+                                          {stationGapToSecondRate.toFixed(
+                                            1,
+                                          )}
+                                          %
+                                        </span>
+                                      ) : null}
+
+                                      {" "}AL #2
+                                    </>
+                                  )}
+
+                                  {stationThirdPressureLevel ? (
+                                    <span
+                                      className={[
+                                        "stationFooterThirdPressure",
+                                        stationThirdPressureLevel,
+                                      ].join(" ")}
+                                      aria-label={
+                                        stationThirdPressureLevel === "high"
+                                          ? "Presión alta sobre la posición número 2"
+                                          : stationThirdPressureLevel ===
+                                              "medium"
+                                            ? "Presión media sobre la posición número 2"
+                                            : "Presión baja sobre la posición número 2"
+                                      }
+                                      title={
+                                        stationThirdPressureLevel === "high"
+                                          ? "El #3 está muy cerca de alcanzar al #2"
+                                          : stationThirdPressureLevel ===
+                                              "medium"
+                                            ? "El #3 mantiene presión sobre el #2"
+                                            : "El #3 todavía tiene distancia con el #2"
+                                      }
+                                    >
+                                      <i />
+                                      <i />
+                                      <i />
+                                    </span>
+                                  ) : null}
+
+                                  {stationThirdPressureMomentum ? (
+                                    <span
+                                      className={[
+                                        "stationFooterThirdPressureTrend",
+                                        stationThirdPressureMomentum,
+                                      ].join(" ")}
+                                      aria-label={
+                                        stationThirdPressureMomentum ===
+                                        "increasing"
+                                          ? `La presión del tercer lugar aumenta en ${Math.abs(
+                                              stationThirdPressureDelta ?? 0,
+                                            )} ${
+                                              Math.abs(
+                                                stationThirdPressureDelta ?? 0,
+                                              ) === 1
+                                                ? "oyente"
+                                                : "oyentes"
+                                            }`
+                                          : stationThirdPressureMomentum ===
+                                              "decreasing"
+                                            ? `La presión del tercer lugar disminuye en ${Math.abs(
+                                                stationThirdPressureDelta ?? 0,
+                                              )} ${
+                                                Math.abs(
+                                                  stationThirdPressureDelta ?? 0,
+                                                ) === 1
+                                                  ? "oyente"
+                                                  : "oyentes"
+                                              }`
+                                            : "La diferencia entre el tercer y segundo lugar se mantiene"
+                                      }
+                                      title={
+                                        stationThirdPressureMomentum ===
+                                        "increasing"
+                                          ? `El #3 recortó ${Math.abs(
+                                              stationThirdPressureDelta ?? 0,
+                                            )} ${
+                                              Math.abs(
+                                                stationThirdPressureDelta ?? 0,
+                                              ) === 1
+                                                ? "oyente"
+                                                : "oyentes"
+                                            } al #2`
+                                          : stationThirdPressureMomentum ===
+                                              "decreasing"
+                                            ? `El #2 amplió ${Math.abs(
+                                                stationThirdPressureDelta ?? 0,
+                                              )} ${
+                                                Math.abs(
+                                                  stationThirdPressureDelta ?? 0,
+                                                ) === 1
+                                                  ? "oyente"
+                                                  : "oyentes"
+                                              } sobre el #3`
+                                            : "La distancia entre #2 y #3 no cambió"
+                                      }
+                                    >
+                                      {stationThirdPressureMomentum ===
+                                      "increasing"
+                                        ? `↑ ${Math.abs(
+                                            stationThirdPressureDelta ?? 0,
+                                          )} OY`
+                                        : stationThirdPressureMomentum ===
+                                            "decreasing"
+                                          ? `↓ ${Math.abs(
+                                              stationThirdPressureDelta ?? 0,
+                                            )} OY`
+                                          : "— 0"}
+                                    </span>
+                                  ) : null}
+                                </span>
+                              ) : null}
+
+                              {index === 3 &&
+                              stationGapToTop3 !== null ? (
+                                <span
+                                  className={[
+                                    "stationFooterTop3ChaserGap",
+                                    stationGapToTop3 === 0
+                                      ? "atDoor"
+                                      : "chasing",
+                                  ].join(" ")}
+                                  title={
+                                    stationGapToTop3 === 0
+                                      ? "La emisora #4 está igualada con la #3 y toca la puerta del TOP 3"
+                                      : `A ${stationGapToTop3} ${
+                                          stationGapToTop3 === 1
+                                            ? "oyente"
+                                            : "oyentes"
+                                        } de entrar al TOP 3${
+                                          stationGapToTop3Rate !== null
+                                            ? ` · ${stationGapToTop3Rate.toFixed(
+                                                1,
+                                              )}% de distancia`
+                                            : ""
+                                        }`
+                                  }
+                                  aria-label={
+                                    stationGapToTop3 === 0
+                                      ? "A las puertas del top 3"
+                                      : `${stationGapToTop3} ${
+                                          stationGapToTop3 === 1
+                                            ? "oyente"
+                                            : "oyentes"
+                                        } para entrar al top 3`
+                                  }
+                                >
+                                  <i aria-hidden="true">◇</i>
+
+                                  {stationGapToTop3 === 0 ? (
+                                    "A LAS PUERTAS"
+                                  ) : (
+                                    <>
+                                      {stationGapToTop3} OY
+
+                                      {stationGapToTop3Rate !== null ? (
+                                        <span className="stationFooterTop3ChaserGapRate">
+                                          ·{" "}
+                                          {stationGapToTop3Rate.toFixed(
+                                            1,
+                                          )}
+                                          %
+                                        </span>
+                                      ) : null}
+
+                                      {" "}AL TOP 3
+                                    </>
+                                  )}
+                                </span>
+                              ) : null}
+                            </strong>
+
+                            {rankingMovementReady ? (
+                              <span
+                                className={[
+                                  "stationFooterRankMovement",
+                                  stationRankingMovement > 0
+                                    ? "up"
+                                    : stationRankingMovement < 0
+                                      ? "down"
+                                      : "steady",
+                                  stationBecameLeader
+                                    ? "leaderTakeover"
+                                    : stationLostLeadership
+                                      ? "leaderLost"
+                                      : stationEnteredTop3
+                                        ? "top3Entry"
+                                        : stationExitedTop3
+                                          ? "top3Exit"
+                                          : "",
+                                ]
+                                  .filter(Boolean)
+                                  .join(" ")}
+                                title={
+                                  stationRankingMovement > 0
+                                    ? `Subió de #${stationPreviousRankingPosition} a #${stationCurrentRankingPosition}`
+                                    : stationRankingMovement < 0
+                                      ? `Bajó de #${stationPreviousRankingPosition} a #${stationCurrentRankingPosition}`
+                                      : `Mantiene la posición #${stationCurrentRankingPosition}`
+                                }
+                              >
+                                <span aria-hidden="true">
+                                  {stationRankingMovement > 0
+                                    ? "↑"
+                                    : stationRankingMovement < 0
+                                      ? "↓"
+                                      : "—"}
+                                </span>
+
+                                <span className="stationFooterRankTransition">
+                                  {stationRankingMovement !== 0
+                                    ? `#${stationPreviousRankingPosition}→#${stationCurrentRankingPosition}`
+                                    : `#${stationCurrentRankingPosition}`}
+                                </span>
+                              </span>
+                            ) : null}
+
+                            <span aria-hidden="true"> · </span>
+
+                            <span>
+                              {filtersAreActive
+                                ? `${stationAudienceShare}% ENTRE VISIBLES`
+                                : `${stationNetworkAudienceShare}% DE LA RED`}
+                            </span>
+                          </>
+                        ) : filtersAreActive ? (
+                          `${stationAudienceShare}% ENTRE VISIBLES ↗`
+                        ) : (
+                          `${stationNetworkAudienceShare}% DE LA RED ↗`
+                        )}
+                      </em>
+
+                      {filtersAreActive ? (
+                        <b className="stationFooterAverageContext">
+                          {stationNetworkAudienceShare}% DE LA RED
+                        </b>
+                      ) : null}
+
+                      <small
+                        className={
+                          stationAudienceVsAverage > 0
+                            ? "aboveAverage"
+                            : stationAudienceVsAverage < 0
+                              ? "belowAverage"
+                              : "atAverage"
+                        }
+                        title={
+                          stationAudienceVsAverage > 0
+                            ? `${stationAudienceVsAverage.toFixed(
+                                1,
+                              )} puntos porcentuales sobre el promedio ${
+                                filtersAreActive
+                                  ? "de las emisoras visibles"
+                                  : "de la red"
+                              }`
+                            : stationAudienceVsAverage < 0
+                              ? `${Math.abs(
+                                  stationAudienceVsAverage,
+                                ).toFixed(
+                                  1,
+                                )} puntos porcentuales bajo el promedio ${
+                                  filtersAreActive
+                                    ? "de las emisoras visibles"
+                                    : "de la red"
+                                }`
+                              : filtersAreActive
+                                ? "En el promedio de audiencia de las emisoras visibles"
+                                : "En el promedio de audiencia de la red"
+                        }
+                      >
+                        {stationAudienceVsAverage > 0
+                          ? `+${stationAudienceVsAverage.toFixed(
+                              1,
+                            )} PP VS PROM.`
+                          : stationAudienceVsAverage < 0
+                            ? `−${Math.abs(
+                                stationAudienceVsAverage,
+                              ).toFixed(
+                                1,
+                              )} PP VS PROM.`
+                            : "0.0 PP VS PROM."}
+                      </small>
+
+                      <small
+                        className={[
+                          "listenersVsAverage",
+                          stationListenersVsAverage > 0
+                            ? "aboveAverage"
+                            : stationListenersVsAverage < 0
+                              ? "belowAverage"
+                              : "atAverage",
+                        ].join(" ")}
+                        title={
+                          stationListenersVsAverage > 0
+                            ? `${stationListenersVsAverage} oyentes sobre el promedio ${
+                                filtersAreActive
+                                  ? "de las emisoras visibles"
+                                  : "de la red"
+                              }`
+                            : stationListenersVsAverage < 0
+                              ? `${Math.abs(
+                                  stationListenersVsAverage,
+                                )} oyentes bajo el promedio ${
+                                  filtersAreActive
+                                    ? "de las emisoras visibles"
+                                    : "de la red"
+                                }`
+                              : filtersAreActive
+                                ? "En el promedio exacto de oyentes de las emisoras visibles"
+                                : "En el promedio exacto de oyentes de la red"
+                        }
+                      >
+                        {stationListenersVsAverage > 0
+                          ? `+${stationListenersVsAverage} OYENTES VS PROM.`
+                          : stationListenersVsAverage < 0
+                            ? `−${Math.abs(
+                                stationListenersVsAverage,
+                              )} OYENTES VS PROM.`
+                            : "0 OYENTES VS PROM."}
+                      </small>
+
+                      <span
+                        className="stationFooterAudienceTrack"
+                        aria-hidden="true"
+                      >
+                        <i
+                          className={[
+                            "stationFooterAudienceFill",
+                            (filtersAreActive
+                              ? stationAudienceShare
+                              : stationNetworkAudienceShare) >
+                            contextualAverageAudienceShare
+                              ? "aboveAverage"
+                              : (filtersAreActive
+                                ? stationAudienceShare
+                                : stationNetworkAudienceShare) <
+                                  contextualAverageAudienceShare
+                                ? "belowAverage"
+                                : "atAverage",
+                          ].join(" ")}
+                          style={{
+                            width: `${Math.min(
+                              100,
+                              Math.max(
+                                0,
+                                filtersAreActive
+                                  ? stationAudienceShare
+                                  : stationNetworkAudienceShare,
+                              ),
+                            )}%`,
+                          }}
+                        />
+
+                        <b
+                          className="stationFooterAudienceAverage"
+                          style={{
+                            left: `${Math.min(
+                              100,
+                              Math.max(
+                                0,
+                                contextualAverageAudienceShare,
+                              ),
+                            )}%`,
+                          }}
+                        />
+                      </span>
+                    </button>
+                  ) : null}
+                </span>
+
+                <button
+                  type="button"
+                  className="stationCardPlay"
+                  onClick={() => playStation(station)}
+                  aria-label={
+                    active && playing
+                      ? `Pausar ${station.name}`
+                      : `Escuchar ${station.name}`
+                  }
+                  aria-pressed={active && playing}
+                >
+                  {active && playing ? "❚❚ PAUSAR" : "▶ ESCUCHAR"}
+                </button>
+              </div>
+
+              <div className="stationLiveStrip">
+                <button
+                  type="button"
+                  className="stationGenreQuickFilter"
+                  onClick={() => showGenreAcrossNetwork(station.genre)}
+                  aria-label={`Ver emisoras de ${station.genre}`}
+                  title={`Ver toda la red de ${station.genre}`}
+                >
+                  <span aria-hidden="true">#</span>
+                  {highlightSearchText(station.genre, stationQuery)}
+                </button>
+
+                <span className="stationLiveListeners">
+                  <span aria-hidden="true">●</span>
+                  {info.listeners ?? "—"} OYENTES
+                </span>
+
+                {active && playing ? (
+                  <span
+                    className="stationLiveSignal"
+                    aria-label="Emisora reproduciéndose"
+                  >
+                    <i />
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                ) : (
+                  <span className="stationLiveStatus">
+                    {info.configured ? "EN LÍNEA" : "DISPONIBLE"}
+                  </span>
+                )}
+              </div>
+
+              <Link
+                className="stationPageLink"
+                href={`/emisoras/${station.id}`}
+                aria-label={`Abrir página de ${station.name}`}
+              >
+                <span>ENTRAR A LA EMISORA</span>
+                <span aria-hidden="true">→</span>
+              </Link>
+            </article>
+          );
+        })}
       </div>
 
+
+
+      <button
+        type="button"
+        className={
+          networkDetailsExpanded
+            ? "stationNetworkDetailsToggle expanded"
+            : "stationNetworkDetailsToggle"
+        }
+        onClick={() => setNetworkDetailsExpanded((current) => !current)}
+        aria-expanded={networkDetailsExpanded}
+        aria-controls="station-network-details"
+      >
+        <span aria-hidden="true">{networkDetailsExpanded ? "−" : "+"}</span>
+        <strong>
+          {networkDetailsExpanded
+            ? "OCULTAR DETALLES DE LA RED"
+            : "VER MÁS DE LA RED"}
+        </strong>
+      </button>
+
+      {networkDetailsExpanded ? (
+        <>
       <div className="networkNowStrip">
         <div className="networkNowStripHeader">
           <span>
@@ -3569,6 +4821,693 @@ export default function StationsGrid({
             );
           })}
         </div>
+      </div>
+
+
+      <div id="station-network-details" className="stationMetricsHeader">
+        <span>
+          <i aria-hidden="true">◉</i>
+          <b>PULSO GENERAL DE LA RED</b>
+
+          <em
+            className={[
+              "stationMetricsNetworkStatus",
+              networkOperationalCoverage >= 90
+                ? "optimal"
+                : networkOperationalCoverage >= 60
+                  ? "partial"
+                  : "critical",
+            ].join(" ")}
+            title={`Cobertura operativa: ${networkOperationalCoverage}% · ${stationsOnline} de ${stations.length} emisoras al aire`}
+          >
+            <i aria-hidden="true">●</i>
+            RED {networkOperationalStatus}
+            <b aria-hidden="true">·</b>
+            <strong>{networkOperationalCoverage}%</strong>
+          </em>
+
+          <em
+            className="stationMetricsUpdatedAt"
+            title="Datos dinámicos de la red y hora de la última actualización"
+          >
+            <span
+              className="stationMetricsLivePulse"
+              aria-hidden="true"
+            >
+              <i />
+            </span>
+
+            <b>DATOS EN VIVO</b>
+
+            <span aria-hidden="true">·</span>
+
+            <strong>
+              {rankingUpdatedAt ?? "--:--:--"}
+            </strong>
+          </em>
+
+          <button
+            type="button"
+            className={
+              filtersAreActive
+                ? "stationMetricsFilterStatus active"
+                : "stationMetricsFilterStatus"
+            }
+            onClick={resetStationFilters}
+            aria-label={
+              filtersAreActive
+                ? `${activeFilterCount} ${
+                    activeFilterCount === 1
+                      ? "filtro activo"
+                      : "filtros activos"
+                  }, ${visibleStations.length} ${
+                    visibleStations.length === 1
+                      ? "emisora visible"
+                      : "emisoras visibles"
+                  }, ${visibleStationsListeners} ${
+                    visibleStationsListeners === 1
+                      ? "oyente"
+                      : "oyentes"
+                  }, ${visibleAudienceShare}% de la audiencia total de la red. Limpiar filtros`
+                : "No hay filtros activos"
+            }
+            title={
+              filtersAreActive
+                ? "Limpiar todos los filtros"
+                : "La red se está mostrando sin filtros"
+            }
+          >
+            <i aria-hidden="true">
+              {filtersAreActive ? "◆" : "◇"}
+            </i>
+
+            <b>
+              {filtersAreActive
+                ? `${activeFilterCount} ${
+                    activeFilterCount === 1
+                      ? "FILTRO"
+                      : "FILTROS"
+                  }`
+                : "SIN FILTROS"}
+            </b>
+
+            {filtersAreActive ? (
+              <>
+                <span aria-hidden="true">·</span>
+
+                <strong>
+                  {visibleStations.length}{" "}
+                  {visibleStations.length === 1
+                    ? "EMISORA"
+                    : "EMISORAS"}
+                </strong>
+
+                <span aria-hidden="true">·</span>
+
+                <strong className="listenersResult">
+                  <i aria-hidden="true">👥</i>
+                  {visibleStationsListeners}{" "}
+                  {visibleStationsListeners === 1
+                    ? "OYENTE"
+                    : "OYENTES"}
+                </strong>
+
+                <span aria-hidden="true">·</span>
+
+                <span
+                  className="audienceShareResult"
+                  title={`${visibleAudienceShare}% de la audiencia total de la red`}
+                >
+                  <strong>
+                    {visibleAudienceShare}% DE LA RED
+                  </strong>
+
+                  <span
+                    className="audienceShareMiniTrack"
+                    aria-hidden="true"
+                  >
+                    <i
+                      className="audienceShareMiniFill"
+                      style={{
+                        width: `${Math.min(
+                          100,
+                          Math.max(0, visibleAudienceShare),
+                        )}%`,
+                      }}
+                    />
+                  </span>
+                </span>
+
+                <em>LIMPIAR ↗</em>
+              </>
+            ) : null}
+          </button>
+        </span>
+
+        <button
+          type="button"
+          className={
+            stationMetricsCollapsed
+              ? "stationMetricsToggle collapsed"
+              : "stationMetricsToggle"
+          }
+          onClick={() =>
+            setStationMetricsCollapsed((current) => !current)
+          }
+          aria-expanded={!stationMetricsCollapsed}
+          title={
+            stationMetricsCollapsed
+              ? "Mostrar datos de la red"
+              : "Ocultar datos de la red"
+          }
+        >
+          <i aria-hidden="true">
+            {stationMetricsCollapsed ? "+" : "−"}
+          </i>
+          {stationMetricsCollapsed
+            ? "VER DATOS DE LA RED"
+            : "OCULTAR DATOS DE LA RED"}
+        </button>
+      </div>
+
+      {stationMetricsCollapsed ? (
+        <button
+          type="button"
+          className="stationMetricsCollapsedSummary"
+          onClick={() => setStationMetricsCollapsed(false)}
+          aria-label={
+            filtersAreActive
+              ? `Abrir datos de la red. ${visibleStations.length} de ${stations.length} emisoras visibles con ${visibleStationsListeners} oyentes, equivalentes al ${visibleAudienceShare}% de la audiencia total`
+              : "Abrir datos de la red"
+          }
+          title={
+            filtersAreActive
+              ? `${visibleStations.length} de ${stations.length} emisoras visibles · ${visibleStationsListeners} oyentes · ${visibleAudienceShare}% de la red. Abrir datos de la red`
+              : "Abrir métricas generales de la red"
+          }
+        >
+          <span
+            className={
+              filtersAreActive
+                ? "collapsedStationsCount filtered"
+                : "collapsedStationsCount"
+            }
+            title={
+              filtersAreActive
+                ? `${visibleStations.length} de ${stations.length} emisoras visibles`
+                : `${stations.length} emisoras en la red`
+            }
+          >
+            <i aria-hidden="true">◉</i>
+
+            <b>
+              {filtersAreActive ? (
+                <>
+                  {visibleStations.length}
+                  <small aria-hidden="true">/</small>
+                  <strong>{stations.length}</strong>
+                </>
+              ) : (
+                stations.length
+              )}
+            </b>
+
+            <em>
+              {filtersAreActive ? "VISIBLES / TOTAL" : "EMISORAS"}
+            </em>
+
+            {filtersAreActive ? (
+              <span
+                className="collapsedVisibleTrack"
+                aria-hidden="true"
+              >
+                <i
+                  className="collapsedVisibleFill"
+                  style={{
+                    width: `${
+                      stations.length > 0
+                        ? Math.round(
+                            (visibleStations.length / stations.length) * 100,
+                          )
+                        : 0
+                    }%`,
+                  }}
+                />
+              </span>
+            ) : null}
+          </span>
+
+          <span>
+            <i className="live" aria-hidden="true">●</i>
+            <b>{stationsOnline}</b>
+            <em>AL AIRE</em>
+          </span>
+
+          <span
+            className={
+              filtersAreActive
+                ? "collapsedListenersCount filtered"
+                : "collapsedListenersCount"
+            }
+            title={
+              filtersAreActive
+                ? `${visibleStationsListeners} oyentes en las emisoras visibles`
+                : `${networkListeners} oyentes en toda la red`
+            }
+          >
+            <i className="listeners" aria-hidden="true">👥</i>
+
+            <b>
+              {filtersAreActive
+                ? visibleStationsListeners
+                : networkListeners}
+            </b>
+
+            <em>
+              {filtersAreActive
+                ? "OYENTES VISIBLES"
+                : "OYENTES"}
+            </em>
+          </span>
+
+          {filtersAreActive ? (
+            <span
+              className="collapsedAudienceShare"
+              title={`${visibleAudienceShare}% de la audiencia total de la red`}
+            >
+              <i aria-hidden="true">◔</i>
+
+              <b>{visibleAudienceShare}%</b>
+
+              <em>DE LA RED</em>
+
+              <span
+                className="collapsedAudienceShareTrack"
+                aria-hidden="true"
+              >
+                <i
+                  className="collapsedAudienceShareFill"
+                  style={{
+                    width: `${Math.min(
+                      100,
+                      Math.max(0, visibleAudienceShare),
+                    )}%`,
+                  }}
+                />
+              </span>
+            </span>
+          ) : null}
+
+          <span
+            className={[
+              "coverage",
+              networkOperationalCoverage >= 90
+                ? "optimal"
+                : networkOperationalCoverage >= 60
+                  ? "partial"
+                  : "critical",
+            ].join(" ")}
+            title={`${stationsOnline} de ${stations.length} emisoras al aire`}
+          >
+            <i aria-hidden="true">◒</i>
+            <b>{networkOperationalCoverage}%</b>
+            <em>RED {networkOperationalStatus}</em>
+          </span>
+
+          <small>VER DATOS DE LA RED +</small>
+        </button>
+      ) : null}
+
+      <div
+        className={
+          stationMetricsCollapsed
+            ? "stationNetworkMetrics collapsed"
+            : "stationNetworkMetrics"
+        }
+        aria-label="Estado general de la red"
+      >
+        <button
+          type="button"
+          className={
+            !filtersAreActive && stationSortMode === "network"
+              ? "stationMetric stationMetricAction active allStationsAction"
+              : "stationMetric stationMetricAction allStationsAction"
+          }
+          onClick={resetStationFilters}
+          aria-pressed={!filtersAreActive && stationSortMode === "network"}
+          title="Mostrar toda la red y limpiar filtros"
+        >
+          <span
+            className="stationMetricIcon"
+            aria-hidden="true"
+          >
+            ◉
+          </span>
+
+          <div>
+            <strong
+              className={
+                filtersAreActive
+                  ? "stationMetricPrimaryCount filtered"
+                  : "stationMetricPrimaryCount"
+              }
+              title={
+                filtersAreActive
+                  ? `${visibleStations.length} de ${stations.length} emisoras visibles`
+                  : `${stations.length} emisoras en la red`
+              }
+            >
+              {filtersAreActive ? (
+                <>
+                  {visibleStations.length}
+                  <span aria-hidden="true">/</span>
+                  <small>{stations.length}</small>
+                </>
+              ) : (
+                stations.length
+              )}
+            </strong>
+
+            <small>EMISORAS EN LA RED</small>
+
+            {filtersAreActive ? (
+              <span
+                className="stationMetricVisibleTrack"
+                aria-label={`${visibleStations.length} de ${stations.length} emisoras visibles`}
+                title={`${visibleStations.length} de ${stations.length} emisoras visibles`}
+              >
+                <i
+                  className="stationMetricVisibleFill"
+                  style={{
+                    width: `${
+                      stations.length > 0
+                        ? Math.round(
+                            (visibleStations.length / stations.length) * 100,
+                          )
+                        : 0
+                    }%`,
+                  }}
+                />
+              </span>
+            ) : null}
+
+            <em>
+              {!filtersAreActive && stationSortMode === "network"
+                ? "MOSTRANDO TODA LA RED"
+                : `${visibleStations.length} ${
+                    visibleStations.length === 1
+                      ? "VISIBLE"
+                      : "VISIBLES"
+                  } · VER TODAS ↗`}
+            </em>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          className={
+            onlyOnAir
+              ? "stationMetric stationMetricAction active liveAction"
+              : "stationMetric stationMetricAction liveAction"
+          }
+          onClick={() => {
+            setOnlyOnAir((current) => !current);
+            setStationQuery("");
+          }}
+          aria-pressed={onlyOnAir}
+          title={
+            onlyOnAir
+              ? "Mostrar también emisoras fuera del filtro SOLO AL AIRE"
+              : "Ver solo emisoras al aire"
+          }
+        >
+          <span
+            className="stationMetricIcon live"
+            aria-hidden="true"
+          >
+            ●
+          </span>
+
+          <div>
+            <strong>{stationsOnline}</strong>
+            <small>AL AIRE</small>
+            <em>
+              {onlyOnAir
+                ? `MOSTRANDO AL AIRE · ${visibleStations.length} ${
+                    visibleStations.length === 1
+                      ? "EMISORA"
+                      : "EMISORAS"
+                  }`
+                : "VER SOLO AL AIRE ↗"}
+            </em>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          className={
+            stationSortMode === "audience"
+              ? "stationMetric stationMetricAction active audienceAction"
+              : "stationMetric stationMetricAction audienceAction"
+          }
+          onClick={revealFullAudienceRanking}
+          aria-pressed={stationSortMode === "audience"}
+          title={
+            filtersAreActive
+              ? `Ver ranking completo por audiencia · Promedio ${Math.round(
+                  averageVisibleStationListeners,
+                )} oyentes entre ${visibleStations.length} ${
+                  visibleStations.length === 1
+                    ? "emisora visible"
+                    : "emisoras visibles"
+                }`
+              : `Ver ranking completo por audiencia · Promedio ${Math.round(
+                  averageStationListeners,
+                )} oyentes por emisora`
+          }
+        >
+          <span
+            className="stationMetricIcon listeners"
+            aria-hidden="true"
+          >
+            👥
+          </span>
+
+          <div>
+            <strong>{networkListeners}</strong>
+            <small>OYENTES EN VIVO</small>
+            <em>
+              {stationSortMode === "audience"
+                ? `RANKING ACTIVO · ${visibleStations.length} ${
+                    visibleStations.length === 1
+                      ? "EMISORA"
+                      : "EMISORAS"
+                  } · PROM. ${Math.round(
+                    filtersAreActive
+                      ? averageVisibleStationListeners
+                      : averageStationListeners,
+                  )}`
+                : filtersAreActive
+                  ? `PROM. ${Math.round(
+                      averageVisibleStationListeners,
+                    )} ENTRE VISIBLES · VER RANKING ↗`
+                  : `PROM. ${Math.round(
+                      averageStationListeners,
+                    )} POR EMISORA · VER RANKING ↗`}
+            </em>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          className={[
+            "stationMetric",
+            "stationMetricAction",
+            "genresAction",
+            !["TODAS", "FAVORITAS", "RECIENTES"].includes(activeGenre)
+              ? "active"
+              : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          onClick={() => {
+            setControlsCollapsed(false);
+
+            window.requestAnimationFrame(() => {
+              document
+                .getElementById("station-genre-filters")
+                ?.scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+            });
+          }}
+          aria-pressed={
+            !["TODAS", "FAVORITAS", "RECIENTES"].includes(activeGenre)
+          }
+          title={
+            !["TODAS", "FAVORITAS", "RECIENTES"].includes(activeGenre)
+              ? `Género activo: ${activeGenre}. Abrir filtros por género`
+              : "Abrir filtros por género"
+          }
+        >
+          <span
+            className="stationMetricIcon genres"
+            aria-hidden="true"
+          >
+            ♫
+          </span>
+
+          <div>
+            <strong>{Math.max(0, genres.length - 1)}</strong>
+            <small>GÉNEROS EN LA RED</small>
+            <em>
+              {!["TODAS", "FAVORITAS", "RECIENTES"].includes(activeGenre)
+                ? `${activeGenre} ACTIVA · ${visibleStations.length} ${
+                    visibleStations.length === 1
+                      ? "EMISORA"
+                      : "EMISORAS"
+                  }`
+                : "VER GÉNEROS ↗"}
+            </em>
+          </div>
+        </button>
+
+        <button
+          type="button"
+          className={
+            activeGenre === "FAVORITAS"
+              ? "stationMetric stationMetricAction active favoritesAction"
+              : "stationMetric stationMetricAction favoritesAction"
+          }
+          onClick={() => {
+            setActiveGenre("FAVORITAS");
+            setStationQuery("");
+          }}
+          aria-pressed={activeGenre === "FAVORITAS"}
+          title="Ver solo tus emisoras favoritas"
+        >
+          <span
+            className="stationMetricIcon favorites"
+            aria-hidden="true"
+          >
+            ♥
+          </span>
+
+          <div>
+            <strong>{favoriteStations.length}</strong>
+            <small>FAVORITAS GUARDADAS</small>
+            <em>
+              {activeGenre === "FAVORITAS"
+                ? `MOSTRANDO FAVORITAS · ${visibleStations.length} ${
+                    visibleStations.length === 1
+                      ? "EMISORA"
+                      : "EMISORAS"
+                  }`
+                : "VER FAVORITAS ↗"}
+            </em>
+          </div>
+        </button>
+
+        <div className="stationMetric operationalCoverageMetric">
+          <span
+            className="stationMetricIcon online"
+            aria-hidden="true"
+          >
+            ●
+          </span>
+
+          <div>
+            <span className="stationMetricCoverageHeading">
+              <strong>{networkOperationalCoverage}%</strong>
+
+              <em
+                className={[
+                  "stationMetricCoverageStatus",
+                  networkOperationalCoverage >= 90
+                    ? "optimal"
+                    : networkOperationalCoverage >= 60
+                      ? "partial"
+                      : "critical",
+                ].join(" ")}
+              >
+                {networkOperationalStatus}
+              </em>
+            </span>
+
+            <small>COBERTURA OPERATIVA</small>
+
+            <span
+              className="stationMetricCoverageTrack"
+              aria-label={`${networkOperationalCoverage}% de la red está al aire`}
+              title={`${stationsOnline} de ${stations.length} emisoras al aire`}
+            >
+              <span
+                className={[
+                  "stationMetricCoverageFill",
+                  networkOperationalCoverage >= 90
+                    ? "optimal"
+                    : networkOperationalCoverage >= 60
+                      ? "partial"
+                      : "critical",
+                ].join(" ")}
+                style={{
+                  width: `${networkOperationalCoverage}%`,
+                }}
+              />
+            </span>
+
+            <span className="stationMetricCoverageDetail">
+              <b>
+                {stationsOnline} DE {stations.length} AL AIRE
+              </b>
+
+              {stations.length - stationsOnline > 0 ? (
+                <em>
+                  {stations.length - stationsOnline} FUERA DE LÍNEA
+                </em>
+              ) : (
+                <em className="allOnline">TODO OPERATIVO</em>
+              )}
+            </span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className={
+            activeGenre === "RECIENTES"
+              ? "stationMetric stationMetricAction active recentAction"
+              : "stationMetric stationMetricAction recentAction"
+          }
+          onClick={() => {
+            setActiveGenre("RECIENTES");
+            setStationQuery("");
+          }}
+          aria-pressed={activeGenre === "RECIENTES"}
+          title="Ver emisoras escuchadas recientemente"
+        >
+          <span
+            className="stationMetricIcon recent"
+            aria-hidden="true"
+          >
+            ◷
+          </span>
+
+          <div>
+            <strong>{recentStations.length}</strong>
+            <small>ESCUCHADAS RECIENTEMENTE</small>
+            <em>
+              {activeGenre === "RECIENTES"
+                ? `MOSTRANDO RECIENTES · ${visibleStations.length} ${
+                    visibleStations.length === 1
+                      ? "EMISORA"
+                      : "EMISORAS"
+                  }`
+                : "VER RECIENTES ↗"}
+            </em>
+          </div>
+        </button>
       </div>
 
       <div
@@ -7781,1911 +9720,7 @@ export default function StationsGrid({
         </div>
       ) : null}
 
-      <div
-        id="station-ranking-grid"
-        className={
-          compactView
-            ? "stationGrid stationGridCompact"
-            : "stationGrid"
-        }
-      >
-        {visibleStations.length === 0 ? (
-          <div className="stationEmptyState">
-            <span aria-hidden="true">⌕</span>
-            <strong>NO ENCONTRAMOS ESA EMISORA</strong>
-            <small>
-              {activeGenre === "FAVORITAS"
-                ? "Aún no has guardado emisoras favoritas."
-                : activeGenre === "RECIENTES"
-                  ? "Aún no has escuchado emisoras en este navegador."
-                  : "Prueba otro nombre, género o selecciona TODAS."}
-            </small>
-            <button
-              type="button"
-              onClick={resetStationFilters}
-            >
-              VER TODA LA RED
-            </button>
-          </div>
-        ) : null}
 
-        {visibleStations.map((station, index) => {
-          const info =
-            metadata[station.id] ?? emptyNowPlaying(station);
-
-          const active = station.id === selected.id;
-          const stationListenerCount =
-            typeof info.listeners === "number" ? info.listeners : 0;
-
-          const stationNetworkAudienceShare =
-            networkListeners > 0
-              ? Math.round(
-                  (stationListenerCount / networkListeners) * 100,
-                )
-              : 0;
-
-          const stationAudienceShare =
-            visibleStationsListeners > 0
-              ? Math.round(
-                  (stationListenerCount / visibleStationsListeners) *
-                    100,
-                )
-              : 0;
-
-          const stationAudienceVsAverage =
-            Math.round(
-              (
-                (
-                  filtersAreActive
-                    ? stationAudienceShare
-                    : stationNetworkAudienceShare
-                ) - contextualAverageAudienceShare
-              ) * 10,
-            ) / 10;
-
-          const stationListenersVsAverage =
-            Math.round(
-              stationListenerCount -
-                contextualAverageStationListeners,
-            );
-
-          const stationAudienceGap =
-            index === 0
-              ? 0
-              : Math.max(
-                  topVisibleLeaderListeners - stationListenerCount,
-                  0,
-                );
-
-          const stationGapToSecond =
-            index === 2
-              ? Math.max(
-                  secondVisibleListeners - stationListenerCount,
-                  0,
-                )
-              : null;
-
-          const stationGapToSecondRate =
-            stationGapToSecond !== null &&
-            secondVisibleListeners > 0
-              ? Math.round(
-                  (stationGapToSecond /
-                    secondVisibleListeners) *
-                    1000,
-                ) / 10
-              : stationGapToSecond === 0
-                ? 0
-                : null;
-
-          const stationGapToTop3 =
-            stationSortMode === "audience" &&
-            index === 3 &&
-            thirdVisibleStation &&
-            thirdVisibleListeners !== null
-              ? Math.max(
-                  thirdVisibleListeners - stationListenerCount,
-                  0,
-                )
-              : null;
-
-          const stationGapToTop3Rate =
-            stationGapToTop3 !== null &&
-            thirdVisibleListeners !== null &&
-            thirdVisibleListeners > 0
-              ? Math.round(
-                  (stationGapToTop3 /
-                    thirdVisibleListeners) *
-                    1000,
-                ) / 10
-              : stationGapToTop3 === 0
-                ? 0
-                : null;
-
-          const stationThirdPressureLevel =
-            stationGapToSecond === null
-              ? null
-              : stationGapToSecond === 0 ||
-                  (stationGapToSecondRate !== null &&
-                    stationGapToSecondRate < 3)
-                ? "high"
-                : stationGapToSecondRate !== null &&
-                    stationGapToSecondRate < 10
-                  ? "medium"
-                  : "low";
-
-          const stationRankingMovement =
-            rankingMovements[station.id] ?? 0;
-          const stationRankingListenerChange =
-            rankingListenerChanges[station.id] ?? 0;
-
-          const stationThirdPressureDelta =
-            index === 2 &&
-            rankingMovementReady &&
-            secondVisibleRankingListenerChange !== null
-              ? stationRankingListenerChange -
-                secondVisibleRankingListenerChange
-              : null;
-
-          const stationThirdPressureMomentum =
-            stationThirdPressureDelta === null
-              ? null
-              : stationThirdPressureDelta > 0
-                ? "increasing"
-                : stationThirdPressureDelta < 0
-                  ? "decreasing"
-                  : "stable";
-
-          const stationCurrentRankingPosition = index + 1;
-          const stationPreviousRankingPosition = Math.min(
-            Math.max(
-              stationCurrentRankingPosition +
-                stationRankingMovement,
-              1,
-            ),
-            Math.max(visibleStations.length, 1),
-          );
-
-          const stationBecameLeader =
-            rankingMovementReady &&
-            stationCurrentRankingPosition === 1 &&
-            stationPreviousRankingPosition > 1;
-
-          const stationLostLeadership =
-            rankingMovementReady &&
-            stationCurrentRankingPosition > 1 &&
-            stationPreviousRankingPosition === 1;
-
-          const stationEnteredTop3 =
-            rankingMovementReady &&
-            stationCurrentRankingPosition <= 3 &&
-            stationPreviousRankingPosition > 3;
-
-          const stationExitedTop3 =
-            rankingMovementReady &&
-            stationCurrentRankingPosition > 3 &&
-            stationPreviousRankingPosition <= 3;
-
-          const stationPreviousListeners = Math.max(
-            0,
-            stationListenerCount - stationRankingListenerChange,
-          );
-
-          const stationListenerChangeRate =
-            stationPreviousListeners > 0
-              ? Math.round(
-                  (stationRankingListenerChange /
-                    stationPreviousListeners) *
-                    1000,
-                ) / 10
-              : stationRankingListenerChange === 0
-                ? 0
-                : null;
-
-          const stationListenerMovementStrength =
-            stationListenerChangeRate === null
-              ? "softMove"
-              : Math.abs(stationListenerChangeRate) >= 5
-                ? "strongMove"
-                : Math.abs(stationListenerChangeRate) >= 2
-                  ? "mediumMove"
-                  : "softMove";
-
-          const artwork =
-            info.artwork && info.artwork !== station.logo
-              ? info.artwork
-              : station.logo;
-
-          return (
-            <article
-              key={station.id}
-              id={`station-card-${station.id}`}
-              className={[
-                "stationCard",
-                active ? "active" : "",
-                rankingMovementReady &&
-                stationListenerMovementStrength === "mediumMove" &&
-                stationRankingListenerChange > 0
-                  ? "mediumAudienceUp"
-                  : "",
-                rankingMovementReady &&
-                stationListenerMovementStrength === "mediumMove" &&
-                stationRankingListenerChange < 0
-                  ? "mediumAudienceDown"
-                  : "",
-                rankingMovementReady &&
-                stationListenerMovementStrength === "strongMove" &&
-                stationRankingListenerChange > 0
-                  ? "strongAudienceUp"
-                  : "",
-                rankingMovementReady &&
-                stationListenerMovementStrength === "strongMove" &&
-                stationRankingListenerChange < 0
-                  ? "strongAudienceDown"
-                  : "",
-              ]
-                .filter(Boolean)
-                .join(" ")}
-              style={
-                {
-                  "--accent": station.accent,
-                } as CSSProperties
-              }
-              aria-current={active ? "true" : undefined}
-            >
-              <div className="stationBadge">
-                <i aria-hidden="true" />
-                {info.configured ? " AL AIRE" : " DISPONIBLE"}
-              </div>
-
-              {stationSortMode === "audience" ? (
-                <div
-                  className={
-                    index < 3
-                      ? `stationAudienceRank top${index + 1}${
-                          active ? " selectedRank" : ""
-                        }${
-                          active && selectedRankDetailsCollapsed
-                            ? " compactSelectedRank"
-                            : ""
-                        }`
-                      : `stationAudienceRank${
-                          active ? " selectedRank" : ""
-                        }${
-                          active && selectedRankDetailsCollapsed
-                            ? " compactSelectedRank"
-                            : ""
-                        }`
-                  }
-                  aria-label={
-                    active
-                      ? `Tu emisora está en la posición ${index + 1} por audiencia`
-                      : `Posición ${index + 1} por audiencia`
-                  }
-                >
-                  <small>
-                    {active ? "TU EMISORA" : "RANKING EN VIVO"}
-                  </small>
-                  <strong>#{index + 1}</strong>
-
-                  {rankingMovementReady ? (
-                    <span
-                      className={
-                        stationRankingMovement > 0
-                          ? `stationAudienceMovement up${
-                              active ? " selected" : ""
-                            }`
-                          : stationRankingMovement < 0
-                            ? `stationAudienceMovement down${
-                                active ? " selected" : ""
-                              }`
-                            : `stationAudienceMovement steady${
-                                active ? " selected" : ""
-                              }`
-                      }
-                      title={
-                        stationBecameLeader
-                          ? `Tomó el liderato: pasó de #${stationPreviousRankingPosition} a #1`
-                          : stationLostLeadership
-                            ? `Cedió el liderato: pasó de #1 a #${stationCurrentRankingPosition}`
-                            : stationEnteredTop3
-                              ? `Entró al TOP 3: pasó de #${stationPreviousRankingPosition} a #${stationCurrentRankingPosition}`
-                              : stationExitedTop3
-                                ? `Salió del TOP 3: pasó de #${stationPreviousRankingPosition} a #${stationCurrentRankingPosition}`
-                                : stationRankingMovement > 0
-                                  ? `Subió ${stationRankingMovement} ${
-                                      stationRankingMovement === 1
-                                        ? "posición"
-                                        : "posiciones"
-                                    }: de #${stationPreviousRankingPosition} a #${stationCurrentRankingPosition}`
-                                  : stationRankingMovement < 0
-                                    ? `Bajó ${Math.abs(
-                                        stationRankingMovement,
-                                      )} ${
-                                        Math.abs(
-                                          stationRankingMovement,
-                                        ) === 1
-                                          ? "posición"
-                                          : "posiciones"
-                                      }: de #${stationPreviousRankingPosition} a #${stationCurrentRankingPosition}`
-                                    : `Mantiene la posición #${stationCurrentRankingPosition}`
-                      }
-                    >
-                      <span aria-hidden="true">
-                        {stationRankingMovement > 0
-                          ? "↑"
-                          : stationRankingMovement < 0
-                            ? "↓"
-                            : "—"}
-                      </span>
-
-                      <span
-                        className={[
-                          "stationAudienceMovementPosition",
-                          stationBecameLeader
-                            ? "becameLeader"
-                            : stationLostLeadership
-                              ? "lostLeadership"
-                              : stationEnteredTop3
-                                ? "enteredTop3"
-                                : stationExitedTop3
-                                  ? "exitedTop3"
-                                  : "",
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
-                      >
-                        {stationBecameLeader
-                          ? "TOMA EL #1"
-                          : stationLostLeadership
-                            ? "CEDE EL #1"
-                            : stationEnteredTop3
-                              ? "ENTRA TOP 3"
-                              : stationExitedTop3
-                                ? "SALE TOP 3"
-                                : stationRankingMovement > 0
-                                  ? `SUBE ${stationRankingMovement} · ANTES #${stationPreviousRankingPosition}`
-                                  : stationRankingMovement < 0
-                                    ? `BAJA ${Math.abs(
-                                        stationRankingMovement,
-                                      )} · ANTES #${stationPreviousRankingPosition}`
-                                    : `MANTIENE #${stationCurrentRankingPosition}`}
-                      </span>
-
-                      <em
-                        className={
-                          stationRankingListenerChange > 0
-                            ? "listenerUp"
-                            : stationRankingListenerChange < 0
-                              ? "listenerDown"
-                              : "listenerSteady"
-                        }
-                      >
-                        {stationRankingListenerChange > 0
-                          ? `+${stationRankingListenerChange} OY`
-                          : stationRankingListenerChange < 0
-                            ? `${stationRankingListenerChange} OY`
-                            : "0 OY"}
-                      </em>
-                    </span>
-                  ) : null}
-
-                  {active ? (
-                    <button
-                      type="button"
-                      className="stationAudienceRankDetailsToggle"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setSelectedRankDetailsCollapsed(
-                          (current) => !current,
-                        );
-                      }}
-                      aria-expanded={!selectedRankDetailsCollapsed}
-                      title={
-                        selectedRankDetailsCollapsed
-                          ? "Mostrar metas de tu emisora"
-                          : "Minimizar metas de tu emisora"
-                      }
-                    >
-                      <span aria-hidden="true">
-                        {selectedRankDetailsCollapsed ? "＋" : "−"}
-                      </span>
-
-                      {selectedRankDetailsCollapsed
-                        ? "MOSTRAR METAS"
-                        : "MINIMIZAR METAS"}
-                    </button>
-                  ) : null}
-
-                  {active && !selectedRankDetailsCollapsed ? (
-                    <>
-                      <span
-                        className={
-                          index === 0
-                            ? "stationAudienceNextMove leading"
-                            : "stationAudienceNextMove"
-                        }
-                      >
-                        {index === 0 ? (
-                          <>
-                            <span aria-hidden="true">★</span>
-                            LÍDER ACTUAL
-                          </>
-                        ) : selectedListenersToNextPosition !== null ? (
-                          <>
-                            <span aria-hidden="true">↑</span>
-                            SUBIR AL #{index} · +
-                            {selectedListenersToNextPosition}{" "}
-                            {selectedListenersToNextPosition === 1
-                              ? "OYENTE"
-                              : "OYENTES"}
-                          </>
-                        ) : null}
-                      </span>
-
-                      <span
-                        className={
-                          index < 3
-                            ? "stationAudiencePodiumGoal achieved"
-                            : "stationAudiencePodiumGoal"
-                        }
-                      >
-                        <span aria-hidden="true">
-                          {index < 3 ? "◆" : "△"}
-                        </span>
-
-                        {index < 3 ? (
-                          "YA ESTÁS EN EL TOP 3"
-                        ) : selectedListenersToTop3 !== null ? (
-                          <>
-                            ENTRAR AL TOP 3 · +
-                            {selectedListenersToTop3}{" "}
-                            {selectedListenersToTop3 === 1
-                              ? "OYENTE"
-                              : "OYENTES"}
-                          </>
-                        ) : (
-                          "META TOP 3"
-                        )}
-                      </span>
-
-                      {selectedTop3Progress !== null ? (
-                        <span
-                          className={
-                            index < 3
-                              ? "stationAudienceTop3Progress achieved"
-                              : "stationAudienceTop3Progress"
-                          }
-                        >
-                          <span className="stationAudienceTop3ProgressLabel">
-                            <small>
-                              {index < 3
-                                ? "PODIO ACTIVO"
-                                : "PROGRESO AL TOP 3"}
-                            </small>
-
-                            <b>{selectedTop3Progress}%</b>
-                          </span>
-
-                          <span
-                            className="stationAudienceTop3ProgressTrack"
-                            aria-hidden="true"
-                          >
-                            <i
-                              style={{
-                                width: `${Math.max(
-                                  selectedTop3Progress,
-                                  selectedTop3Progress > 0 ? 5 : 0,
-                                )}%`,
-                              }}
-                            />
-                          </span>
-                        </span>
-                      ) : null}
-
-                      {index >= 3 && thirdVisibleStation ? (
-                        <span className="stationAudiencePodiumTargetGroup">
-                          <span className="stationAudiencePodiumTargetNow">
-                            <span aria-hidden="true">♪</span>
-
-                            <span>
-                              <small>SONANDO EN #3</small>
-
-                              <strong
-                                title={
-                                  thirdVisibleStationInfo?.artist
-                                    ? `${thirdVisibleStationInfo.title} — ${thirdVisibleStationInfo.artist}`
-                                    : thirdVisibleStationInfo?.title
-                                }
-                              >
-                                {thirdVisibleStationInfo?.title ||
-                                  "Programación en vivo"}
-                              </strong>
-
-                              {thirdVisibleStationInfo?.artist ? (
-                                <em>
-                                  {thirdVisibleStationInfo.artist}
-                                </em>
-                              ) : null}
-                            </span>
-                          </span>
-
-                          <button
-                            type="button"
-                            className="stationAudiencePodiumTarget"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              playStation(thirdVisibleStation);
-                            }}
-                            aria-label={`Escuchar la emisora número tres ${thirdVisibleStation.name}`}
-                            title={`Escuchar ${thirdVisibleStation.name}, actual número tres`}
-                          >
-                            <span aria-hidden="true">▶</span>
-
-                            <span>
-                              <small>OBJETIVO #3</small>
-                              <strong>
-                                {thirdVisibleStation.shortName ||
-                                  thirdVisibleStation.name}
-                              </strong>
-                            </span>
-
-                            <b>ESCUCHAR #3</b>
-                          </button>
-
-                          <button
-                            type="button"
-                            className="stationAudiencePodiumTargetView"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              revealTop3TargetInRanking();
-                            }}
-                            aria-label={`Ver la emisora número tres ${thirdVisibleStation.name} dentro del ranking`}
-                            title={`Ir a ${thirdVisibleStation.name}, actual número tres`}
-                          >
-                            <span aria-hidden="true">↓</span>
-                            VER #3
-                          </button>
-                        </span>
-                      ) : null}
-                    </>
-                  ) : null}
-
-                  <span
-                    className="stationAudienceShare"
-                    title={`${stationAudienceShare}% de la audiencia de esta selección`}
-                  >
-                    <b>{stationAudienceShare}%</b>
-
-                    <i aria-hidden="true">
-                      <em
-                        style={{
-                          width: `${Math.max(
-                            stationAudienceShare,
-                            stationAudienceShare > 0 ? 5 : 0,
-                          )}%`,
-                        }}
-                      />
-                    </i>
-
-                    <small
-                      className={
-                        index > 0 && stationAudienceGap === 0
-                          ? "stationAudienceGap tied"
-                          : "stationAudienceGap"
-                      }
-                    >
-                      {index === 0
-                        ? "LÍDER"
-                        : stationAudienceGap === 0
-                          ? "EMPATE CON #1"
-                          : stationAudienceGap === 1
-                            ? "A 1 OYENTE DEL #1"
-                            : `A ${stationAudienceGap} OYENTES DEL #1`}
-                    </small>
-                  </span>
-                </div>
-              ) : null}
-
-              {active ? (
-                <div className="stationSelectedState" aria-live="polite">
-                  <span aria-hidden="true">{playing ? "◉" : "✓"}</span>
-                  <strong>
-                    {playing ? "EN REPRODUCCIÓN" : "EMISORA SELECCIONADA"}
-                  </strong>
-                </div>
-              ) : null}
-
-              <div className="stationArtwork">
-                <img
-                  className="stationArtworkMain"
-                  src={artwork}
-                  alt={`Portada actual de ${station.name}`}
-                  width={148}
-                  height={148}
-                  onError={(event) => {
-                    event.currentTarget.src = station.logo;
-                  }}
-                />
-
-                {rankingMovementReady &&
-                typeof info.listeners === "number" &&
-                stationRankingListenerChange !== 0 &&
-                stationListenerMovementStrength !== "softMove" ? (
-                  <span
-                    className={[
-                      "stationArtworkMomentum",
-                      stationRankingListenerChange > 0 ? "up" : "down",
-                      stationListenerMovementStrength,
-                    ].join(" ")}
-                    title={
-                      stationRankingListenerChange > 0
-                        ? `${
-                            stationListenerMovementStrength === "strongMove"
-                              ? "Subida fuerte"
-                              : "Subida moderada"
-                          } de audiencia`
-                        : `${
-                            stationListenerMovementStrength === "strongMove"
-                              ? "Caída fuerte"
-                              : "Caída moderada"
-                          } de audiencia`
-                    }
-                    aria-label={
-                      stationRankingListenerChange > 0
-                        ? `${
-                            stationListenerMovementStrength === "strongMove"
-                              ? "Subida fuerte"
-                              : "Subida moderada"
-                          } de audiencia`
-                        : `${
-                            stationListenerMovementStrength === "strongMove"
-                              ? "Caída fuerte"
-                              : "Caída moderada"
-                          } de audiencia`
-                    }
-                  >
-                    <span aria-hidden="true">
-                      {stationRankingListenerChange > 0 ? "▲" : "▼"}
-                    </span>
-
-                    {stationListenerChangeRate !== null ? (
-                      <strong className="stationArtworkMomentumRate">
-                        {stationListenerChangeRate > 0
-                          ? `+${stationListenerChangeRate.toFixed(1)}%`
-                          : `−${Math.abs(
-                              stationListenerChangeRate,
-                            ).toFixed(1)}%`}
-                      </strong>
-                    ) : null}
-                  </span>
-                ) : null}
-
-                <button
-                  type="button"
-                  className="stationArtworkPlay"
-                  onClick={() => playStation(station)}
-                  aria-label={
-                    active && playing
-                      ? `Pausar ${station.name}`
-                      : `Escuchar ${station.name}`
-                  }
-                  aria-pressed={active && playing}
-                >
-                  <span aria-hidden="true">
-                    {active && playing ? "❚❚" : "▶"}
-                  </span>
-                  <strong>
-                    {active && playing ? "PAUSAR" : "ESCUCHAR"}
-                  </strong>
-                </button>
-
-                <img
-                  className="stationLogoBadge"
-                  src={station.logo}
-                  alt=""
-                  width={44}
-                  height={44}
-                />
-
-                {active && playing ? (
-                  <span className="stationPlayingIndicator" aria-hidden="true">
-                    <i />
-                    <i />
-                    <i />
-                    <i />
-                  </span>
-                ) : null}
-              </div>
-
-              <span>{station.genre}</span>
-
-              <div className="stationNameRow">
-                <h3>
-                    {highlightSearchText(station.name, stationQuery)}
-                  </h3>
-
-                <div className="stationQuickActions">
-                  <button
-                    type="button"
-                    className={
-                      favoriteStations.includes(station.id)
-                        ? "stationFavorite active"
-                        : "stationFavorite"
-                    }
-                    onClick={() => toggleFavorite(station.id)}
-                    aria-label={
-                      favoriteStations.includes(station.id)
-                        ? `Quitar ${station.name} de favoritas`
-                        : `Agregar ${station.name} a favoritas`
-                    }
-                    aria-pressed={favoriteStations.includes(station.id)}
-                    title={
-                      favoriteStations.includes(station.id)
-                        ? "Quitar de favoritas"
-                        : "Agregar a favoritas"
-                    }
-                  >
-                    <span aria-hidden="true">
-                      {favoriteStations.includes(station.id) ? "♥" : "♡"}
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className={
-                      sharedStationId === station.id
-                        ? "stationShare active"
-                        : "stationShare"
-                    }
-                    onClick={() => shareStation(station)}
-                    aria-label={`Compartir ${station.name}`}
-                    title="Compartir emisora"
-                  >
-                    <span aria-hidden="true">
-                      {sharedStationId === station.id ? "✓" : "↗"}
-                    </span>
-                  </button>
-                </div>
-              </div>
-
-              <p className="stationSlogan">
-                {highlightSearchText(station.slogan, stationQuery)}
-              </p>
-
-              <div
-                className={
-                  active && playing
-                    ? "stationNow stationNowPlaying"
-                    : "stationNow"
-                }
-                aria-live="polite"
-              >
-                <div className="stationNowHeader">
-                  <span className="stationNowLabel">SONANDO AHORA</span>
-
-                  <div className="stationNowHeaderActions">
-                    {info.artist ? (
-                      <button
-                        type="button"
-                        className="stationNowArtistSearch"
-                        onClick={() =>
-                          searchArtistAcrossNetwork(info.artist)
-                        }
-                        aria-label={`Buscar ${info.artist} en toda la red`}
-                        title={`Buscar ${info.artist} en la red`}
-                      >
-                        <span aria-hidden="true">⌕</span>
-                        BUSCAR ARTISTA
-                      </button>
-                    ) : null}
-
-                    {info.title ? (
-                      <button
-                        type="button"
-                        className="stationNowSongSearch"
-                        onClick={() =>
-                          searchSongAcrossNetwork(info.title)
-                        }
-                        aria-label={`Buscar ${info.title} en toda la red`}
-                        title={`Buscar ${info.title} en la red`}
-                      >
-                        <span aria-hidden="true">♪</span>
-                        BUSCAR CANCIÓN
-                      </button>
-                    ) : null}
-
-                    {active && playing ? (
-                      <span className="stationNowPulse" aria-hidden="true">
-                        <i />
-                        <i />
-                        <i />
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-
-                <b title={info.title}>
-                  {highlightSearchText(info.title, stationQuery)}
-                </b>
-                <small title={info.artist}>
-                  {highlightSearchText(info.artist, stationQuery)}
-                </small>
-              </div>
-
-              <div className="stationFooter">
-                <span
-                  className="stationFooterAudience"
-                  title={
-                    typeof info.listeners === "number"
-                      ? `${stationNetworkAudienceShare}% de la audiencia total de la red`
-                      : "Audiencia no disponible"
-                  }
-                >
-                  <span className="stationFooterAudienceCount">
-                    <span>
-                      👥 {info.listeners ?? "—"} oyentes
-                    </span>
-
-                    {rankingMovementReady &&
-                    typeof info.listeners === "number" ? (
-                      <em
-                        className={[
-                          "stationFooterAudienceDelta",
-                          stationRankingListenerChange > 0
-                            ? "up"
-                            : stationRankingListenerChange < 0
-                              ? "down"
-                              : "steady",
-                          stationListenerMovementStrength,
-                        ].join(" ")}
-                        title={
-                          stationRankingListenerChange > 0
-                            ? `Ganó ${stationRankingListenerChange} ${
-                                stationRankingListenerChange === 1
-                                  ? "oyente"
-                                  : "oyentes"
-                              } desde la actualización anterior${
-                                stationListenerChangeRate !== null
-                                  ? ` · +${stationListenerChangeRate.toFixed(
-                                      1,
-                                    )}% · ${
-                                      stationListenerMovementStrength ===
-                                      "strongMove"
-                                        ? "movimiento fuerte"
-                                        : stationListenerMovementStrength ===
-                                            "mediumMove"
-                                          ? "movimiento moderado"
-                                          : "movimiento suave"
-                                    }`
-                                  : ""
-                              }`
-                            : stationRankingListenerChange < 0
-                              ? `Perdió ${Math.abs(
-                                  stationRankingListenerChange,
-                                )} ${
-                                  Math.abs(
-                                    stationRankingListenerChange,
-                                  ) === 1
-                                    ? "oyente"
-                                    : "oyentes"
-                                } desde la actualización anterior${
-                                  stationListenerChangeRate !== null
-                                    ? ` · −${Math.abs(
-                                        stationListenerChangeRate,
-                                      ).toFixed(
-                                        1,
-                                      )}% · ${
-                                        stationListenerMovementStrength ===
-                                        "strongMove"
-                                          ? "movimiento fuerte"
-                                          : stationListenerMovementStrength ===
-                                              "mediumMove"
-                                            ? "movimiento moderado"
-                                            : "movimiento suave"
-                                      }`
-                                    : ""
-                                }`
-                              : "Sin cambio de oyentes desde la actualización anterior · 0.0%"
-                        }
-                      >
-                        <span aria-hidden="true">
-                          {stationRankingListenerChange > 0
-                            ? "▲"
-                            : stationRankingListenerChange < 0
-                              ? "▼"
-                              : "—"}
-                        </span>
-
-                        {stationRankingListenerChange > 0
-                          ? `+${stationRankingListenerChange}`
-                          : stationRankingListenerChange < 0
-                            ? `−${Math.abs(
-                                stationRankingListenerChange,
-                              )}`
-                            : "0"}
-
-                        {stationListenerChangeRate !== null ? (
-                          <small
-                            className="stationFooterAudienceDeltaRate"
-                            aria-label={`Variación ${stationListenerChangeRate.toFixed(
-                              1,
-                            )} por ciento`}
-                          >
-                            <span aria-hidden="true">·</span>
-                            {stationListenerChangeRate > 0
-                              ? `+${stationListenerChangeRate.toFixed(
-                                  1,
-                                )}%`
-                              : stationListenerChangeRate < 0
-                                ? `−${Math.abs(
-                                    stationListenerChangeRate,
-                                  ).toFixed(
-                                    1,
-                                  )}%`
-                                : "0.0%"}
-                          </small>
-                        ) : null}
-
-                        {stationRankingListenerChange !== 0 ? (
-                          <span
-                            className={[
-                              "stationFooterAudienceStrength",
-                              stationListenerMovementStrength,
-                            ].join(" ")}
-                            aria-label={
-                              stationListenerMovementStrength ===
-                              "strongMove"
-                                ? "Movimiento fuerte"
-                                : stationListenerMovementStrength ===
-                                    "mediumMove"
-                                  ? "Movimiento moderado"
-                                  : "Movimiento suave"
-                            }
-                            title={
-                              stationListenerMovementStrength ===
-                              "strongMove"
-                                ? "Movimiento fuerte"
-                                : stationListenerMovementStrength ===
-                                    "mediumMove"
-                                  ? "Movimiento moderado"
-                                  : "Movimiento suave"
-                            }
-                          >
-                            <i />
-                            <i />
-                            <i />
-                          </span>
-                        ) : null}
-                      </em>
-                    ) : null}
-                  </span>
-
-                  {typeof info.listeners === "number" ? (
-                    <button
-                      type="button"
-                      className={[
-                        "stationFooterAudienceShare",
-                        stationSortMode === "audience"
-                          ? "rankingActive"
-                          : "",
-                        stationSortMode === "audience" &&
-                        index === 0
-                          ? "podiumGold"
-                          : "",
-                        stationSortMode === "audience" &&
-                        index === 1
-                          ? "podiumSilver"
-                          : "",
-                        stationSortMode === "audience" &&
-                        index === 2
-                          ? "podiumBronze"
-                          : "",
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                      onClick={() =>
-                        revealStationInAudienceRanking(station)
-                      }
-                      aria-label={
-                        stationSortMode === "audience"
-                          ? filtersAreActive
-                            ? `${station.shortName || station.name}, posición ${index + 1} de ${visibleStations.length} en el ranking visible por audiencia`
-                            : `${station.shortName || station.name}, posición ${index + 1} de ${stations.length} en el ranking por audiencia`
-                          : `Ver ${station.shortName || station.name} en el ranking por audiencia`
-                      }
-                      title={
-                        stationSortMode === "audience"
-                          ? filtersAreActive
-                            ? `#${index + 1} de ${visibleStations.length} en el ranking visible · ${stationAudienceShare}% entre las emisoras visibles · ${stationNetworkAudienceShare}% de la audiencia total de la red`
-                            : `#${index + 1} de ${stations.length} en el ranking · ${stationNetworkAudienceShare}% de la audiencia total de la red`
-                          : filtersAreActive
-                            ? `${stationAudienceShare}% entre las emisoras visibles · ${stationNetworkAudienceShare}% de la audiencia total de la red · Ver en ranking`
-                            : `${stationNetworkAudienceShare}% de la audiencia total de la red · Ver en ranking`
-                      }
-                    >
-                      <em className="stationFooterAudienceMain">
-                        {stationSortMode === "audience" ? (
-                          <>
-                            <strong
-                              className={[
-                                "stationFooterRankPosition",
-                                index === 0
-                                  ? "rankGold"
-                                  : index === 1
-                                    ? "rankSilver"
-                                    : index === 2
-                                      ? "rankBronze"
-                                      : "rankStandard",
-                              ].join(" ")}
-                            >
-                              {index === 0 ? (
-                                <span
-                                  className={[
-                                    "stationFooterLeaderCrown",
-                                    stationBecameLeader
-                                      ? "newLeader"
-                                      : "",
-                                  ]
-                                    .filter(Boolean)
-                                    .join(" ")}
-                                  aria-label={
-                                    stationBecameLeader
-                                      ? "Nuevo líder"
-                                      : "Líder actual"
-                                  }
-                                  title={
-                                    stationBecameLeader
-                                      ? "Nuevo líder de audiencia"
-                                      : "Líder actual de audiencia"
-                                  }
-                                >
-                                  ♛
-
-                                  {leaderAudienceAdvantage !== null ? (
-                                    <small
-                                      className={[
-                                        "stationFooterLeaderGap",
-                                        leaderAudienceAdvantage === 0
-                                          ? "tied"
-                                          : "ahead",
-                                      ].join(" ")}
-                                      title={
-                                        leaderAudienceAdvantage === 0
-                                          ? "Empate en el liderato"
-                                          : `Ventaja de ${leaderAudienceAdvantage} ${
-                                              leaderAudienceAdvantage === 1
-                                                ? "oyente"
-                                                : "oyentes"
-                                            } sobre la emisora #2 · +${leaderRelativeAdvantagePrecise.toFixed(
-                                              1,
-                                            )}%`
-                                      }
-                                    >
-                                      {leaderAudienceAdvantage === 0 ? (
-                                        <>
-                                          EMPATE
-                                          <span
-                                            className="stationFooterLeaderStatus tight"
-                                            title={
-                                              leaderAdvantageMomentum === null
-                                                ? "Estado del liderato: EMPATE"
-                                                : leaderAdvantageMomentum > 0
-                                                  ? "Estado del liderato: EMPATE · La ventaja tiende a crecer"
-                                                  : leaderAdvantageMomentum < 0
-                                                    ? "Estado del liderato: EMPATE · La ventaja tiende a reducirse"
-                                                    : "Estado del liderato: EMPATE · Tendencia estable"
-                                            }
-                                          >
-                                            AJUSTADO
-
-                                            <span
-                                              className="stationFooterLeaderStrength tight"
-                                              aria-label="Fuerza del liderato: ajustado"
-                                              title="Fuerza del liderato: ajustado"
-                                            >
-                                              <i />
-                                              <i />
-                                              <i />
-                                            </span>
-
-                                            {leaderAdvantageMomentum !== null ? (
-                                              <i
-                                                className={[
-                                                  "stationFooterLeaderTrend",
-                                                  leaderAdvantageMomentum > 0
-                                                    ? "growing"
-                                                    : leaderAdvantageMomentum < 0
-                                                      ? "shrinking"
-                                                      : "stable",
-                                                ].join(" ")}
-                                                aria-label={
-                                                  leaderAdvantageMomentum > 0
-                                                    ? "Ventaja creciendo"
-                                                    : leaderAdvantageMomentum < 0
-                                                      ? "Ventaja reduciéndose"
-                                                      : "Ventaja estable"
-                                                }
-                                              >
-                                                {leaderAdvantageMomentum > 0
-                                                  ? "↑"
-                                                  : leaderAdvantageMomentum < 0
-                                                    ? "↓"
-                                                    : "—"}
-                                              </i>
-                                            ) : null}
-                                          </span>
-                                        </>
-                                      ) : (
-                                        <>
-                                          +{leaderAudienceAdvantage} OY
-                                          <span
-                                            className="stationFooterLeaderGapRate"
-                                            aria-label={`Ventaja relativa ${leaderRelativeAdvantagePrecise.toFixed(
-                                              1,
-                                            )} por ciento`}
-                                          >
-                                            · +
-                                            {leaderRelativeAdvantagePrecise.toFixed(
-                                              1,
-                                            )}
-                                            %
-                                          </span>
-
-                                          {leaderAdvantageStatus ? (
-                                            <span
-                                              className={[
-                                                "stationFooterLeaderStatus",
-                                                leaderAdvantageStatus ===
-                                                "SÓLIDO"
-                                                  ? "solid"
-                                                  : leaderAdvantageStatus ===
-                                                      "FIRME"
-                                                    ? "firm"
-                                                    : "tight",
-                                              ].join(" ")}
-                                              title={
-                                                leaderAdvantageMomentum === null
-                                                  ? `Estado del liderato: ${leaderAdvantageStatus}`
-                                                  : leaderAdvantageMomentum > 0
-                                                    ? `Estado del liderato: ${leaderAdvantageStatus} · Ventaja creciendo`
-                                                    : leaderAdvantageMomentum < 0
-                                                      ? `Estado del liderato: ${leaderAdvantageStatus} · Ventaja reduciéndose`
-                                                      : `Estado del liderato: ${leaderAdvantageStatus} · Ventaja estable`
-                                              }
-                                            >
-                                              {leaderAdvantageStatus}
-
-                                              <span
-                                                className={[
-                                                  "stationFooterLeaderStrength",
-                                                  leaderAdvantageStatus ===
-                                                  "SÓLIDO"
-                                                    ? "solid"
-                                                    : leaderAdvantageStatus ===
-                                                        "FIRME"
-                                                      ? "firm"
-                                                      : "tight",
-                                                ].join(" ")}
-                                                aria-label={`Fuerza del liderato: ${leaderAdvantageStatus.toLowerCase()}`}
-                                                title={`Fuerza del liderato: ${leaderAdvantageStatus.toLowerCase()}`}
-                                              >
-                                                <i />
-                                                <i />
-                                                <i />
-                                              </span>
-
-                                              {leaderAdvantageMomentum !==
-                                              null ? (
-                                                <i
-                                                  className={[
-                                                    "stationFooterLeaderTrend",
-                                                    leaderAdvantageMomentum > 0
-                                                      ? "growing"
-                                                      : leaderAdvantageMomentum < 0
-                                                        ? "shrinking"
-                                                        : "stable",
-                                                  ].join(" ")}
-                                                  aria-label={
-                                                    leaderAdvantageMomentum > 0
-                                                      ? "Ventaja creciendo"
-                                                      : leaderAdvantageMomentum < 0
-                                                        ? "Ventaja reduciéndose"
-                                                        : "Ventaja estable"
-                                                  }
-                                                  title={
-                                                    leaderAdvantageMomentum > 0
-                                                      ? `La ventaja creció ${leaderAdvantageMomentum} ${
-                                                          leaderAdvantageMomentum ===
-                                                          1
-                                                            ? "oyente"
-                                                            : "oyentes"
-                                                        } respecto a la actualización anterior`
-                                                      : leaderAdvantageMomentum < 0
-                                                        ? `La ventaja se redujo ${Math.abs(
-                                                            leaderAdvantageMomentum,
-                                                          )} ${
-                                                            Math.abs(
-                                                              leaderAdvantageMomentum,
-                                                            ) === 1
-                                                              ? "oyente"
-                                                              : "oyentes"
-                                                          } respecto a la actualización anterior`
-                                                        : "La ventaja se mantiene estable"
-                                                  }
-                                                >
-                                                  {leaderAdvantageMomentum > 0
-                                                    ? "↑"
-                                                    : leaderAdvantageMomentum < 0
-                                                      ? "↓"
-                                                      : "—"}
-                                                </i>
-                                              ) : null}
-                                            </span>
-                                          ) : null}
-                                        </>
-                                      )}
-                                    </small>
-                                  ) : null}
-                                </span>
-                              ) : null}
-
-                              #{index + 1} DE{" "}
-                              {filtersAreActive
-                                ? visibleStations.length
-                                : stations.length}
-
-                              {index === 1 &&
-                              leaderAudienceAdvantage !== null ? (
-                                <span
-                                  className={[
-                                    "stationFooterPursuerGap",
-                                    leaderAudienceAdvantage === 0
-                                      ? "tied"
-                                      : "chasing",
-                                    (leaderAudienceAdvantage ?? 0) > 0 &&
-                                    pursuerPressureLevel === "high" &&
-                                    pursuerPressureMomentum === "increasing"
-                                      ? "pressureAlert"
-                                      : "",
-                                  ]
-                                    .filter(Boolean)
-                                    .join(" ")}
-                                  title={
-                                    leaderAudienceAdvantage === 0
-                                      ? "La emisora #2 está empatada con el #1"
-                                      : `A ${leaderAudienceAdvantage} ${
-                                          leaderAudienceAdvantage === 1
-                                            ? "oyente"
-                                            : "oyentes"
-                                        } del líder · ${leaderRelativeAdvantagePrecise.toFixed(
-                                          1,
-                                        )}% de distancia relativa`
-                                  }
-                                  aria-label={
-                                    leaderAudienceAdvantage === 0
-                                      ? "Alcanzó al líder"
-                                      : `${leaderAudienceAdvantage} ${
-                                          leaderAudienceAdvantage === 1
-                                            ? "oyente"
-                                            : "oyentes"
-                                        } para alcanzar al líder, equivalente a ${leaderRelativeAdvantagePrecise.toFixed(
-                                          1,
-                                        )} por ciento`
-                                  }
-                                >
-                                  <i aria-hidden="true">◎</i>
-
-                                  {leaderAudienceAdvantage === 0 ? (
-                                    "ALCANZÓ AL #1"
-                                  ) : (
-                                    <>
-                                      {leaderAudienceAdvantage} OY
-                                      <span
-                                        className="stationFooterPursuerGapRate"
-                                        aria-label={`Distancia relativa ${leaderRelativeAdvantagePrecise.toFixed(
-                                          1,
-                                        )} por ciento`}
-                                      >
-                                        ·{" "}
-                                        {leaderRelativeAdvantagePrecise.toFixed(
-                                          1,
-                                        )}
-                                        %
-                                      </span>{" "}
-                                      AL #1
-                                    </>
-                                  )}
-
-                                  {pursuerPressureLevel ? (
-                                    <span
-                                      className={[
-                                        "stationFooterPursuerPressure",
-                                        pursuerPressureLevel,
-                                      ].join(" ")}
-                                      aria-label={
-                                        pursuerPressureLevel === "high"
-                                          ? "Presión alta sobre el líder"
-                                          : pursuerPressureLevel === "medium"
-                                            ? "Presión media sobre el líder"
-                                            : "Presión baja sobre el líder"
-                                      }
-                                      title={
-                                        pursuerPressureLevel === "high"
-                                          ? "Presión alta sobre el líder"
-                                          : pursuerPressureLevel === "medium"
-                                            ? "Presión media sobre el líder"
-                                            : "Presión baja sobre el líder"
-                                      }
-                                    >
-                                      <i />
-                                      <i />
-                                      <i />
-                                    </span>
-                                  ) : null}
-
-                                  {pursuerPressureMomentum ? (
-                                    <span
-                                      className={[
-                                        "stationFooterPursuerPressureTrend",
-                                        pursuerPressureMomentum,
-                                      ].join(" ")}
-                                      aria-label={
-                                        pursuerPressureMomentum === "increasing"
-                                          ? `La presión del perseguidor aumenta en ${Math.abs(
-                                              leaderAdvantageMomentum ?? 0,
-                                            )} ${
-                                              Math.abs(
-                                                leaderAdvantageMomentum ?? 0,
-                                              ) === 1
-                                                ? "oyente"
-                                                : "oyentes"
-                                            }`
-                                          : pursuerPressureMomentum ===
-                                              "decreasing"
-                                            ? `La presión del perseguidor disminuye en ${Math.abs(
-                                                leaderAdvantageMomentum ?? 0,
-                                              )} ${
-                                                Math.abs(
-                                                  leaderAdvantageMomentum ?? 0,
-                                                ) === 1
-                                                  ? "oyente"
-                                                  : "oyentes"
-                                              }`
-                                            : "La presión del perseguidor se mantiene"
-                                      }
-                                      title={
-                                        pursuerPressureMomentum === "increasing"
-                                          ? `El #2 cerró ${Math.abs(
-                                              leaderAdvantageMomentum ?? 0,
-                                            )} ${
-                                              Math.abs(
-                                                leaderAdvantageMomentum ?? 0,
-                                              ) === 1
-                                                ? "oyente"
-                                                : "oyentes"
-                                            } de diferencia con el líder`
-                                          : pursuerPressureMomentum ===
-                                              "decreasing"
-                                            ? `El líder amplió ${Math.abs(
-                                                leaderAdvantageMomentum ?? 0,
-                                              )} ${
-                                                Math.abs(
-                                                  leaderAdvantageMomentum ?? 0,
-                                                ) === 1
-                                                  ? "oyente"
-                                                  : "oyentes"
-                                              } sobre el #2`
-                                            : "La distancia entre #1 y #2 se mantiene estable"
-                                      }
-                                    >
-                                      {pursuerPressureMomentum === "increasing"
-                                        ? `↑ ${Math.abs(
-                                            leaderAdvantageMomentum ?? 0,
-                                          )} OY`
-                                        : pursuerPressureMomentum ===
-                                            "decreasing"
-                                          ? `↓ ${Math.abs(
-                                              leaderAdvantageMomentum ?? 0,
-                                            )} OY`
-                                          : "— 0"}
-                                    </span>
-                                  ) : null}
-                                </span>
-                              ) : null}
-
-                              {index === 2 &&
-                              stationGapToSecond !== null ? (
-                                <span
-                                  className={[
-                                    "stationFooterThirdGap",
-                                    stationGapToSecond === 0
-                                      ? "tied"
-                                      : "chasing",
-                                    stationGapToSecond > 0 &&
-                                    stationThirdPressureLevel === "high" &&
-                                    stationThirdPressureMomentum === "increasing"
-                                      ? "pressureAlert"
-                                      : "",
-                                  ]
-                                    .filter(Boolean)
-                                    .join(" ")}
-                                  title={
-                                    stationGapToSecond === 0
-                                      ? "La emisora #3 está empatada con la #2"
-                                      : `A ${stationGapToSecond} ${
-                                          stationGapToSecond === 1
-                                            ? "oyente"
-                                            : "oyentes"
-                                        } de la emisora #2${
-                                          stationGapToSecondRate !== null
-                                            ? ` · ${stationGapToSecondRate.toFixed(
-                                                1,
-                                              )}% de distancia relativa`
-                                            : ""
-                                        }`
-                                  }
-                                  aria-label={
-                                    stationGapToSecond === 0
-                                      ? "Empate con la emisora número 2"
-                                      : `${stationGapToSecond} ${
-                                          stationGapToSecond === 1
-                                            ? "oyente"
-                                            : "oyentes"
-                                        } para alcanzar la posición número 2${
-                                          stationGapToSecondRate !== null
-                                            ? `, equivalente a ${stationGapToSecondRate.toFixed(
-                                                1,
-                                              )} por ciento`
-                                            : ""
-                                        }`
-                                  }
-                                >
-                                  <i aria-hidden="true">△</i>
-                                  {stationGapToSecond === 0 ? (
-                                    "EMPATE CON #2"
-                                  ) : (
-                                    <>
-                                      {stationGapToSecond} OY
-
-                                      {stationGapToSecondRate !== null ? (
-                                        <span
-                                          className="stationFooterThirdGapRate"
-                                          aria-label={`Distancia relativa ${stationGapToSecondRate.toFixed(
-                                            1,
-                                          )} por ciento`}
-                                        >
-                                          ·{" "}
-                                          {stationGapToSecondRate.toFixed(
-                                            1,
-                                          )}
-                                          %
-                                        </span>
-                                      ) : null}
-
-                                      {" "}AL #2
-                                    </>
-                                  )}
-
-                                  {stationThirdPressureLevel ? (
-                                    <span
-                                      className={[
-                                        "stationFooterThirdPressure",
-                                        stationThirdPressureLevel,
-                                      ].join(" ")}
-                                      aria-label={
-                                        stationThirdPressureLevel === "high"
-                                          ? "Presión alta sobre la posición número 2"
-                                          : stationThirdPressureLevel ===
-                                              "medium"
-                                            ? "Presión media sobre la posición número 2"
-                                            : "Presión baja sobre la posición número 2"
-                                      }
-                                      title={
-                                        stationThirdPressureLevel === "high"
-                                          ? "El #3 está muy cerca de alcanzar al #2"
-                                          : stationThirdPressureLevel ===
-                                              "medium"
-                                            ? "El #3 mantiene presión sobre el #2"
-                                            : "El #3 todavía tiene distancia con el #2"
-                                      }
-                                    >
-                                      <i />
-                                      <i />
-                                      <i />
-                                    </span>
-                                  ) : null}
-
-                                  {stationThirdPressureMomentum ? (
-                                    <span
-                                      className={[
-                                        "stationFooterThirdPressureTrend",
-                                        stationThirdPressureMomentum,
-                                      ].join(" ")}
-                                      aria-label={
-                                        stationThirdPressureMomentum ===
-                                        "increasing"
-                                          ? `La presión del tercer lugar aumenta en ${Math.abs(
-                                              stationThirdPressureDelta ?? 0,
-                                            )} ${
-                                              Math.abs(
-                                                stationThirdPressureDelta ?? 0,
-                                              ) === 1
-                                                ? "oyente"
-                                                : "oyentes"
-                                            }`
-                                          : stationThirdPressureMomentum ===
-                                              "decreasing"
-                                            ? `La presión del tercer lugar disminuye en ${Math.abs(
-                                                stationThirdPressureDelta ?? 0,
-                                              )} ${
-                                                Math.abs(
-                                                  stationThirdPressureDelta ?? 0,
-                                                ) === 1
-                                                  ? "oyente"
-                                                  : "oyentes"
-                                              }`
-                                            : "La diferencia entre el tercer y segundo lugar se mantiene"
-                                      }
-                                      title={
-                                        stationThirdPressureMomentum ===
-                                        "increasing"
-                                          ? `El #3 recortó ${Math.abs(
-                                              stationThirdPressureDelta ?? 0,
-                                            )} ${
-                                              Math.abs(
-                                                stationThirdPressureDelta ?? 0,
-                                              ) === 1
-                                                ? "oyente"
-                                                : "oyentes"
-                                            } al #2`
-                                          : stationThirdPressureMomentum ===
-                                              "decreasing"
-                                            ? `El #2 amplió ${Math.abs(
-                                                stationThirdPressureDelta ?? 0,
-                                              )} ${
-                                                Math.abs(
-                                                  stationThirdPressureDelta ?? 0,
-                                                ) === 1
-                                                  ? "oyente"
-                                                  : "oyentes"
-                                              } sobre el #3`
-                                            : "La distancia entre #2 y #3 no cambió"
-                                      }
-                                    >
-                                      {stationThirdPressureMomentum ===
-                                      "increasing"
-                                        ? `↑ ${Math.abs(
-                                            stationThirdPressureDelta ?? 0,
-                                          )} OY`
-                                        : stationThirdPressureMomentum ===
-                                            "decreasing"
-                                          ? `↓ ${Math.abs(
-                                              stationThirdPressureDelta ?? 0,
-                                            )} OY`
-                                          : "— 0"}
-                                    </span>
-                                  ) : null}
-                                </span>
-                              ) : null}
-
-                              {index === 3 &&
-                              stationGapToTop3 !== null ? (
-                                <span
-                                  className={[
-                                    "stationFooterTop3ChaserGap",
-                                    stationGapToTop3 === 0
-                                      ? "atDoor"
-                                      : "chasing",
-                                  ].join(" ")}
-                                  title={
-                                    stationGapToTop3 === 0
-                                      ? "La emisora #4 está igualada con la #3 y toca la puerta del TOP 3"
-                                      : `A ${stationGapToTop3} ${
-                                          stationGapToTop3 === 1
-                                            ? "oyente"
-                                            : "oyentes"
-                                        } de entrar al TOP 3${
-                                          stationGapToTop3Rate !== null
-                                            ? ` · ${stationGapToTop3Rate.toFixed(
-                                                1,
-                                              )}% de distancia`
-                                            : ""
-                                        }`
-                                  }
-                                  aria-label={
-                                    stationGapToTop3 === 0
-                                      ? "A las puertas del top 3"
-                                      : `${stationGapToTop3} ${
-                                          stationGapToTop3 === 1
-                                            ? "oyente"
-                                            : "oyentes"
-                                        } para entrar al top 3`
-                                  }
-                                >
-                                  <i aria-hidden="true">◇</i>
-
-                                  {stationGapToTop3 === 0 ? (
-                                    "A LAS PUERTAS"
-                                  ) : (
-                                    <>
-                                      {stationGapToTop3} OY
-
-                                      {stationGapToTop3Rate !== null ? (
-                                        <span className="stationFooterTop3ChaserGapRate">
-                                          ·{" "}
-                                          {stationGapToTop3Rate.toFixed(
-                                            1,
-                                          )}
-                                          %
-                                        </span>
-                                      ) : null}
-
-                                      {" "}AL TOP 3
-                                    </>
-                                  )}
-                                </span>
-                              ) : null}
-                            </strong>
-
-                            {rankingMovementReady ? (
-                              <span
-                                className={[
-                                  "stationFooterRankMovement",
-                                  stationRankingMovement > 0
-                                    ? "up"
-                                    : stationRankingMovement < 0
-                                      ? "down"
-                                      : "steady",
-                                  stationBecameLeader
-                                    ? "leaderTakeover"
-                                    : stationLostLeadership
-                                      ? "leaderLost"
-                                      : stationEnteredTop3
-                                        ? "top3Entry"
-                                        : stationExitedTop3
-                                          ? "top3Exit"
-                                          : "",
-                                ]
-                                  .filter(Boolean)
-                                  .join(" ")}
-                                title={
-                                  stationRankingMovement > 0
-                                    ? `Subió de #${stationPreviousRankingPosition} a #${stationCurrentRankingPosition}`
-                                    : stationRankingMovement < 0
-                                      ? `Bajó de #${stationPreviousRankingPosition} a #${stationCurrentRankingPosition}`
-                                      : `Mantiene la posición #${stationCurrentRankingPosition}`
-                                }
-                              >
-                                <span aria-hidden="true">
-                                  {stationRankingMovement > 0
-                                    ? "↑"
-                                    : stationRankingMovement < 0
-                                      ? "↓"
-                                      : "—"}
-                                </span>
-
-                                <span className="stationFooterRankTransition">
-                                  {stationRankingMovement !== 0
-                                    ? `#${stationPreviousRankingPosition}→#${stationCurrentRankingPosition}`
-                                    : `#${stationCurrentRankingPosition}`}
-                                </span>
-                              </span>
-                            ) : null}
-
-                            <span aria-hidden="true"> · </span>
-
-                            <span>
-                              {filtersAreActive
-                                ? `${stationAudienceShare}% ENTRE VISIBLES`
-                                : `${stationNetworkAudienceShare}% DE LA RED`}
-                            </span>
-                          </>
-                        ) : filtersAreActive ? (
-                          `${stationAudienceShare}% ENTRE VISIBLES ↗`
-                        ) : (
-                          `${stationNetworkAudienceShare}% DE LA RED ↗`
-                        )}
-                      </em>
-
-                      {filtersAreActive ? (
-                        <b className="stationFooterAverageContext">
-                          {stationNetworkAudienceShare}% DE LA RED
-                        </b>
-                      ) : null}
-
-                      <small
-                        className={
-                          stationAudienceVsAverage > 0
-                            ? "aboveAverage"
-                            : stationAudienceVsAverage < 0
-                              ? "belowAverage"
-                              : "atAverage"
-                        }
-                        title={
-                          stationAudienceVsAverage > 0
-                            ? `${stationAudienceVsAverage.toFixed(
-                                1,
-                              )} puntos porcentuales sobre el promedio ${
-                                filtersAreActive
-                                  ? "de las emisoras visibles"
-                                  : "de la red"
-                              }`
-                            : stationAudienceVsAverage < 0
-                              ? `${Math.abs(
-                                  stationAudienceVsAverage,
-                                ).toFixed(
-                                  1,
-                                )} puntos porcentuales bajo el promedio ${
-                                  filtersAreActive
-                                    ? "de las emisoras visibles"
-                                    : "de la red"
-                                }`
-                              : filtersAreActive
-                                ? "En el promedio de audiencia de las emisoras visibles"
-                                : "En el promedio de audiencia de la red"
-                        }
-                      >
-                        {stationAudienceVsAverage > 0
-                          ? `+${stationAudienceVsAverage.toFixed(
-                              1,
-                            )} PP VS PROM.`
-                          : stationAudienceVsAverage < 0
-                            ? `−${Math.abs(
-                                stationAudienceVsAverage,
-                              ).toFixed(
-                                1,
-                              )} PP VS PROM.`
-                            : "0.0 PP VS PROM."}
-                      </small>
-
-                      <small
-                        className={[
-                          "listenersVsAverage",
-                          stationListenersVsAverage > 0
-                            ? "aboveAverage"
-                            : stationListenersVsAverage < 0
-                              ? "belowAverage"
-                              : "atAverage",
-                        ].join(" ")}
-                        title={
-                          stationListenersVsAverage > 0
-                            ? `${stationListenersVsAverage} oyentes sobre el promedio ${
-                                filtersAreActive
-                                  ? "de las emisoras visibles"
-                                  : "de la red"
-                              }`
-                            : stationListenersVsAverage < 0
-                              ? `${Math.abs(
-                                  stationListenersVsAverage,
-                                )} oyentes bajo el promedio ${
-                                  filtersAreActive
-                                    ? "de las emisoras visibles"
-                                    : "de la red"
-                                }`
-                              : filtersAreActive
-                                ? "En el promedio exacto de oyentes de las emisoras visibles"
-                                : "En el promedio exacto de oyentes de la red"
-                        }
-                      >
-                        {stationListenersVsAverage > 0
-                          ? `+${stationListenersVsAverage} OYENTES VS PROM.`
-                          : stationListenersVsAverage < 0
-                            ? `−${Math.abs(
-                                stationListenersVsAverage,
-                              )} OYENTES VS PROM.`
-                            : "0 OYENTES VS PROM."}
-                      </small>
-
-                      <span
-                        className="stationFooterAudienceTrack"
-                        aria-hidden="true"
-                      >
-                        <i
-                          className={[
-                            "stationFooterAudienceFill",
-                            (filtersAreActive
-                              ? stationAudienceShare
-                              : stationNetworkAudienceShare) >
-                            contextualAverageAudienceShare
-                              ? "aboveAverage"
-                              : (filtersAreActive
-                                ? stationAudienceShare
-                                : stationNetworkAudienceShare) <
-                                  contextualAverageAudienceShare
-                                ? "belowAverage"
-                                : "atAverage",
-                          ].join(" ")}
-                          style={{
-                            width: `${Math.min(
-                              100,
-                              Math.max(
-                                0,
-                                filtersAreActive
-                                  ? stationAudienceShare
-                                  : stationNetworkAudienceShare,
-                              ),
-                            )}%`,
-                          }}
-                        />
-
-                        <b
-                          className="stationFooterAudienceAverage"
-                          style={{
-                            left: `${Math.min(
-                              100,
-                              Math.max(
-                                0,
-                                contextualAverageAudienceShare,
-                              ),
-                            )}%`,
-                          }}
-                        />
-                      </span>
-                    </button>
-                  ) : null}
-                </span>
-
-                <button
-                  type="button"
-                  className="stationCardPlay"
-                  onClick={() => playStation(station)}
-                  aria-label={
-                    active && playing
-                      ? `Pausar ${station.name}`
-                      : `Escuchar ${station.name}`
-                  }
-                  aria-pressed={active && playing}
-                >
-                  {active && playing ? "❚❚ PAUSAR" : "▶ ESCUCHAR"}
-                </button>
-              </div>
-
-              <div className="stationLiveStrip">
-                <button
-                  type="button"
-                  className="stationGenreQuickFilter"
-                  onClick={() => showGenreAcrossNetwork(station.genre)}
-                  aria-label={`Ver emisoras de ${station.genre}`}
-                  title={`Ver toda la red de ${station.genre}`}
-                >
-                  <span aria-hidden="true">#</span>
-                  {highlightSearchText(station.genre, stationQuery)}
-                </button>
-
-                <span className="stationLiveListeners">
-                  <span aria-hidden="true">●</span>
-                  {info.listeners ?? "—"} OYENTES
-                </span>
-
-                {active && playing ? (
-                  <span
-                    className="stationLiveSignal"
-                    aria-label="Emisora reproduciéndose"
-                  >
-                    <i />
-                    <i />
-                    <i />
-                    <i />
-                  </span>
-                ) : (
-                  <span className="stationLiveStatus">
-                    {info.configured ? "EN LÍNEA" : "DISPONIBLE"}
-                  </span>
-                )}
-              </div>
-
-              <Link
-                className="stationPageLink"
-                href={`/emisoras/${station.id}`}
-                aria-label={`Abrir página de ${station.name}`}
-              >
-                <span>ENTRAR A LA EMISORA</span>
-                <span aria-hidden="true">→</span>
-              </Link>
-            </article>
-          );
-        })}
-      </div>
 
       {!selectedCardVisible ? (
         <button
@@ -9715,7 +9750,87 @@ export default function StationsGrid({
         </button>
       ) : null}
 
+        </>
+      ) : null}
+
       <style jsx>{`
+        .stationVisibleIntro {
+          width: 100%;
+          margin: 12px 0 10px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          color: rgba(255,255,255,.56);
+        }
+
+        .stationVisibleIntro > span {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          color: #7bf5be;
+          font-size: .58rem;
+          font-weight: 950;
+          letter-spacing: .08em;
+        }
+
+        .stationVisibleIntro > span > i {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: #7bf5be;
+          box-shadow: 0 0 10px rgba(123,245,190,.58);
+        }
+
+        .stationVisibleIntro > small {
+          color: rgba(255,255,255,.34);
+          font-size: .5rem;
+          font-weight: 800;
+          letter-spacing: .055em;
+        }
+
+        .stationNetworkDetailsToggle {
+          width: min(100%, 760px);
+          min-height: 44px;
+          margin: 14px auto 0;
+          padding: 10px 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          border: 1px solid rgba(143, 183, 255, .18);
+          border-radius: 999px;
+          background: rgba(7, 12, 28, .72);
+          color: #dce7ff;
+          box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
+          transition:
+            border-color .2s ease,
+            background .2s ease,
+            transform .2s ease;
+        }
+
+        .stationNetworkDetailsToggle:hover,
+        .stationNetworkDetailsToggle:focus-visible {
+          border-color: rgba(123, 245, 190, .34);
+          background: rgba(12, 22, 38, .92);
+          outline: none;
+          transform: translateY(-1px);
+        }
+
+        .stationNetworkDetailsToggle > span {
+          color: #7bf5be;
+          font-size: .92rem;
+          font-weight: 900;
+          line-height: 1;
+        }
+
+        .stationNetworkDetailsToggle > strong {
+          font-size: .64rem;
+          font-weight: 950;
+          letter-spacing: .08em;
+        }
+
+
         .stationsSection {
           position: relative;
           overflow: hidden;
