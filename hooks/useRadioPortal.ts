@@ -52,6 +52,19 @@ export type FieramixSoundGraph = {
 
 const FIERAMIX_SOUND_CORS_TIMEOUT = 2_500;
 
+const FIERAMIX_PLAYER_MEMORY_KEY =
+  "fieramix:player-memory:v1";
+
+type FieramixPlayerMemory = {
+  stationId: string;
+  volume: number;
+  resumeOnReturn: boolean;
+};
+
+function clampPlayerVolume(value: number): number {
+  return Math.min(Math.max(value, 0), 1);
+}
+
 export const emptyNowPlaying = (station: Station): NowPlaying => ({
   title: "Programación en vivo",
   artist: station.name,
@@ -1448,6 +1461,8 @@ export function useRadioPortal() {
     useRef<Promise<boolean> | null>(null);
 
   const fieramixSoundCheckedRef = useRef(false);
+  const playbackMemoryRestoredRef = useRef(false);
+  const autoplayAttemptedRef = useRef(false);
 
   const [fieramixSoundStatus, setFieramixSoundStatus] =
     useState<FieramixSoundStatus>("idle");
@@ -1459,6 +1474,9 @@ export function useRadioPortal() {
   const [playing, setPlaying] = useState(false);
   const [loading, setLoading] = useState(false);
   const [volume, setVolume] = useState(0.85);
+  const [resumeOnReturn, setResumeOnReturn] = useState(false);
+  const [playbackMemoryReady, setPlaybackMemoryReady] =
+    useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const [metadata, setMetadata] = useState<
@@ -1587,6 +1605,92 @@ export function useRadioPortal() {
       fieramixSoundInitPromiseRef.current = null;
     }
   }
+
+  useEffect(() => {
+    if (playbackMemoryRestoredRef.current) {
+      return;
+    }
+
+    playbackMemoryRestoredRef.current = true;
+
+    try {
+      const rawMemory = window.localStorage.getItem(
+        FIERAMIX_PLAYER_MEMORY_KEY,
+      );
+
+      if (rawMemory) {
+        const memory = JSON.parse(
+          rawMemory,
+        ) as Partial<FieramixPlayerMemory>;
+
+        const rememberedStation = portalStations.find(
+          (station) =>
+            String(station.id) === String(memory.stationId ?? ""),
+        );
+
+        if (rememberedStation) {
+          setSelectedId(rememberedStation.id);
+        }
+
+        if (
+          typeof memory.volume === "number" &&
+          Number.isFinite(memory.volume)
+        ) {
+          setVolume(clampPlayerVolume(memory.volume));
+        }
+
+        setResumeOnReturn(memory.resumeOnReturn === true);
+      }
+    } catch (error) {
+      console.warn(
+        "No se pudo restaurar la memoria del reproductor FIERAMIX:",
+        error,
+      );
+    } finally {
+      setPlaybackMemoryReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!playbackMemoryReady) {
+      return;
+    }
+
+    try {
+      const memory: FieramixPlayerMemory = {
+        stationId: String(selected.id),
+        volume: clampPlayerVolume(volume),
+        resumeOnReturn,
+      };
+
+      window.localStorage.setItem(
+        FIERAMIX_PLAYER_MEMORY_KEY,
+        JSON.stringify(memory),
+      );
+    } catch (error) {
+      console.warn(
+        "No se pudo guardar la memoria del reproductor FIERAMIX:",
+        error,
+      );
+    }
+  }, [playbackMemoryReady, resumeOnReturn, selected.id, volume]);
+
+  useEffect(() => {
+    if (
+      !playbackMemoryReady ||
+      !resumeOnReturn ||
+      autoplayAttemptedRef.current
+    ) {
+      return;
+    }
+
+    autoplayAttemptedRef.current = true;
+
+    // Intentamos reanudar la última emisora escuchada.
+    // Si el navegador bloquea autoplay con sonido, playStation
+    // mantiene la emisora y el volumen restaurados, lista para PLAY.
+    void playStation(selected);
+  }, [playbackMemoryReady, resumeOnReturn, selected]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -1776,6 +1880,7 @@ export function useRadioPortal() {
 
       await audio.play();
       setPlaying(true);
+      setResumeOnReturn(true);
     } catch (error) {
       console.error(
         "No se pudo iniciar la reproducción:",
@@ -1819,6 +1924,7 @@ export function useRadioPortal() {
 
         await audio.play();
         setPlaying(true);
+        setResumeOnReturn(true);
       } catch (error) {
         console.error(
           "No se pudo reanudar la reproducción:",
@@ -1834,6 +1940,7 @@ export function useRadioPortal() {
 
     audio.pause();
     setPlaying(false);
+    setResumeOnReturn(false);
   }
 
   function moveStation(direction: number) {
