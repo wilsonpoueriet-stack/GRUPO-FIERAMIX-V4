@@ -2,11 +2,11 @@ export default function WhatsAppFloat() {
   return (
     <a
       className="whatsappFloat"
-      href="https://chat.whatsapp.com/JJfXFBwAG3O8DIKs9ufvJt"
+      href="https://wa.me/18098419586"
       target="_blank"
       rel="noreferrer"
-      aria-label="Unirse al Club de Oyentes por WhatsApp"
-      title="Club de Oyentes"
+      aria-label="Escribir a EL GRUPO FIERAMIX.COM por WhatsApp"
+      title="WhatsApp"
     >
       <span>WhatsApp</span>
       <b>☎</b>
