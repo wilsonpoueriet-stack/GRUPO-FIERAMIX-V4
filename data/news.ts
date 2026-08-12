@@ -52,6 +52,7 @@ export const news: NewsItem[] = [
       "Esta convivencia entre sonidos clásicos y nuevas tendencias fortalece el catálogo latino y crea mayores oportunidades para que diferentes estilos compartan espacio dentro de una misma audiencia.",
       "FIERAMIX mantiene esa diversidad como parte esencial de su programación musical, conectando generaciones y estilos dentro de una misma red.",
     ],
+    image: "/noticias/ritmos-latinos-nuevas-audiencias.png",
     publishedAt: "2026-08-11T21:01:09-04:00",
     source: "FIERAMIX NOTICIAS",
   },
