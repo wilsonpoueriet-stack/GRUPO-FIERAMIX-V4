@@ -35,6 +35,7 @@ export const news: NewsItem[] = [
       "Con esta evolución, EL GRUPO FIERAMIX.COM reafirma su apuesta por una radio moderna, cercana y conectada con la comunidad latina.",
     ],
     featured: true,
+    image: "/noticias/fieramix-plataforma-radio-digital.png",
     publishedAt: "2026-08-11T21:01:09-04:00",
     source: "FIERAMIX NOTICIAS",
   },
