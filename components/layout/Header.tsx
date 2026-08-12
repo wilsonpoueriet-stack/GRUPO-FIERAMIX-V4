@@ -22,6 +22,7 @@ export default function Header({
           <span>LA RED LATINA QUE MUEVE AL MUNDO</span>
         </div>
       </a>
+
       <button
         className="menuButton"
         onClick={onMenuToggle}
@@ -34,10 +35,12 @@ export default function Header({
       <nav className={menuOpen ? "open" : ""} aria-label="Menú principal">
         <a href="#inicio">Inicio</a>
         <a href="#emisoras">Emisoras</a>
-        <a href="#ranking">Top musical</a>
+        <a href="#solicita">Solicitud</a>
+        <a href="#ranking">Rankings</a>
         <a href="#noticias">Noticias</a>
         <a href="#club">Club de oyentes</a>
       </nav>
+
       <button className="liveButton" onClick={onPlaybackToggle}>
         <i /> {playing ? "EN VIVO" : "ESCUCHA EN VIVO"}
       </button>
