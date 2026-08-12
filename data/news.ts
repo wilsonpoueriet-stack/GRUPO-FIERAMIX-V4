@@ -35,6 +35,8 @@ export const news: NewsItem[] = [
       "Con esta evolución, EL GRUPO FIERAMIX.COM reafirma su apuesta por una radio moderna, cercana y conectada con la comunidad latina.",
     ],
     featured: true,
+    publishedAt: "2026-08-11T21:01:09-04:00",
+    source: "FIERAMIX NOTICIAS",
   },
   {
     id: "ritmos-latinos-nuevas-audiencias",
@@ -49,6 +51,8 @@ export const news: NewsItem[] = [
       "Esta convivencia entre sonidos clásicos y nuevas tendencias fortalece el catálogo latino y crea mayores oportunidades para que diferentes estilos compartan espacio dentro de una misma audiencia.",
       "FIERAMIX mantiene esa diversidad como parte esencial de su programación musical, conectando generaciones y estilos dentro de una misma red.",
     ],
+    publishedAt: "2026-08-11T21:01:09-04:00",
+    source: "FIERAMIX NOTICIAS",
   },
   {
     id: "fieramix-noticias-espacio-informativo",
@@ -63,5 +67,7 @@ export const news: NewsItem[] = [
       "El nuevo módulo permite destacar las informaciones principales y organizar contenidos por categorías, creando una base preparada para incorporar nuevas publicaciones de manera continua.",
       "De esta forma, FIERAMIX NOTICIAS se integra al ecosistema de la plataforma como un punto de encuentro entre música, radio e información.",
     ],
+    publishedAt: "2026-08-11T21:01:09-04:00",
+    source: "FIERAMIX NOTICIAS",
   },
 ];

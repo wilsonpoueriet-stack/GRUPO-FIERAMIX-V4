@@ -9,6 +9,36 @@ type NewsPageProps = {
   }>;
 };
 
+function formatPublicationDate(value?: string) {
+  if (!value) return null;
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  const weekday = new Intl.DateTimeFormat("es-DO", {
+    timeZone: "America/Santo_Domingo",
+    weekday: "long",
+  }).format(date);
+
+  const dayMonth = new Intl.DateTimeFormat("es-DO", {
+    timeZone: "America/Santo_Domingo",
+    day: "numeric",
+    month: "long",
+  }).format(date);
+
+  const time = new Intl.DateTimeFormat("es-DO", {
+    timeZone: "America/Santo_Domingo",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
+
+  return `${weekday} ${dayMonth} · ${time}`;
+}
+
 export function generateStaticParams() {
   return news.map((item) => ({
     id: item.id,
@@ -40,6 +70,8 @@ export default async function NewsDetailPage({ params }: NewsPageProps) {
   if (!item) {
     notFound();
   }
+
+  const publicationDate = formatPublicationDate(item.publishedAt);
 
   return (
     <main
@@ -121,7 +153,7 @@ export default async function NewsDetailPage({ params }: NewsPageProps) {
             {item.excerpt}
           </p>
 
-          {(item.publishedAt || item.source) && (
+          {(publicationDate || item.source) && (
             <div
               style={{
                 display: "flex",
@@ -132,7 +164,9 @@ export default async function NewsDetailPage({ params }: NewsPageProps) {
                 fontSize: "0.82rem",
               }}
             >
-              {item.publishedAt ? <span>{item.publishedAt}</span> : null}
+              {publicationDate ? (
+                <span>Publicado: {publicationDate}</span>
+              ) : null}
               {item.source ? <span>FUENTE: {item.source}</span> : null}
             </div>
           )}
