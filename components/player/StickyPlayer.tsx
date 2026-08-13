@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import type { Station } from "@/types/station";
 import type { NowPlaying } from "@/types/radio";
 
@@ -20,6 +20,27 @@ type Props = {
   onPlaybackToggle: () => void;
   onMoveStation: (direction: number) => void;
 };
+
+const FAVORITE_STATIONS_STORAGE_KEY = "fieramix-favorite-stations";
+const FAVORITES_UPDATED_EVENT = "fieramix-favorites-updated";
+
+function readFavoriteStations(): string[] {
+  try {
+    const saved = window.localStorage.getItem(FAVORITE_STATIONS_STORAGE_KEY);
+
+    if (!saved) {
+      return [];
+    }
+
+    const parsed = JSON.parse(saved);
+
+    return Array.isArray(parsed)
+      ? parsed.filter((value): value is string => typeof value === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
 
 function getStickySoundLabel(
   status: FieramixSoundStatus | undefined,
@@ -73,6 +94,48 @@ export default function StickyPlayer({
     fieramixSoundActive,
   );
 
+  const [favoriteStations, setFavoriteStations] = useState<string[]>([]);
+
+  useEffect(() => {
+    const syncFavorites = () => {
+      setFavoriteStations(readFavoriteStations());
+    };
+
+    syncFavorites();
+
+    window.addEventListener("storage", syncFavorites);
+    window.addEventListener(FAVORITES_UPDATED_EVENT, syncFavorites);
+
+    return () => {
+      window.removeEventListener("storage", syncFavorites);
+      window.removeEventListener(FAVORITES_UPDATED_EVENT, syncFavorites);
+    };
+  }, []);
+
+  const isFavorite = favoriteStations.includes(String(selected.id));
+
+  const toggleFavorite = () => {
+    const stationId = String(selected.id);
+    const current = readFavoriteStations();
+    const next = current.includes(stationId)
+      ? current.filter((id) => id !== stationId)
+      : [...current, stationId];
+
+    setFavoriteStations(next);
+
+    try {
+      window.localStorage.setItem(
+        FAVORITE_STATIONS_STORAGE_KEY,
+        JSON.stringify(next),
+      );
+
+      window.dispatchEvent(new Event(FAVORITES_UPDATED_EVENT));
+    } catch {
+      // La interfaz conserva el cambio en esta sesión aunque
+      // el navegador no permita guardar la preferencia.
+    }
+  };
+
   return (
     <aside
       className="stickyPlayer"
@@ -87,27 +150,76 @@ export default function StickyPlayer({
         </div>
       </div>
 
-      <div className="stickyControls">
-        <button
-          onClick={() => onMoveStation(-1)}
-          aria-label="Emisora anterior"
-        >
-          ⏮
-        </button>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+        }}
+      >
+        <div className="stickyControls">
+          <button
+            onClick={() => onMoveStation(-1)}
+            aria-label="Emisora anterior"
+          >
+            ⏮
+          </button>
+
+          <button
+            className="stickyPlay"
+            onClick={onPlaybackToggle}
+            aria-label={playing ? "Pausar" : "Reproducir"}
+          >
+            {loading ? "•••" : playing ? "❚❚" : "▶"}
+          </button>
+
+          <button
+            onClick={() => onMoveStation(1)}
+            aria-label="Emisora siguiente"
+          >
+            ⏭
+          </button>
+        </div>
 
         <button
-          className="stickyPlay"
-          onClick={onPlaybackToggle}
-          aria-label={playing ? "Pausar" : "Reproducir"}
+          type="button"
+          onClick={toggleFavorite}
+          aria-pressed={isFavorite}
+          aria-label={
+            isFavorite
+              ? `Quitar ${selected.name} de favoritas`
+              : `Agregar ${selected.name} a favoritas`
+          }
+          title={
+            isFavorite
+              ? "Quitar emisora de favoritas"
+              : "Agregar emisora a favoritas"
+          }
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "32px",
+            height: "32px",
+            flex: "0 0 auto",
+            borderRadius: "999px",
+            border: isFavorite
+              ? "1px solid rgba(255, 71, 133, .55)"
+              : "1px solid rgba(255, 255, 255, .16)",
+            background: isFavorite
+              ? "rgba(255, 71, 133, .13)"
+              : "rgba(255, 255, 255, .04)",
+            color: isFavorite ? "#ff86ad" : "#d8deea",
+            boxShadow: isFavorite
+              ? "0 0 16px rgba(255, 71, 133, .14)"
+              : "none",
+            fontSize: "1rem",
+            lineHeight: 1,
+            cursor: "pointer",
+          }}
         >
-          {loading ? "•••" : playing ? "❚❚" : "▶"}
-        </button>
-
-        <button
-          onClick={() => onMoveStation(1)}
-          aria-label="Emisora siguiente"
-        >
-          ⏭
+          <span aria-hidden="true">{isFavorite ? "♥" : "♡"}</span>
         </button>
       </div>
 

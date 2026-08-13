@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import type { Station } from "@/types/station";
 import type { NowPlaying } from "@/types/radio";
 
@@ -22,6 +22,27 @@ type PremiumPlayerProps = {
   onMoveStation: (direction: number) => void;
   onVolumeChange: (value: number) => void;
 };
+
+const FAVORITE_STATIONS_STORAGE_KEY = "fieramix-favorite-stations";
+const FAVORITES_UPDATED_EVENT = "fieramix-favorites-updated";
+
+function readFavoriteStations(): string[] {
+  try {
+    const saved = window.localStorage.getItem(FAVORITE_STATIONS_STORAGE_KEY);
+
+    if (!saved) {
+      return [];
+    }
+
+    const parsed = JSON.parse(saved);
+
+    return Array.isArray(parsed)
+      ? parsed.filter((value): value is string => typeof value === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
 
 function getSoundBadge(
   status: FieramixSoundStatus | undefined,
@@ -79,6 +100,48 @@ export default function PremiumPlayer({
     fieramixSoundStatus,
     fieramixSoundActive,
   );
+
+  const [favoriteStations, setFavoriteStations] = useState<string[]>([]);
+
+  useEffect(() => {
+    const syncFavorites = () => {
+      setFavoriteStations(readFavoriteStations());
+    };
+
+    syncFavorites();
+
+    window.addEventListener("storage", syncFavorites);
+    window.addEventListener(FAVORITES_UPDATED_EVENT, syncFavorites);
+
+    return () => {
+      window.removeEventListener("storage", syncFavorites);
+      window.removeEventListener(FAVORITES_UPDATED_EVENT, syncFavorites);
+    };
+  }, []);
+
+  const isFavorite = favoriteStations.includes(String(station.id));
+
+  const toggleFavorite = () => {
+    const stationId = String(station.id);
+    const current = readFavoriteStations();
+    const next = current.includes(stationId)
+      ? current.filter((id) => id !== stationId)
+      : [...current, stationId];
+
+    setFavoriteStations(next);
+
+    try {
+      window.localStorage.setItem(
+        FAVORITE_STATIONS_STORAGE_KEY,
+        JSON.stringify(next),
+      );
+
+      window.dispatchEvent(new Event(FAVORITES_UPDATED_EVENT));
+    } catch {
+      // La interfaz conserva el cambio en esta sesión aunque
+      // el navegador no permita guardar la preferencia.
+    }
+  };
 
   return (
     <article
@@ -161,6 +224,58 @@ export default function PremiumPlayer({
       <p>
         {station.name} · {station.slogan}
       </p>
+
+      <button
+        type="button"
+        onClick={toggleFavorite}
+        aria-pressed={isFavorite}
+        aria-label={
+          isFavorite
+            ? `Quitar ${station.name} de favoritas`
+            : `Agregar ${station.name} a favoritas`
+        }
+        title={
+          isFavorite
+            ? "Quitar emisora de favoritas"
+            : "Agregar emisora a favoritas"
+        }
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "7px",
+          minHeight: "32px",
+          margin: "2px auto 12px",
+          padding: "6px 11px",
+          borderRadius: "999px",
+          border: isFavorite
+            ? "1px solid rgba(255, 71, 133, .55)"
+            : "1px solid rgba(255, 255, 255, .16)",
+          background: isFavorite
+            ? "rgba(255, 71, 133, .12)"
+            : "rgba(255, 255, 255, .04)",
+          color: isFavorite ? "#ff86ad" : "#d8deea",
+          boxShadow: isFavorite
+            ? "0 0 18px rgba(255, 71, 133, .12)"
+            : "none",
+          fontSize: ".62rem",
+          fontWeight: 900,
+          lineHeight: 1,
+          letterSpacing: ".055em",
+          cursor: "pointer",
+        }}
+      >
+        <span
+          aria-hidden="true"
+          style={{
+            fontSize: ".92rem",
+            lineHeight: 1,
+          }}
+        >
+          {isFavorite ? "♥" : "♡"}
+        </span>
+        {isFavorite ? "EN FAVORITAS" : "FAVORITA"}
+      </button>
 
       <div className="mainControls">
         <button
