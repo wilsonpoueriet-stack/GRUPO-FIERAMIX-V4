@@ -57,7 +57,6 @@ export default function StationsGrid({
   const [onlyOnAir, setOnlyOnAir] = useState(false);
   const [compactView, setCompactView] = useState(false);
   const [controlsCollapsed, setControlsCollapsed] = useState(false);
-  const [top3Collapsed, setTop3Collapsed] = useState(false);
   const [leadershipDuelCollapsed, setLeadershipDuelCollapsed] = useState(false);
   const [leadershipRaceCollapsed, setLeadershipRaceCollapsed] = useState(false);
   const [leadershipPulseCollapsed, setLeadershipPulseCollapsed] = useState(false);
@@ -1543,25 +1542,6 @@ export default function StationsGrid({
             100,
           )
       : null;
-
-  const top3VisibleListeners = topVisibleStations.reduce(
-    (total, station) => {
-      const info = metadata[station.id] ?? emptyNowPlaying(station);
-
-      return (
-        total +
-        (typeof info.listeners === "number" ? info.listeners : 0)
-      );
-    },
-    0,
-  );
-
-  const top3AudienceShare =
-    visibleStationsListeners > 0
-      ? Math.round(
-          (top3VisibleListeners / visibleStationsListeners) * 100,
-        )
-      : 0;
 
   const top3SelectionContext = (() => {
     const parts: string[] = [];
@@ -6159,163 +6139,7 @@ export default function StationsGrid({
             ) : null}
 
             {topVisibleStations.length > 0 ? (
-              <div
-                className={
-                  top3Collapsed
-                    ? "stationSelectionTop3 collapsed"
-                    : "stationSelectionTop3"
-                }
-                aria-live="polite"
-              >
-                <div className="stationSelectionTop3Heading">
-                  <span aria-hidden="true">★</span>
-
-                  <div>
-                    <span className="stationSelectionTop3Context">
-                      {top3SelectionContext}
-                    </span>
-
-                    <strong>TOP 3 EN VIVO</strong>
-
-                    <small>
-                      {top3Collapsed
-                        ? `${topVisibleStations.length} LÍDERES · ${top3AudienceShare}% DE LA AUDIENCIA`
-                        : `TOP 3 CONCENTRA ${top3AudienceShare}% · ${top3VisibleListeners} OYENTES`}
-                    </small>
-                  </div>
-
-                  <div className="stationSelectionTop3Actions">
-                    <button
-                      type="button"
-                      className="stationSelectionTop3Ranking"
-                      onClick={revealFullAudienceRanking}
-                      title="Ordenar toda esta selección por audiencia"
-                    >
-                      <span aria-hidden="true">↧</span>
-                      VER RANKING COMPLETO
-                    </button>
-
-                    <button
-                      type="button"
-                      className="stationSelectionTop3Toggle"
-                      onClick={() =>
-                        setTop3Collapsed((current) => !current)
-                      }
-                      aria-expanded={!top3Collapsed}
-                    >
-                      <span aria-hidden="true">
-                        {top3Collapsed ? "＋" : "−"}
-                      </span>
-                      {top3Collapsed
-                        ? "MOSTRAR TOP 3"
-                        : "MINIMIZAR"}
-                    </button>
-                  </div>
-                </div>
-
-                {!top3Collapsed ? (
-                  <div className="stationSelectionTop3List">
-                    {topVisibleStations.map((station, index) => {
-                      const info =
-                        metadata[station.id] ?? emptyNowPlaying(station);
-                      const active =
-                        station.id === selected.id && playing;
-                      const listenerCount =
-                        typeof info.listeners === "number"
-                          ? info.listeners
-                          : 0;
-                      const audienceShare =
-                        visibleStationsListeners > 0
-                          ? Math.round(
-                              (listenerCount /
-                                visibleStationsListeners) *
-                                100,
-                            )
-                          : 0;
-
-                      return (
-                        <button
-                          key={station.id}
-                          type="button"
-                          className={active ? "active" : undefined}
-                          onClick={() => playStation(station)}
-                          aria-label={`Escuchar ${station.name}, puesto ${index + 1}`}
-                          title={`Escuchar ${station.name}`}
-                        >
-                          <b>#{index + 1}</b>
-
-                          <span className="stationSelectionTop3Logo">
-                            <img
-                              src={station.logo}
-                              alt=""
-                              width={30}
-                              height={30}
-                            />
-                          </span>
-
-                          <span className="stationSelectionTop3Copy">
-                            <span className="stationSelectionTop3Name">
-                              {station.shortName || station.name}
-                            </span>
-
-                            <small
-                              className="stationSelectionTop3Now"
-                              title={
-                                info.artist
-                                  ? `${info.title} — ${info.artist}`
-                                  : info.title
-                              }
-                            >
-                              <span>SONANDO</span>
-                              <b>
-                                {info.title || "Programación en vivo"}
-                              </b>
-                              {info.artist ? (
-                                <em>{info.artist}</em>
-                              ) : null}
-                            </small>
-                          </span>
-
-                          <span className="stationSelectionTop3Listeners">
-                            <i aria-hidden="true">◉</i>
-                            {typeof info.listeners === "number"
-                              ? info.listeners
-                              : "—"}
-                          </span>
-
-                          <span
-                            className="stationSelectionTop3Audience"
-                            title={`${audienceShare}% de la audiencia de esta selección`}
-                          >
-                            <small>{audienceShare}%</small>
-
-                            <span
-                              className="stationSelectionTop3AudienceTrack"
-                              aria-hidden="true"
-                            >
-                              <i
-                                style={{
-                                  width: `${Math.max(
-                                    audienceShare,
-                                    audienceShare > 0 ? 5 : 0,
-                                  )}%`,
-                                }}
-                              />
-                            </span>
-                          </span>
-
-                          <span
-                            className="stationSelectionTop3Action"
-                            aria-hidden="true"
-                          >
-                            {active ? "❚❚" : "▶"}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : null}
-
+              <>
                 {secondVisibleStation && secondVisibleStationInfo ? (
                   <div
                     className={
@@ -6407,7 +6231,7 @@ export default function StationsGrid({
                     ) : null}
                   </div>
                 ) : null}
-              </div>
+              </>
             ) : null}
           </div>
         )}

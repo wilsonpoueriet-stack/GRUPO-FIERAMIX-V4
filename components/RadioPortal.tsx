@@ -8,6 +8,7 @@ import Hero from "@/components/home/Hero";
 import PremiumPlayer from "@/components/player/PremiumPlayer";
 import StickyPlayer from "@/components/player/StickyPlayer";
 import StationsGrid from "@/components/stations/StationsGrid";
+import MostListenedStations from "@/components/stations/MostListenedStations";
 import RecentAndRanking from "@/components/content/RecentAndRanking";
 import NewsAndClub from "@/components/content/NewsAndClub";
 import LiveNetwork from "@/components/content/LiveNetwork";
@@ -107,6 +108,21 @@ export default function RadioPortal() {
           current={radio.current}
           selected={radio.selected}
           metadata={radio.metadata}
+        />
+
+        <MostListenedStations
+          stations={radio.stations}
+          selected={radio.selected}
+          metadata={radio.metadata}
+          playing={radio.playing}
+          onPlayStation={(station) => {
+            if (station.id === radio.selected.id) {
+              void radio.togglePlayback();
+              return;
+            }
+
+            void radio.playStation(station);
+          }}
         />
 
         <NewsAndClub />
