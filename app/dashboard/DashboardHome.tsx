@@ -8,7 +8,6 @@ import {
   getLeaderStation,
   getTotalListeners,
 } from "@/lib/dashboard";
-import { useDashboard } from "@/hooks/useDashboard";
 
 type DashboardStation = {
   id: string;

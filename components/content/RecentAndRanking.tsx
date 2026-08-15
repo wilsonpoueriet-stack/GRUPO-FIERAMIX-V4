@@ -2069,12 +2069,28 @@ export default function RecentAndRanking({
                   </li>
                 ))}
               </ol>
-            ) : (
-              <div className="chartEmpty">
+            ) : stationHistoricalLoading ? (
+              <div className="stationRankingLoading">
                 <strong>CARGANDO TOCADAS DE HOY</strong>
                 <span>
                   Consultando las tocadas acumuladas de{" "}
                   {chartStation.name}.
+                </span>
+              </div>
+            ) : stationHistoricalError ? (
+              <div className="chartEmpty">
+                <strong>RANKING NO DISPONIBLE</strong>
+                <span>
+                  {stationHistoricalRanking?.hint ||
+                    stationHistoricalError}
+                </span>
+              </div>
+            ) : (
+              <div className="chartEmpty">
+                <strong>TODAVÍA NO HAY TOCADAS DISPONIBLES</strong>
+                <span>
+                  Aún no hay suficientes tocadas acumuladas de{" "}
+                  {chartStation.name} para mostrar el TOP ACTUAL.
                 </span>
               </div>
             )
@@ -2517,11 +2533,27 @@ export default function RecentAndRanking({
                   ),
                 )}
               </ol>
-            ) : (
+            ) : historicalRankingLoading ? (
               <div className="chartEmpty">
                 <strong>CARGANDO TOP ACTUAL</strong>
                 <span>
                   Esperando información musical de la red.
+                </span>
+              </div>
+            ) : historicalRankingError ? (
+              <div className="chartEmpty">
+                <strong>RANKING NO DISPONIBLE</strong>
+                <span>
+                  {historicalRanking?.hint ||
+                    historicalRankingError}
+                </span>
+              </div>
+            ) : (
+              <div className="chartEmpty">
+                <strong>TODAVÍA NO HAY TOCADAS DISPONIBLES</strong>
+                <span>
+                  Aún no hay suficientes tocadas acumuladas en la red
+                  para mostrar el TOP ACTUAL.
                 </span>
               </div>
             )
