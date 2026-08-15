@@ -164,7 +164,7 @@ export default function Hero({
               LA RED LATINA QUE MUEVE AL MUNDO
             </span>
 
-            <h1>
+            <h1 className="heroTitle">
               EL GRUPO
               <br />
               <em>FIERAMIX.COM</em>
@@ -228,11 +228,11 @@ export default function Hero({
               TU MÚSICA, TU ESTILO, TU RADIO
             </span>
 
-            <h1>
+            <h2 className="heroTitle">
               EXPLORA
               <br />
               <em>NUESTRAS EMISORAS</em>
-            </h1>
+            </h2>
 
             <p>
               Descubre una red de emisoras especializadas con música para cada
@@ -279,11 +279,11 @@ export default function Hero({
           <div className="heroCopy">
             <span className="heroKicker">SIEMPRE CONTIGO</span>
 
-            <h1>
+            <h2 className="heroTitle">
               ESCUCHA EN VIVO
               <br />
               <em>24 HORAS AL DÍA</em>
-            </h1>
+            </h2>
 
             <p>
               Conéctate desde cualquier lugar y disfruta nuestra programación
@@ -342,11 +342,11 @@ export default function Hero({
               TU MÚSICA TAMBIÉN CUENTA
             </span>
 
-            <h1>
+            <h2 className="heroTitle">
               SOLICITA
               <br />
               <em>TU CANCIÓN</em>
-            </h1>
+            </h2>
 
             <p>
               Busca esa canción que quieres escuchar y envía tu solicitud
@@ -397,11 +397,11 @@ export default function Hero({
               INFORMACIÓN QUE TE MANTIENE AL DÍA
             </span>
 
-            <h1>
+            <h2 className="heroTitle">
               FIERAMIX
               <br />
               <em>NOTICIAS</em>
-            </h1>
+            </h2>
 
             <p>
               Actualidad nacional e internacional, deportes, entretenimiento,
@@ -444,11 +444,11 @@ export default function Hero({
               LO MÁS ESCUCHADO Y LO MÁS NUEVO
             </span>
 
-            <h1>
+            <h2 className="heroTitle">
               TOP MUSICALES
               <br />
               <em>Y ESTRENOS</em>
-            </h1>
+            </h2>
 
             <p>
               Descubre las canciones que están marcando tendencia, los temas
@@ -499,11 +499,11 @@ export default function Hero({
           <div className="heroCopy">
             <span className="heroKicker">MUCHO MÁS QUE RADIO</span>
 
-            <h1>
+            <h2 className="heroTitle">
               VIVE LA
               <br />
               <em>EXPERIENCIA FIERAMIX</em>
-            </h1>
+            </h2>
 
             <p>
               Música, radio en vivo, noticias, participación y entretenimiento
@@ -563,11 +563,11 @@ export default function Hero({
               FIERAMIX SIEMPRE CONTIGO
             </span>
 
-            <h1>
+            <h2 className="heroTitle">
               NUESTRA APP
               <br />
               <em>PRÓXIMAMENTE</em>
-            </h1>
+            </h2>
 
             <p>
               Estamos preparando una nueva forma de llevar EL GRUPO
@@ -616,11 +616,11 @@ export default function Hero({
               CONECTA CON NUESTRA COMUNIDAD
             </span>
 
-            <h1>
+            <h2 className="heroTitle">
               SÍGUENOS
               <br />
               <em>EN REDES SOCIALES</em>
-            </h1>
+            </h2>
 
             <p>
               Mantente conectado con EL GRUPO FIERAMIX.COM y descubre
@@ -686,11 +686,11 @@ export default function Hero({
               HAZ CRECER TU MARCA
             </span>
 
-            <h1>
+            <h2 className="heroTitle">
               LA PUBLICIDAD
               <br />
               <em>DE TU NEGOCIO AQUÍ</em>
-            </h1>
+            </h2>
 
             <p>
               Lleva tu negocio, marca, producto o servicio a una audiencia
@@ -749,11 +749,11 @@ export default function Hero({
               SÉ PARTE DE NUESTRA COMUNIDAD
             </span>
 
-            <h1>
+            <h2 className="heroTitle">
               CLUB
               <br />
               <em>DE OYENTES</em>
-            </h1>
+            </h2>
 
             <p>
               Únete a la comunidad de EL GRUPO FIERAMIX.COM y mantente cerca
@@ -849,7 +849,7 @@ export default function Hero({
           padding-right: 18px;
         }
 
-        .heroSliderViewport :global(.heroCopy h1) {
+        .heroSliderViewport :global(.heroCopy .heroTitle) {
           max-width: 100%;
           margin: 18px 0 14px;
           font-size: clamp(3rem, 4.85vw, 5.2rem);
@@ -863,45 +863,45 @@ export default function Hero({
            normales = 01, 04, 05, 10 y 11
            medianos  = 02, 03, 06 y 09
            largos    = 07 y 08 */
-        .heroSliderContainer > .heroSlide:nth-child(2) :global(.heroCopy h1),
-        .heroSliderContainer > .heroSlide:nth-child(3) :global(.heroCopy h1),
-        .heroSliderContainer > .heroSlide:nth-child(6) :global(.heroCopy h1),
-        .heroSliderContainer > .heroSlide:nth-child(9) :global(.heroCopy h1) {
+        .heroSliderContainer > .heroSlide:nth-child(2) :global(.heroCopy .heroTitle),
+        .heroSliderContainer > .heroSlide:nth-child(3) :global(.heroCopy .heroTitle),
+        .heroSliderContainer > .heroSlide:nth-child(6) :global(.heroCopy .heroTitle),
+        .heroSliderContainer > .heroSlide:nth-child(9) :global(.heroCopy .heroTitle) {
           font-size: clamp(2.8rem, 4.25vw, 4.65rem);
         }
 
-        .heroSliderContainer > .heroSlide:nth-child(7) :global(.heroCopy h1),
-        .heroSliderContainer > .heroSlide:nth-child(8) :global(.heroCopy h1) {
+        .heroSliderContainer > .heroSlide:nth-child(7) :global(.heroCopy .heroTitle),
+        .heroSliderContainer > .heroSlide:nth-child(8) :global(.heroCopy .heroTitle) {
           font-size: clamp(2.45rem, 3.45vw, 3.85rem);
           letter-spacing: -0.04em;
         }
 
-        .heroSliderContainer > .heroSlide:nth-child(2) :global(.heroCopy h1 em) {
+        .heroSliderContainer > .heroSlide:nth-child(2) :global(.heroCopy .heroTitle em) {
           font-size: 0.82em;
         }
 
-        .heroSliderContainer > .heroSlide:nth-child(3) :global(.heroCopy h1 em) {
+        .heroSliderContainer > .heroSlide:nth-child(3) :global(.heroCopy .heroTitle em) {
           font-size: 0.88em;
         }
 
-        .heroSliderContainer > .heroSlide:nth-child(7) :global(.heroCopy h1 em) {
+        .heroSliderContainer > .heroSlide:nth-child(7) :global(.heroCopy .heroTitle em) {
           font-size: 0.78em;
         }
 
-        .heroSliderContainer > .heroSlide:nth-child(8) :global(.heroCopy h1 em) {
+        .heroSliderContainer > .heroSlide:nth-child(8) :global(.heroCopy .heroTitle em) {
           font-size: 0.86em;
         }
 
-        .heroSliderContainer > .heroSlide:nth-child(9) :global(.heroCopy h1 em) {
+        .heroSliderContainer > .heroSlide:nth-child(9) :global(.heroCopy .heroTitle em) {
           font-size: 0.80em;
         }
 
-        .heroSliderContainer > .heroSlide:nth-child(10) :global(.heroCopy h1) {
+        .heroSliderContainer > .heroSlide:nth-child(10) :global(.heroCopy .heroTitle) {
           font-size: clamp(2.55rem, 3.75vw, 4.15rem);
           letter-spacing: -0.04em;
         }
 
-        .heroSliderContainer > .heroSlide:nth-child(10) :global(.heroCopy h1 em) {
+        .heroSliderContainer > .heroSlide:nth-child(10) :global(.heroCopy .heroTitle em) {
           font-size: 0.82em;
         }
 
@@ -1062,39 +1062,39 @@ export default function Hero({
             padding-right: 10px;
           }
 
-          .heroSliderViewport :global(.heroCopy h1) {
+          .heroSliderViewport :global(.heroCopy .heroTitle) {
             max-width: 100%;
             font-size: clamp(2.65rem, 3.85vw, 4.05rem);
           }
 
-          .heroSliderContainer > .heroSlide:nth-child(2) :global(.heroCopy h1) {
+          .heroSliderContainer > .heroSlide:nth-child(2) :global(.heroCopy .heroTitle) {
             font-size: clamp(2.35rem, 3.05vw, 3.15rem);
           }
 
-          .heroSliderContainer > .heroSlide:nth-child(3) :global(.heroCopy h1) {
+          .heroSliderContainer > .heroSlide:nth-child(3) :global(.heroCopy .heroTitle) {
             font-size: clamp(2.45rem, 3.15vw, 3.3rem);
           }
 
-          .heroSliderContainer > .heroSlide:nth-child(6) :global(.heroCopy h1) {
+          .heroSliderContainer > .heroSlide:nth-child(6) :global(.heroCopy .heroTitle) {
             font-size: clamp(2.5rem, 3.25vw, 3.4rem);
           }
 
-          .heroSliderContainer > .heroSlide:nth-child(7) :global(.heroCopy h1) {
+          .heroSliderContainer > .heroSlide:nth-child(7) :global(.heroCopy .heroTitle) {
             font-size: clamp(2rem, 2.5vw, 2.7rem);
             letter-spacing: -0.032em;
           }
 
-          .heroSliderContainer > .heroSlide:nth-child(8) :global(.heroCopy h1) {
+          .heroSliderContainer > .heroSlide:nth-child(8) :global(.heroCopy .heroTitle) {
             font-size: clamp(2.2rem, 2.75vw, 2.9rem);
             letter-spacing: -0.032em;
           }
 
-          .heroSliderContainer > .heroSlide:nth-child(9) :global(.heroCopy h1) {
+          .heroSliderContainer > .heroSlide:nth-child(9) :global(.heroCopy .heroTitle) {
             font-size: clamp(2.3rem, 2.9vw, 3rem);
             letter-spacing: -0.035em;
           }
 
-          .heroSliderContainer > .heroSlide:nth-child(10) :global(.heroCopy h1) {
+          .heroSliderContainer > .heroSlide:nth-child(10) :global(.heroCopy .heroTitle) {
             font-size: clamp(2.15rem, 2.72vw, 2.85rem);
             letter-spacing: -0.03em;
           }
@@ -1151,25 +1151,25 @@ export default function Hero({
             padding-right: 0;
           }
 
-          .heroSliderViewport :global(.heroCopy h1) {
+          .heroSliderViewport :global(.heroCopy .heroTitle) {
             max-width: 100%;
             margin-inline: auto;
             font-size: clamp(2.8rem, 7vw, 4.25rem);
           }
 
-          .heroSliderContainer > .heroSlide:nth-child(2) :global(.heroCopy h1),
-          .heroSliderContainer > .heroSlide:nth-child(3) :global(.heroCopy h1),
-          .heroSliderContainer > .heroSlide:nth-child(6) :global(.heroCopy h1),
-          .heroSliderContainer > .heroSlide:nth-child(9) :global(.heroCopy h1) {
+          .heroSliderContainer > .heroSlide:nth-child(2) :global(.heroCopy .heroTitle),
+          .heroSliderContainer > .heroSlide:nth-child(3) :global(.heroCopy .heroTitle),
+          .heroSliderContainer > .heroSlide:nth-child(6) :global(.heroCopy .heroTitle),
+          .heroSliderContainer > .heroSlide:nth-child(9) :global(.heroCopy .heroTitle) {
             font-size: clamp(2.55rem, 6vw, 3.75rem);
           }
 
-          .heroSliderContainer > .heroSlide:nth-child(7) :global(.heroCopy h1),
-          .heroSliderContainer > .heroSlide:nth-child(8) :global(.heroCopy h1) {
+          .heroSliderContainer > .heroSlide:nth-child(7) :global(.heroCopy .heroTitle),
+          .heroSliderContainer > .heroSlide:nth-child(8) :global(.heroCopy .heroTitle) {
             font-size: clamp(2.15rem, 5vw, 3.05rem);
           }
 
-          .heroSliderContainer > .heroSlide:nth-child(10) :global(.heroCopy h1) {
+          .heroSliderContainer > .heroSlide:nth-child(10) :global(.heroCopy .heroTitle) {
             font-size: clamp(2.15rem, 5.2vw, 3rem);
           }
 
@@ -1196,27 +1196,27 @@ export default function Hero({
         }
 
         @media (max-width: 680px) {
-          .heroSliderViewport :global(.heroCopy h1) {
+          .heroSliderViewport :global(.heroCopy .heroTitle) {
             margin-top: 15px;
             margin-bottom: 12px;
             font-size: clamp(2.35rem, 10.5vw, 3.25rem);
             line-height: 0.94;
           }
 
-          .heroSliderContainer > .heroSlide:nth-child(2) :global(.heroCopy h1),
-          .heroSliderContainer > .heroSlide:nth-child(3) :global(.heroCopy h1),
-          .heroSliderContainer > .heroSlide:nth-child(6) :global(.heroCopy h1),
-          .heroSliderContainer > .heroSlide:nth-child(9) :global(.heroCopy h1) {
+          .heroSliderContainer > .heroSlide:nth-child(2) :global(.heroCopy .heroTitle),
+          .heroSliderContainer > .heroSlide:nth-child(3) :global(.heroCopy .heroTitle),
+          .heroSliderContainer > .heroSlide:nth-child(6) :global(.heroCopy .heroTitle),
+          .heroSliderContainer > .heroSlide:nth-child(9) :global(.heroCopy .heroTitle) {
             font-size: clamp(2.1rem, 9vw, 2.85rem);
           }
 
-          .heroSliderContainer > .heroSlide:nth-child(7) :global(.heroCopy h1),
-          .heroSliderContainer > .heroSlide:nth-child(8) :global(.heroCopy h1) {
+          .heroSliderContainer > .heroSlide:nth-child(7) :global(.heroCopy .heroTitle),
+          .heroSliderContainer > .heroSlide:nth-child(8) :global(.heroCopy .heroTitle) {
             font-size: clamp(1.78rem, 7.35vw, 2.35rem);
             letter-spacing: -0.03em;
           }
 
-          .heroSliderContainer > .heroSlide:nth-child(10) :global(.heroCopy h1) {
+          .heroSliderContainer > .heroSlide:nth-child(10) :global(.heroCopy .heroTitle) {
             font-size: clamp(1.9rem, 7.8vw, 2.45rem);
             letter-spacing: -0.025em;
           }

@@ -53,13 +53,48 @@ export async function generateMetadata({
 
   if (!item) {
     return {
-      title: "Noticia no encontrada | EL GRUPO FIERAMIX.COM",
+      title: {
+        absolute: "Noticia no encontrada | EL GRUPO FIERAMIX.COM",
+      },
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
+
+  const canonical = `/noticias/${item.id}`;
+  const socialTitle = `${item.title} | FIERAMIX NOTICIAS`;
+  const image = item.image || "/logos/grupo-fieramix.png";
 
   return {
     title: `${item.title} | FIERAMIX NOTICIAS`,
     description: item.excerpt,
+    alternates: {
+      canonical,
+    },
+    openGraph: {
+      title: socialTitle,
+      description: item.excerpt,
+      url: canonical,
+      siteName: "EL GRUPO FIERAMIX.COM",
+      locale: "es_DO",
+      type: "article",
+      publishedTime: item.publishedAt,
+      section: item.category,
+      images: [
+        {
+          url: image,
+          alt: item.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: socialTitle,
+      description: item.excerpt,
+      images: [image],
+    },
   };
 }
 
@@ -184,7 +219,7 @@ export default async function NewsDetailPage({ params }: NewsPageProps) {
           >
             <img
               src={item.image}
-              alt=""
+              alt={item.title}
               style={{
                 display: "block",
                 width: "100%",
