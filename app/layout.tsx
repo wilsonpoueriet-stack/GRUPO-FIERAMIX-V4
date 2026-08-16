@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import ServiceWorkerRegister from "../components/pwa/ServiceWorkerRegister";
 
 const SITE_NAME = "EL GRUPO FIERAMIX.COM";
 const SITE_URL = "https://fieramix.com";
@@ -82,7 +83,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es-DO">
-      <body>{children}</body>
+      <body><ServiceWorkerRegister />{children}</body>
     </html>
   );
 }
