@@ -1,4 +1,4 @@
-﻿const SERVICE_WORKER_VERSION = "fieramix-pwa-v1";
+﻿const SERVICE_WORKER_VERSION = "fieramix-pwa-v2";
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -6,4 +6,12 @@ self.addEventListener("install", () => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener("fetch", (event) => {
+  if (event.request.mode !== "navigate") {
+    return;
+  }
+
+  event.respondWith(fetch(event.request));
 });

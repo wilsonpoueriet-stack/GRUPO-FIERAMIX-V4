@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFloat from "@/components/layout/WhatsAppFloat";
+import InstallAppPrompt from "@/components/pwa/InstallAppPrompt";
 import Hero from "@/components/home/Hero";
 import PremiumPlayer from "@/components/player/PremiumPlayer";
 import StickyPlayer from "@/components/player/StickyPlayer";
@@ -57,6 +58,8 @@ export default function RadioPortal() {
 
   return (
     <>
+      <InstallAppPrompt />
+
       <Header
         playing={radio.playing}
         menuOpen={radio.menuOpen}
