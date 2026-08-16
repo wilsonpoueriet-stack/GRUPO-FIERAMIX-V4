@@ -4,8 +4,8 @@ export const stations: Station[] = [
   {
     id: "fieramix",
     name: "FIERAMIX",
-    shortName: "La Brava",
-    slogan: "La Brava",
+    shortName: "FIERAMIX",
+    slogan: "FIERAMIX",
     description:
       "Hits latinos y programación variada en vivo las 24 horas.",
     streamUrl: "https://c11.radioboss.fm:18269/stream",

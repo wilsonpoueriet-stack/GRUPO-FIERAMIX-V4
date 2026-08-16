@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFloat from "@/components/layout/WhatsAppFloat";
 import InstallAppPrompt from "@/components/pwa/InstallAppPrompt";
+import FieramixAIChat from "@/components/ai/FieramixAIChat";
 import Hero from "@/components/home/Hero";
 import PremiumPlayer from "@/components/player/PremiumPlayer";
 import StickyPlayer from "@/components/player/StickyPlayer";
@@ -132,6 +133,7 @@ export default function RadioPortal() {
       </main>
 
       <Footer />
+      <FieramixAIChat />
       <WhatsAppFloat />
 
       <StickyPlayer
