@@ -22,24 +22,55 @@ function makeStoreLink(label: string, href: string) {
 
 export default function AppHeroUpgrade() {
   useEffect(() => {
-    const slide = document.querySelector<HTMLElement>(
+    const rankingsSlide = document.querySelector<HTMLElement>(
+      ".heroSliderContainer > .heroSlide:nth-child(6)",
+    );
+
+    if (rankingsSlide) {
+      const rankingsTitle = rankingsSlide.querySelector<HTMLElement>(".heroTitle");
+      if (rankingsTitle) {
+        rankingsTitle.childNodes.forEach((node) => {
+          if (node.nodeType === Node.TEXT_NODE && node.textContent?.includes("TOP MUSICALES")) {
+            node.textContent = node.textContent.replace("TOP MUSICALES", "RANKINGS");
+          }
+        });
+      }
+
+      rankingsSlide
+        .querySelectorAll<HTMLElement>(".heroContentTags span")
+        .forEach((tag) => {
+          if (tag.textContent?.trim() === "TOP MUSICALES") {
+            tag.textContent = "RANKINGS";
+          }
+        });
+
+      rankingsSlide
+        .querySelectorAll<HTMLElement>(".heroActions span")
+        .forEach((label) => {
+          if (label.textContent?.trim() === "VER TOP MUSICAL") {
+            label.textContent = "VER RANKINGS";
+          }
+        });
+    }
+
+    const appSlide = document.querySelector<HTMLElement>(
       ".heroSliderContainer > .heroSlide:nth-child(8)",
     );
 
-    if (!slide) return;
+    if (!appSlide) return;
 
-    const titleAccent = slide.querySelector<HTMLElement>(".heroTitle em");
+    const titleAccent = appSlide.querySelector<HTMLElement>(".heroTitle em");
     if (titleAccent) {
       titleAccent.textContent = "YA DISPONIBLE";
     }
 
-    const description = slide.querySelector<HTMLElement>(".heroCopy > p");
+    const description = appSlide.querySelector<HTMLElement>(".heroCopy > p");
     if (description) {
       description.textContent =
         "Descarga la app oficial de EL GRUPO FIERAMIX.COM y lleva nuestras emisoras contigo donde quiera que estés.";
     }
 
-    const actions = slide.querySelector<HTMLElement>(".heroActions");
+    const actions = appSlide.querySelector<HTMLElement>(".heroActions");
     if (actions) {
       actions.replaceChildren(
         makeStoreLink("DESCARGAR EN GOOGLE PLAY", GOOGLE_PLAY_URL),
@@ -47,7 +78,7 @@ export default function AppHeroUpgrade() {
       );
     }
 
-    const metrics = slide.querySelectorAll<HTMLElement>(".heroMetrics > div");
+    const metrics = appSlide.querySelectorAll<HTMLElement>(".heroMetrics > div");
 
     const metricValues = [
       ["PLAY", "GOOGLE PLAY"],
