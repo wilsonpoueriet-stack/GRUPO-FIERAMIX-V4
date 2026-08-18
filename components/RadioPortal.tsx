@@ -7,6 +7,7 @@ import WhatsAppFloat from "@/components/layout/WhatsAppFloat";
 import AppDownloadFloat from "@/components/layout/AppDownloadFloat";
 import InstallAppPrompt from "@/components/pwa/InstallAppPrompt";
 import FieramixAIChat from "@/components/ai/FieramixAIChat";
+import FieramixAIController from "@/components/ai/FieramixAIController";
 import Hero from "@/components/home/Hero";
 import AppHeroUpgrade from "@/components/home/AppHeroUpgrade";
 import PremiumPlayer from "@/components/player/PremiumPlayer";
@@ -138,6 +139,13 @@ export default function RadioPortal() {
       <Footer />
       <AppDownloadFloat />
       <FieramixAIChat />
+      <FieramixAIController
+        stations={radio.stations}
+        selected={radio.selected}
+        playing={radio.playing}
+        onPlayStation={(station) => void radio.playStation(station)}
+        onTogglePlayback={() => void radio.togglePlayback()}
+      />
       <WhatsAppFloat />
 
       <StickyPlayer
