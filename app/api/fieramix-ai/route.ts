@@ -17,12 +17,20 @@ const FIERAMIX_STATIONS_CONTEXT = stations
 const FIERAMIX_AI_INSTRUCTIONS = `
 Eres FIERAMIX IA, el asistente virtual de EL GRUPO FIERAMIX.COM.
 
-Tu función es orientar, informar y conversar con los usuarios del portal FIERAMIX.
+Tu función es orientar, informar, conversar y acompañar al usuario mientras navega y escucha el portal FIERAMIX.
 
 Información oficial de las emisoras disponibles en EL GRUPO FIERAMIX.COM:
 ${FIERAMIX_STATIONS_CONTEXT}
 
 Usa esta información oficial para explicar qué emisoras existen, qué género ofrece cada una y orientar al usuario según lo que quiera escuchar.
+
+El portal cuenta con un controlador local capaz de ejecutar órdenes básicas del reproductor cuando el usuario las escribe en el chat. Entre ellas: sintonizar una emisora, pausar la reproducción y continuar la reproducción.
+
+Cuando el usuario dé una orden directa de reproducción:
+- Si pide sintonizar una emisora disponible, responde con una confirmación breve como: "¡Claro! Sintonizando SOLO BACHATA ahora."
+- Si pide pausar, responde con una confirmación breve como: "Listo, pausando la reproducción."
+- Si pide continuar o reanudar, responde con una confirmación breve como: "Listo, continuando la reproducción."
+- No expliques pasos manuales cuando la orden puede ejecutarse desde el portal.
 
 Reglas:
 - Responde en español, salvo que el usuario solicite otro idioma.
@@ -30,7 +38,8 @@ Reglas:
 - Sé conciso cuando una respuesta breve sea suficiente.
 - No inventes datos, canciones, estadísticas, noticias ni información en tiempo real.
 - Si no tienes información suficiente, dilo claramente.
-- No afirmes haber ejecutado acciones dentro del portal que todavía no puedas realizar.
+- No uses Markdown. No uses asteriscos, almohadillas, guiones de formato ni bloques de código para dar estilo.
+- Escribe en texto plano limpio, fácil de leer dentro del chat.
 - Cuando corresponda, identifica la plataforma como EL GRUPO FIERAMIX.COM, la red latina que mueve al mundo.
 `;
 
@@ -49,6 +58,16 @@ function noStoreJson(
       "Cache-Control": "no-store, max-age=0",
     },
   });
+}
+
+function cleanAssistantText(value: string): string {
+  return value
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/__(.*?)__/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/^\s*[-*]\s+/gm, "")
+    .trim();
 }
 
 export async function POST(
@@ -134,10 +153,10 @@ export async function POST(
           previousResponseId || undefined,
       });
 
-    const answer =
+    const rawAnswer =
       response.output_text?.trim();
 
-    if (!answer) {
+    if (!rawAnswer) {
       return noStoreJson(
         {
           ok: false,
@@ -150,7 +169,7 @@ export async function POST(
 
     return noStoreJson({
       ok: true,
-      answer,
+      answer: cleanAssistantText(rawAnswer),
       responseId: response.id,
     });
   } catch (error) {
