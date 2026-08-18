@@ -78,7 +78,7 @@ function findRequestedStation(
 function isTuneIntent(message: string): boolean {
   const normalized = normalizeText(message);
 
-  return /\b(sintoniza|sintonizar|pon|ponme|poner|cambia|cambiar|cambiame|quiero|escuchar|oir|reproduce|reproducir|activa|activar|enciende|encender|dame)\b/.test(
+  return /\b(sintoniz\w*|pon\w*|poner|cambi\w*|quiero|escuch\w*|oir|oye|reproduc\w*|activ\w*|enciend\w*|dame)\b/.test(
     normalized,
   );
 }
@@ -86,8 +86,11 @@ function isTuneIntent(message: string): boolean {
 function isPauseIntent(message: string): boolean {
   const normalized = normalizeText(message);
 
-  return /\b(pausa|pausar|deten|detener|detenla|detenlo|para|parar|silencia|silenciar)\b/.test(
-    normalized,
+  return (
+    /\b(paus\w*|deten\w*|silenci\w*)\b/.test(normalized) ||
+    /\bpara\b.*\b(radio|musica|audio|reproduccion|sonido|emisora)\b/.test(
+      normalized,
+    )
   );
 }
 
@@ -95,7 +98,7 @@ function isResumeIntent(message: string): boolean {
   const normalized = normalizeText(message);
 
   return (
-    /\b(reanuda|reanudar|continua|continuar|sigue|seguir|reproduce|reproducir|play|enciende|encender)\b/.test(
+    /\b(reanud\w*|continu\w*|sigue|seguir|reproduc\w*|play|enciend\w*)\b/.test(
       normalized,
     ) &&
     /\b(radio|musica|audio|reproduccion|sonido|emisora|sigue|continua|play)\b/.test(
@@ -144,7 +147,7 @@ export default function FieramixAIController({
         requestedStation &&
         requestedStation.id === selected.id &&
         normalized.includes(selectedName) &&
-        /\b(escucha|oir|suena|sonar)\b/.test(normalized) &&
+        /\b(escuch\w*|oir|suena|sonar)\b/.test(normalized) &&
         !playing
       ) {
         void onTogglePlayback();
