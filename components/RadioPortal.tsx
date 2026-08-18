@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFloat from "@/components/layout/WhatsAppFloat";
+import AppDownloadFloat from "@/components/layout/AppDownloadFloat";
 import InstallAppPrompt from "@/components/pwa/InstallAppPrompt";
 import FieramixAIChat from "@/components/ai/FieramixAIChat";
 import Hero from "@/components/home/Hero";
@@ -133,6 +134,7 @@ export default function RadioPortal() {
       </main>
 
       <Footer />
+      <AppDownloadFloat />
       <FieramixAIChat />
       <WhatsAppFloat />
 
