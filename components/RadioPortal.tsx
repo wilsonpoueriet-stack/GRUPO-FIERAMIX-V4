@@ -8,6 +8,7 @@ import AppDownloadFloat from "@/components/layout/AppDownloadFloat";
 import InstallAppPrompt from "@/components/pwa/InstallAppPrompt";
 import FieramixAIChat from "@/components/ai/FieramixAIChat";
 import Hero from "@/components/home/Hero";
+import AppHeroUpgrade from "@/components/home/AppHeroUpgrade";
 import PremiumPlayer from "@/components/player/PremiumPlayer";
 import StickyPlayer from "@/components/player/StickyPlayer";
 import StationsGrid from "@/components/stations/StationsGrid";
@@ -76,6 +77,7 @@ export default function RadioPortal() {
             playing={radio.playing}
             onPlaybackToggle={() => void radio.togglePlayback()}
           />
+          <AppHeroUpgrade />
 
           <PremiumPlayer
             station={radio.selected}
