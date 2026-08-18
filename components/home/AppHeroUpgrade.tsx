@@ -20,6 +20,25 @@ function makeStoreLink(label: string, href: string) {
   return link;
 }
 
+function makeAIButton() {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.setAttribute("aria-label", "Hablar con FIERAMIX IA");
+
+  const span = document.createElement("span");
+  span.textContent = "HABLAR CON FIERAMIX IA";
+  button.appendChild(span);
+
+  button.addEventListener("click", () => {
+    const launcher = document.querySelector<HTMLButtonElement>(
+      ".fieramixAILauncher",
+    );
+    launcher?.click();
+  });
+
+  return button;
+}
+
 export default function AppHeroUpgrade() {
   useEffect(() => {
     const rankingsSlide = document.querySelector<HTMLElement>(
@@ -51,6 +70,66 @@ export default function AppHeroUpgrade() {
             label.textContent = "VER RANKINGS";
           }
         });
+    }
+
+    const aiSlide = document.querySelector<HTMLElement>(
+      ".heroSliderContainer > .heroSlide:nth-child(7)",
+    );
+
+    if (aiSlide) {
+      const kicker = aiSlide.querySelector<HTMLElement>(".heroKicker");
+      if (kicker) {
+        kicker.textContent = "UNA NUEVA FORMA DE CONECTAR";
+      }
+
+      const title = aiSlide.querySelector<HTMLElement>(".heroTitle");
+      if (title) {
+        title.childNodes.forEach((node) => {
+          if (node.nodeType === Node.TEXT_NODE && node.textContent?.includes("VIVE LA")) {
+            node.textContent = node.textContent.replace("VIVE LA", "FIERAMIX IA");
+          }
+        });
+
+        const accent = title.querySelector<HTMLElement>("em");
+        if (accent) {
+          accent.textContent = "TU ASISTENTE VIRTUAL";
+        }
+      }
+
+      const description = aiSlide.querySelector<HTMLElement>(".heroCopy > p");
+      if (description) {
+        description.textContent =
+          "Habla con FIERAMIX IA y descubre una nueva forma de interactuar con EL GRUPO FIERAMIX.COM. Pregunta, consulta y encuentra lo que buscas dentro de nuestra red.";
+      }
+
+      const tags = aiSlide.querySelector<HTMLElement>(".heroContentTags");
+      if (tags) {
+        tags.innerHTML =
+          "<span>PREGUNTA</span><i>•</i><span>DESCUBRE</span><i>•</i><span>CONECTA</span><i>•</i><span>PARTICIPA</span>";
+      }
+
+      const actions = aiSlide.querySelector<HTMLElement>(".heroActions");
+      if (actions) {
+        actions.replaceChildren(makeAIButton());
+      }
+
+      const metrics = aiSlide.querySelectorAll<HTMLElement>(".heroMetrics > div");
+      const metricValues = [
+        ["IA", "ASISTENTE VIRTUAL"],
+        ["24/7", "SIEMPRE DISPONIBLE"],
+        ["FMX", "CONECTA CON LA RED"],
+      ];
+
+      metrics.forEach((metric, index) => {
+        const values = metricValues[index];
+        if (!values) return;
+
+        const strong = metric.querySelector<HTMLElement>("strong");
+        const span = metric.querySelector<HTMLElement>("span");
+
+        if (strong) strong.textContent = values[0];
+        if (span) span.textContent = values[1];
+      });
     }
 
     const appSlide = document.querySelector<HTMLElement>(
