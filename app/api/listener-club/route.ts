@@ -114,7 +114,7 @@ export async function POST(request: Request): Promise<Response> {
       consentWhatsApp: true,
       consentAt: now,
       consentVersion: CONSENT_VERSION,
-      privacyPolicyUrl: "/politica-privacidad",
+      privacyPolicyUrl: "/club-de-oyentes/privacidad",
       registeredAt,
       updatedAt: now,
       status: "active",
