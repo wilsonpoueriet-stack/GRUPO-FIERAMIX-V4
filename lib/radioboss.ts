@@ -141,11 +141,21 @@ export function getOptimizedArtworkUrl(
   sourceUrl: string,
   cacheKey?: string,
 ): string {
-  const params = new URLSearchParams({ src: sourceUrl });
+  // Las portadas en vivo se sirven directamente desde la URL individual
+  // de RadioBOSS para evitar que una portada procesada termine compartida
+  // entre emisoras. El parametro fm cambia cuando cambia la pista y permite
+  // renovar la imagen sin perder la identidad propia de cada estacion.
+  try {
+    const url = new URL(sourceUrl);
 
-  if (cacheKey) {
-    params.set("key", cacheKey);
+    if (cacheKey) {
+      url.searchParams.set("fm", cacheKey);
+    } else {
+      url.searchParams.set("_", String(Date.now()));
+    }
+
+    return url.toString();
+  } catch {
+    return sourceUrl;
   }
-
-  return `/api/artwork-optimized?${params.toString()}`;
 }
