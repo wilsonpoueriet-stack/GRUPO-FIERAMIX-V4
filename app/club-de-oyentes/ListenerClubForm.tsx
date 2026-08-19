@@ -21,11 +21,13 @@ export default function ListenerClubForm({ stations }: Props) {
     event.preventDefault();
     if (saving) return;
 
+    const formElement = event.currentTarget;
+
     setSaving(true);
     setMessage("");
     setError("");
 
-    const form = new FormData(event.currentTarget);
+    const form = new FormData(formElement);
 
     const payload = {
       name: String(form.get("name") ?? ""),
@@ -54,7 +56,7 @@ export default function ListenerClubForm({ stations }: Props) {
       }
 
       setMessage(data.message || "Registro completado correctamente.");
-      event.currentTarget.reset();
+      formElement.reset();
     } catch (submitError) {
       setError(
         submitError instanceof Error
