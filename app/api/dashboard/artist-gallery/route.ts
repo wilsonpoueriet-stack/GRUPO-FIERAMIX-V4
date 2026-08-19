@@ -1,7 +1,10 @@
+import { getStore } from "@netlify/blobs";
 import { getAdminSession } from "@/lib/admin-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+const STORE_NAME = "fieramix-artist-gallery";
 
 function noStoreJson(
   body: Record<string, unknown>,
@@ -169,43 +172,82 @@ export async function DELETE(request: Request): Promise<Response> {
     return noStoreJson({ ok: false, error: "Sesión administrativa requerida." }, 401);
   }
 
-  const adminKey = getGalleryAdminKey();
-
-  if (!adminKey) {
-    return noStoreJson(
-      {
-        ok: false,
-        error: "La clave interna de la Galería de Artistas no está configurada.",
-      },
-      503,
-    );
-  }
-
   let artist = "";
+  let slug = "";
 
   try {
-    const body = (await request.json()) as { artist?: unknown };
+    const body = (await request.json()) as {
+      artist?: unknown;
+      slug?: unknown;
+    };
+
     artist = typeof body.artist === "string" ? body.artist.trim() : "";
+    slug = typeof body.slug === "string" ? body.slug.trim() : "";
   } catch {
     return noStoreJson({ ok: false, error: "Solicitud no válida." }, 400);
   }
 
-  if (!artist) {
+  if (!artist && !slug) {
     return noStoreJson({ ok: false, error: "Debes indicar el artista." }, 400);
   }
 
   try {
-    const response = await fetch(upstreamUrl(request), {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        "x-fieramix-admin-key": adminKey,
-      },
-      body: JSON.stringify({ artist }),
-      cache: "no-store",
+    const store = getStore({
+      name: STORE_NAME,
+      consistency: "strong",
     });
 
-    return passJsonResponse(response);
+    const { blobs } = await store.list({
+      prefix: "artists/",
+    });
+
+    let keyToDelete = "";
+
+    for (const blob of blobs) {
+      if (slug && blob.key === `artists/${slug}`) {
+        keyToDelete = blob.key;
+        break;
+      }
+
+      const entry = await store.getMetadata(blob.key);
+      const metadata = (entry?.metadata ?? {}) as {
+        slug?: unknown;
+        artist?: unknown;
+      };
+
+      const metadataSlug =
+        typeof metadata.slug === "string" ? metadata.slug.trim() : "";
+      const metadataArtist =
+        typeof metadata.artist === "string" ? metadata.artist.trim() : "";
+
+      if (
+        (slug && metadataSlug === slug) ||
+        (artist && metadataArtist === artist)
+      ) {
+        keyToDelete = blob.key;
+        break;
+      }
+    }
+
+    if (!keyToDelete) {
+      return noStoreJson(
+        {
+          ok: false,
+          error: "No se encontró el registro exacto del artista para eliminarlo.",
+        },
+        404,
+      );
+    }
+
+    await store.delete(keyToDelete);
+
+    return noStoreJson({
+      ok: true,
+      artist: artist || artistNameFromSlug(slug),
+      slug,
+      deletedKey: keyToDelete,
+      message: "Imagen del artista eliminada correctamente.",
+    });
   } catch (error) {
     console.error("No fue posible eliminar la imagen desde el panel.", error);
     return noStoreJson(
