@@ -147,7 +147,7 @@ export default function ListenerClubForm({ stations }: Props) {
           </label>
 
           <p className="privacyNote">
-            Al registrarte aceptas nuestra <Link href="/politica-privacidad">Política de Privacidad</Link>.
+            Al registrarte aceptas nuestro <Link href="/club-de-oyentes/privacidad">Aviso de Privacidad del Club de Oyentes</Link>.
           </p>
 
           <button type="submit" disabled={saving}>
