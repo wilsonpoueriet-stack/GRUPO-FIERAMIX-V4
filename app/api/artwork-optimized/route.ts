@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 const TARGET_SIZE = 600;
 const TARGET_BYTES = 200 * 1024;
-const ALLOWED_HOSTS = new Set(
+const ALLOWED_HOSTS = new Set<string>(
   Object.values(radioBossStations).map((station) => station.server),
 );
 
