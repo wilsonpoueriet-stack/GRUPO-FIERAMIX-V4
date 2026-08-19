@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const items = [
   { href: "/dashboard", label: "PANEL" },
   { href: "/dashboard/galeria-artistas", label: "GALERÍA DE ARTISTAS" },
+  { href: "/dashboard/club-de-oyentes", label: "CLUB DE OYENTES" },
 ];
 
 export default function AdminDashboardNav() {
@@ -27,6 +28,8 @@ export default function AdminDashboardNav() {
         background: "rgba(7,12,27,.92)",
         boxShadow: "0 14px 38px rgba(0,0,0,.36)",
         backdropFilter: "blur(16px)",
+        maxWidth: "calc(100vw - 36px)",
+        overflowX: "auto",
       }}
     >
       {items.map((item) => {
