@@ -46,6 +46,30 @@ function excelPhone(value: string): string {
   return `="${safe}"`;
 }
 
+function xmlEscape(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function columnName(index: number): string {
+  let result = "";
+  let current = index;
+  while (current > 0) {
+    current -= 1;
+    result = String.fromCharCode(65 + (current % 26)) + result;
+    current = Math.floor(current / 26);
+  }
+  return result;
+}
+
+function inlineCell(reference: string, value: unknown, style = 0): string {
+  return `<c r="${reference}" t="inlineStr" s="${style}"><is><t>${xmlEscape(value)}</t></is></c>`;
+}
+
 export default function ListenerClubAdmin() {
   const [members, setMembers] = useState<Member[]>([]);
   const [query, setQuery] = useState("");
@@ -199,6 +223,186 @@ export default function ListenerClubAdmin() {
     URL.revokeObjectURL(url);
   };
 
+  const exportExcel = async () => {
+    if (filtered.length === 0) return;
+
+    try {
+      setError("");
+      const { default: JSZip } = await import("jszip");
+      const zip = new JSZip();
+      const exportDate = new Intl.DateTimeFormat("es-DO", {
+        dateStyle: "full",
+        timeStyle: "short",
+      }).format(new Date());
+
+      const headers = [
+        "Nombre",
+        "WhatsApp",
+        "Ciudad",
+        "País",
+        "Emisora favorita",
+        "Consentimiento WhatsApp",
+        "Fecha consentimiento",
+        "Fecha registro",
+        "Última actualización",
+      ];
+
+      const dataRows = filtered.map((member) => [
+        member.name,
+        member.whatsapp,
+        member.city,
+        member.country,
+        member.stationName,
+        member.consentWhatsApp ? "AUTORIZADO" : "NO",
+        formatDate(member.consentAt),
+        formatDate(member.registeredAt),
+        formatDate(member.updatedAt),
+      ]);
+
+      const headerRowNumber = 6;
+      const firstDataRow = 7;
+      const lastRow = firstDataRow + dataRows.length - 1;
+      const dataXml = dataRows
+        .map((row, index) => {
+          const rowNumber = firstDataRow + index;
+          const cells = row
+            .map((value, columnIndex) =>
+              inlineCell(`${columnName(columnIndex + 1)}${rowNumber}`, value, 0),
+            )
+            .join("");
+          return `<row r="${rowNumber}">${cells}</row>`;
+        })
+        .join("");
+
+      const headerCells = headers
+        .map((value, index) => inlineCell(`${columnName(index + 1)}${headerRowNumber}`, value, 1))
+        .join("");
+
+      const worksheet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <sheetViews>
+    <sheetView workbookViewId="0" showGridLines="1">
+      <pane ySplit="6" topLeftCell="A7" activePane="bottomLeft" state="frozen"/>
+    </sheetView>
+  </sheetViews>
+  <sheetFormatPr defaultRowHeight="18"/>
+  <cols>
+    <col min="1" max="1" width="24" customWidth="1"/>
+    <col min="2" max="2" width="18" customWidth="1"/>
+    <col min="3" max="3" width="18" customWidth="1"/>
+    <col min="4" max="4" width="22" customWidth="1"/>
+    <col min="5" max="5" width="28" customWidth="1"/>
+    <col min="6" max="6" width="24" customWidth="1"/>
+    <col min="7" max="9" width="22" customWidth="1"/>
+  </cols>
+  <sheetData>
+    <row r="1" ht="30" customHeight="1">${inlineCell("A1", "EL GRUPO FIERAMIX.COM", 2)}</row>
+    <row r="2" ht="26" customHeight="1">${inlineCell("A2", "CLUB DE OYENTES — BASE DE MIEMBROS REGISTRADOS", 3)}</row>
+    <row r="3" ht="38" customHeight="1">${inlineCell("A3", "Listado de miembros registrados que autorizaron el contacto por WhatsApp para recibir novedades, promociones, premios y contenidos del Club de Oyentes.", 4)}</row>
+    <row r="4" ht="22" customHeight="1">${inlineCell("A4", `Fecha de exportación: ${exportDate}`, 5)}${inlineCell("E4", `Registros incluidos: ${filtered.length}`, 5)}</row>
+    <row r="5" ht="8" customHeight="1"></row>
+    <row r="6" ht="28" customHeight="1">${headerCells}</row>
+    ${dataXml}
+  </sheetData>
+  <mergeCells count="5">
+    <mergeCell ref="A1:I1"/>
+    <mergeCell ref="A2:I2"/>
+    <mergeCell ref="A3:I3"/>
+    <mergeCell ref="A4:D4"/>
+    <mergeCell ref="E4:I4"/>
+  </mergeCells>
+  <autoFilter ref="A6:I${lastRow}"/>
+</worksheet>`;
+
+      const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+  <fonts count="5">
+    <font><sz val="11"/><name val="Calibri"/><family val="2"/></font>
+    <font><b/><sz val="11"/><name val="Calibri"/><family val="2"/><color rgb="FFFFFFFF"/></font>
+    <font><b/><sz val="18"/><name val="Calibri"/><family val="2"/><color rgb="FF0B6E4F"/></font>
+    <font><b/><sz val="14"/><name val="Calibri"/><family val="2"/><color rgb="FF1F2937"/></font>
+    <font><sz val="11"/><name val="Calibri"/><family val="2"/><color rgb="FF4B5563"/></font>
+  </fonts>
+  <fills count="4">
+    <fill><patternFill patternType="none"/></fill>
+    <fill><patternFill patternType="gray125"/></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FF0F766E"/><bgColor indexed="64"/></patternFill></fill>
+    <fill><patternFill patternType="solid"><fgColor rgb="FFE8F8F3"/><bgColor indexed="64"/></patternFill></fill>
+  </fills>
+  <borders count="2">
+    <border><left/><right/><top/><bottom/><diagonal/></border>
+    <border><left style="thin"><color rgb="FFD1D5DB"/></left><right style="thin"><color rgb="FFD1D5DB"/></right><top style="thin"><color rgb="FFD1D5DB"/></top><bottom style="thin"><color rgb="FFD1D5DB"/></bottom><diagonal/></border>
+  </borders>
+  <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+  <cellXfs count="6">
+    <xf numFmtId="49" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"><alignment vertical="center"/></xf>
+    <xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1"><alignment vertical="center" wrapText="1"/></xf>
+    <xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"><alignment horizontal="left" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"><alignment horizontal="left" vertical="center"/></xf>
+    <xf numFmtId="0" fontId="4" fillId="0" borderId="0" xfId="0" applyFont="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>
+    <xf numFmtId="0" fontId="0" fillId="3" borderId="0" xfId="0" applyFill="1"><alignment horizontal="left" vertical="center"/></xf>
+  </cellXfs>
+  <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+</styleSheet>`;
+
+      zip.file(
+        "[Content_Types].xml",
+        `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+  <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+  <Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+</Types>`,
+      );
+
+      zip.folder("_rels")?.file(
+        ".rels",
+        `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`,
+      );
+
+      zip.folder("xl")?.file(
+        "workbook.xml",
+        `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+  <sheets><sheet name="Club de Oyentes" sheetId="1" r:id="rId1"/></sheets>
+</workbook>`,
+      );
+
+      zip.folder("xl")?.folder("_rels")?.file(
+        "workbook.xml.rels",
+        `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+  <Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>
+</Relationships>`,
+      );
+
+      zip.folder("xl")?.folder("worksheets")?.file("sheet1.xml", worksheet);
+      zip.folder("xl")?.file("styles.xml", styles);
+
+      const workbookBlob = await zip.generateAsync({
+        type: "blob",
+        mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = URL.createObjectURL(workbookBlob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `fieramix-club-oyentes-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch (exportError) {
+      console.error("No fue posible exportar el archivo Excel.", exportError);
+      setError("No fue posible generar el archivo Excel.");
+    }
+  };
+
   const consented = members.filter((member) => member.consentWhatsApp).length;
   const countryCount = new Set(members.map((member) => member.country).filter(Boolean)).size;
 
@@ -226,8 +430,11 @@ export default function ListenerClubAdmin() {
             <h2>Miembros registrados</h2>
           </div>
           <div className="headerActions">
-            <button className="exportButton" type="button" onClick={exportCsv} disabled={filtered.length === 0}>
-              EXPORTAR CSV
+            <button className="excelButton" type="button" onClick={() => void exportExcel()} disabled={filtered.length === 0}>
+              EXPORTAR EXCEL
+            </button>
+            <button className="csvButton" type="button" onClick={exportCsv} disabled={filtered.length === 0}>
+              CSV
             </button>
             <button className="clearButton" type="button" onClick={clearFilters}>
               LIMPIAR FILTROS
@@ -289,7 +496,7 @@ export default function ListenerClubAdmin() {
       </section>
 
       <style jsx>{`
-        .clubAdminPage{min-height:100vh;padding:42px 42px 100px;background:radial-gradient(circle at 0 0,#17305a 0,#08111f 38%,#050a13 100%);color:#fff;font-family:Arial,sans-serif}.clubAdminHeader span,.tableHeader span{color:#43f5b1;font-size:.72rem;font-weight:1000;letter-spacing:1.6px}.clubAdminHeader h1{font-size:2.5rem;margin:8px 0}.clubAdminHeader p{margin:0;color:rgba(255,255,255,.66)}.summaryGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:28px 0 24px}.summaryGrid>div{padding:18px;border-radius:18px;border:1px solid rgba(255,255,255,.08);background:rgba(16,35,65,.88)}.summaryGrid strong{display:block;font-size:1.55rem}.summaryGrid span{font-size:.72rem;opacity:.62}.clubTableCard{border-radius:22px;border:1px solid rgba(255,255,255,.08);background:rgba(12,26,49,.94);padding:24px}.tableHeader{display:flex;justify-content:space-between;gap:18px;align-items:end;flex-wrap:wrap;margin-bottom:16px}.tableHeader h2{margin:6px 0 0}.headerActions{display:flex;gap:9px;flex-wrap:wrap}.headerActions button{min-height:40px;padding:0 13px;border-radius:10px;font-size:.67rem;font-weight:1000;cursor:pointer}.exportButton{border:0;background:linear-gradient(135deg,#43f5b1,#7ecfff);color:#07111f}.exportButton:disabled{opacity:.45;cursor:not-allowed}.clearButton{border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.05);color:#fff}.filters{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:10px;margin-bottom:18px}.filters input,.filters select{width:100%;box-sizing:border-box;padding:12px 13px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:#0a1427;color:#fff;outline:none}.filters input:focus,.filters select:focus{border-color:#43f5b1}.tableWrap{overflow:auto;border:1px solid rgba(255,255,255,.06);border-radius:15px}table{width:100%;border-collapse:collapse;min-width:980px}th,td{padding:14px 13px;text-align:left;border-bottom:1px solid rgba(255,255,255,.06);font-size:.78rem}th{font-size:.64rem;letter-spacing:.08em;color:rgba(255,255,255,.5);background:rgba(255,255,255,.025)}td{color:rgba(255,255,255,.78)}td strong{color:#fff}.okBadge,.noBadge{display:inline-flex;padding:6px 8px;border-radius:999px;font-size:.6rem;font-weight:1000}.okBadge{color:#70ffc8;background:rgba(67,245,177,.1);border:1px solid rgba(67,245,177,.22)}.noBadge{color:#ff9baa;background:rgba(255,95,115,.09);border:1px solid rgba(255,95,115,.22)}.deleteButton{border:1px solid rgba(255,95,115,.3);background:rgba(255,95,115,.08);color:#ff9baa;border-radius:9px;padding:7px 9px;font-size:.62rem;font-weight:900;cursor:pointer}.state{padding:42px 12px;text-align:center;color:rgba(255,255,255,.55)}.success,.error{margin:0 0 16px;padding:12px;border-radius:11px;font-size:.8rem}.success{background:rgba(67,245,177,.1);border:1px solid rgba(67,245,177,.25)}.error{background:rgba(255,95,115,.09);border:1px solid rgba(255,95,115,.28)}@media(max-width:1050px){.summaryGrid{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr 1fr}}@media(max-width:650px){.clubAdminPage{padding:24px 16px 100px}.summaryGrid,.filters{grid-template-columns:1fr}.clubAdminHeader h1{font-size:2rem}}
+        .clubAdminPage{min-height:100vh;padding:42px 42px 100px;background:radial-gradient(circle at 0 0,#17305a 0,#08111f 38%,#050a13 100%);color:#fff;font-family:Arial,sans-serif}.clubAdminHeader span,.tableHeader span{color:#43f5b1;font-size:.72rem;font-weight:1000;letter-spacing:1.6px}.clubAdminHeader h1{font-size:2.5rem;margin:8px 0}.clubAdminHeader p{margin:0;color:rgba(255,255,255,.66)}.summaryGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:28px 0 24px}.summaryGrid>div{padding:18px;border-radius:18px;border:1px solid rgba(255,255,255,.08);background:rgba(16,35,65,.88)}.summaryGrid strong{display:block;font-size:1.55rem}.summaryGrid span{font-size:.72rem;opacity:.62}.clubTableCard{border-radius:22px;border:1px solid rgba(255,255,255,.08);background:rgba(12,26,49,.94);padding:24px}.tableHeader{display:flex;justify-content:space-between;gap:18px;align-items:end;flex-wrap:wrap;margin-bottom:16px}.tableHeader h2{margin:6px 0 0}.headerActions{display:flex;gap:9px;flex-wrap:wrap}.headerActions button{min-height:40px;padding:0 13px;border-radius:10px;font-size:.67rem;font-weight:1000;cursor:pointer}.excelButton{border:0;background:linear-gradient(135deg,#43f5b1,#7ecfff);color:#07111f}.excelButton:disabled,.csvButton:disabled{opacity:.45;cursor:not-allowed}.csvButton,.clearButton{border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.05);color:#fff}.filters{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:10px;margin-bottom:18px}.filters input,.filters select{width:100%;box-sizing:border-box;padding:12px 13px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:#0a1427;color:#fff;outline:none}.filters input:focus,.filters select:focus{border-color:#43f5b1}.tableWrap{overflow:auto;border:1px solid rgba(255,255,255,.06);border-radius:15px}table{width:100%;border-collapse:collapse;min-width:980px}th,td{padding:14px 13px;text-align:left;border-bottom:1px solid rgba(255,255,255,.06);font-size:.78rem}th{font-size:.64rem;letter-spacing:.08em;color:rgba(255,255,255,.5);background:rgba(255,255,255,.025)}td{color:rgba(255,255,255,.78)}td strong{color:#fff}.okBadge,.noBadge{display:inline-flex;padding:6px 8px;border-radius:999px;font-size:.6rem;font-weight:1000}.okBadge{color:#70ffc8;background:rgba(67,245,177,.1);border:1px solid rgba(67,245,177,.22)}.noBadge{color:#ff9baa;background:rgba(255,95,115,.09);border:1px solid rgba(255,95,115,.22)}.deleteButton{border:1px solid rgba(255,95,115,.3);background:rgba(255,95,115,.08);color:#ff9baa;border-radius:9px;padding:7px 9px;font-size:.62rem;font-weight:900;cursor:pointer}.state{padding:42px 12px;text-align:center;color:rgba(255,255,255,.55)}.success,.error{margin:0 0 16px;padding:12px;border-radius:11px;font-size:.8rem}.success{background:rgba(67,245,177,.1);border:1px solid rgba(67,245,177,.25)}.error{background:rgba(255,95,115,.09);border:1px solid rgba(255,95,115,.28)}@media(max-width:1050px){.summaryGrid{grid-template-columns:repeat(2,1fr)}.filters{grid-template-columns:1fr 1fr}}@media(max-width:650px){.clubAdminPage{padding:24px 16px 100px}.summaryGrid,.filters{grid-template-columns:1fr}.clubAdminHeader h1{font-size:2rem}}
       `}</style>
     </main>
   );
