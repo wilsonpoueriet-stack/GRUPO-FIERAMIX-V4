@@ -136,3 +136,16 @@ export function getRecentArtworkUrl(
     `${config.stationId}.jpg`
   );
 }
+
+export function getOptimizedArtworkUrl(
+  sourceUrl: string,
+  cacheKey?: string,
+): string {
+  const params = new URLSearchParams({ src: sourceUrl });
+
+  if (cacheKey) {
+    params.set("key", cacheKey);
+  }
+
+  return `/api/artwork-optimized?${params.toString()}`;
+}
