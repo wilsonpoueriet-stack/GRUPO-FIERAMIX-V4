@@ -113,8 +113,8 @@ export default function GalleryAdmin() {
     }
   };
 
-  const removeArtist = async (artist: string) => {
-    const confirmed = window.confirm(`¿Eliminar la imagen de ${artist}?`);
+  const removeArtist = async (item: ArtistItem) => {
+    const confirmed = window.confirm(`¿Eliminar la imagen de ${item.artist}?`);
     if (!confirmed) return;
 
     setError("");
@@ -124,7 +124,7 @@ export default function GalleryAdmin() {
       const response = await fetch("/api/dashboard/artist-gallery", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ artist }),
+        body: JSON.stringify({ artist: item.artist, slug: item.slug }),
       });
       const data = (await response.json()) as { ok?: boolean; error?: string; message?: string };
 
@@ -232,7 +232,7 @@ export default function GalleryAdmin() {
                           ? "Optimizada"
                           : "Imagen registrada"}
                     </small>
-                    <button type="button" onClick={() => void removeArtist(item.artist)}>
+                    <button type="button" onClick={() => void removeArtist(item)}>
                       ELIMINAR
                     </button>
                   </div>
