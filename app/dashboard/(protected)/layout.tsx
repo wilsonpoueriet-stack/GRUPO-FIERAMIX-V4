@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import AdminLogoutButton from "../AdminLogoutButton";
+import AdminDashboardNav from "../AdminDashboardNav";
 import { getAdminSession } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,7 @@ export default async function ProtectedDashboardLayout({
   return (
     <>
       {children}
+      <AdminDashboardNav />
       <AdminLogoutButton />
     </>
   );
