@@ -48,6 +48,42 @@ async function passJsonResponse(response: Response): Promise<Response> {
   });
 }
 
+function artistNameFromSlug(slug: string): string {
+  return slug
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function hasBrokenEncoding(value: string): boolean {
+  return value.includes("�") || value.includes("\uFFFD");
+}
+
+type GalleryArtist = {
+  artist?: unknown;
+  slug?: unknown;
+  imageUrl?: unknown;
+  [key: string]: unknown;
+};
+
+function repairGalleryArtist(item: GalleryArtist): GalleryArtist {
+  const slug = typeof item.slug === "string" ? item.slug.trim() : "";
+  const rawArtist = typeof item.artist === "string" ? item.artist.trim() : "";
+  const repairedArtist =
+    slug && (!rawArtist || hasBrokenEncoding(rawArtist))
+      ? artistNameFromSlug(slug)
+      : rawArtist;
+
+  return {
+    ...item,
+    artist: repairedArtist || rawArtist,
+    imageUrl: slug
+      ? `/api/artist-gallery?artist=${encodeURIComponent(slug)}`
+      : item.imageUrl,
+  };
+}
+
 export async function GET(request: Request): Promise<Response> {
   const session = await requireAdmin();
 
@@ -60,7 +96,22 @@ export async function GET(request: Request): Promise<Response> {
       cache: "no-store",
     });
 
-    return passJsonResponse(response);
+    const data = (await response.json()) as {
+      ok?: boolean;
+      artists?: GalleryArtist[];
+      [key: string]: unknown;
+    };
+
+    if (Array.isArray(data.artists)) {
+      data.artists = data.artists.map(repairGalleryArtist);
+    }
+
+    return Response.json(data, {
+      status: response.status,
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    });
   } catch (error) {
     console.error("No fue posible cargar la galería desde el panel.", error);
     return noStoreJson(
