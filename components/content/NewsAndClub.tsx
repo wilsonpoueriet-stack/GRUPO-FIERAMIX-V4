@@ -266,14 +266,12 @@ export default function NewsAndClub() {
                 lineHeight: 1.55,
               }}
             >
-              Conecta directamente con EL GRUPO FIERAMIX.COM desde WhatsApp.
+              Regístrate en el Club de Oyentes y autoriza las novedades que deseas recibir por WhatsApp.
             </span>
           </div>
 
-          <a
-            href="https://chat.whatsapp.com/JJfXFBwAG3O8DIKs9ufvJt"
-            target="_blank"
-            rel="noreferrer"
+          <Link
+            href="/club-de-oyentes"
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -284,8 +282,8 @@ export default function NewsAndClub() {
               fontSize: ".72rem",
             }}
           >
-            UNIRME POR WHATSAPP
-          </a>
+            REGISTRARME EN EL CLUB
+          </Link>
         </div>
       </section>
     </>
