@@ -3,6 +3,7 @@ import { stationEngine } from "@/core/StationEngine";
 import { radioBossStations } from "@/config/radiobossStations";
 import {
   getCurrentArtworkUrl,
+  getOptimizedArtworkUrl,
   getRecentArtworkUrl,
   getStationData,
 } from "@/lib/radioboss";
@@ -46,6 +47,8 @@ export async function GET(request: NextRequest) {
 
   try {
     const data = await getStationData(radioBossConfig, 10);
+    const currentSource = getCurrentArtworkUrl(radioBossConfig);
+    const currentKey = `${portalStationId}:${data.currenttrack_artist || ""}:${data.currenttrack_title || data.currenttrack || ""}`;
 
     return NextResponse.json({
       title:
@@ -57,32 +60,34 @@ export async function GET(request: NextRequest) {
         data.currenttrack_artist ||
         station.name,
 
-      artwork:
-        `${getCurrentArtworkUrl(radioBossConfig)}` +
-        `?_=${Date.now()}`,
+      artwork: getOptimizedArtworkUrl(currentSource, currentKey),
 
       listeners: data.listeners ?? null,
       configured: true,
       source: "radioboss",
       status: "ok",
 
-      recent: data.recent.map((track) => ({
-        title:
-          track.tracktitle ||
-          track.title ||
-          "Canción sin título",
-
-        artist:
-          track.trackartist ||
-          station.name,
-
-        artwork: getRecentArtworkUrl(
+      recent: data.recent.map((track) => {
+        const source = getRecentArtworkUrl(
           radioBossConfig,
           track.artworkid,
-        ),
+        );
+        const key = `${portalStationId}:${track.artworkid || "current"}:${track.trackartist || ""}:${track.tracktitle || track.title || ""}`;
 
-        started: track.started ?? "",
-      })),
+        return {
+          title:
+            track.tracktitle ||
+            track.title ||
+            "Canción sin título",
+
+          artist:
+            track.trackartist ||
+            station.name,
+
+          artwork: getOptimizedArtworkUrl(source, key),
+          started: track.started ?? "",
+        };
+      }),
     });
   } catch (error) {
     console.error("Error cargando RadioBOSS:", {
