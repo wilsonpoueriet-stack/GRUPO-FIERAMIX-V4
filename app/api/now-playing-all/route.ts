@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { radioBossStations } from "@/config/radiobossStations";
 import {
   getCurrentArtworkUrl,
+  getOptimizedArtworkUrl,
   getRecentArtworkUrl,
   getStationData,
 } from "@/lib/radioboss";
@@ -14,6 +15,8 @@ export async function GET() {
       async ([id, config]) => {
         try {
           const data = await getStationData(config, 10);
+          const currentSource = getCurrentArtworkUrl(config);
+          const currentKey = `${id}:${data.currenttrack_artist || ""}:${data.currenttrack_title || data.currenttrack || ""}`;
 
           return {
             id,
@@ -28,9 +31,7 @@ export async function GET() {
               data.currenttrack_artist ||
               id,
 
-            artwork:
-              `${getCurrentArtworkUrl(config)}` +
-              `?_=${Date.now()}`,
+            artwork: getOptimizedArtworkUrl(currentSource, currentKey),
 
             listeners: data.listeners ?? null,
             live: data.live ?? false,
@@ -45,23 +46,27 @@ export async function GET() {
               data.nexttrack_artist ||
               "",
 
-            recent: data.recent.map((track) => ({
-              title:
-                track.tracktitle ||
-                track.title ||
-                "Canción sin título",
-
-              artist:
-                track.trackartist ||
-                id,
-
-              artwork: getRecentArtworkUrl(
+            recent: data.recent.map((track) => {
+              const source = getRecentArtworkUrl(
                 config,
                 track.artworkid,
-              ),
+              );
+              const key = `${id}:${track.artworkid || "current"}:${track.trackartist || ""}:${track.tracktitle || track.title || ""}`;
 
-              started: track.started ?? "",
-            })),
+              return {
+                title:
+                  track.tracktitle ||
+                  track.title ||
+                  "Canción sin título",
+
+                artist:
+                  track.trackartist ||
+                  id,
+
+                artwork: getOptimizedArtworkUrl(source, key),
+                started: track.started ?? "",
+              };
+            }),
           };
         } catch (error) {
           return {
