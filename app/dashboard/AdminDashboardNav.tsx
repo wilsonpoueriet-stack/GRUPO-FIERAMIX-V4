@@ -7,6 +7,7 @@ const items = [
   { href: "/dashboard", label: "PANEL" },
   { href: "/dashboard/galeria-artistas", label: "GALERÍA DE ARTISTAS" },
   { href: "/dashboard/club-de-oyentes", label: "CLUB DE OYENTES" },
+  { href: "/dashboard/portadas-radioboss", label: "PORTADAS RADIOBOSS" },
 ];
 
 export default function AdminDashboardNav() {
