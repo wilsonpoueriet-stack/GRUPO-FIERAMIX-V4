@@ -222,8 +222,8 @@ export default function ListenerClubAdminStable() {
     <col min="3" max="3" width="18" customWidth="1"/>
     <col min="4" max="4" width="22" customWidth="1"/>
     <col min="5" max="5" width="28" customWidth="1"/>
-    <col min="6" max="6" width="24" customWidth="1"/>
-    <col min="7" max="9" width="22" customWidth="1"/>
+    <col min="6" max="6" width="30" customWidth="1"/>
+    <col min="7" max="9" width="25" customWidth="1"/>
   </cols>
   <sheetData>
     <row r="1" ht="30" customHeight="1">${inlineCell("A1", "EL GRUPO FIERAMIX.COM")}</row>
