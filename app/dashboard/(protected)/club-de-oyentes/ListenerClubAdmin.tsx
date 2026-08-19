@@ -41,6 +41,11 @@ function csvCell(value: unknown): string {
   return `"${text}"`;
 }
 
+function excelPhone(value: string): string {
+  const safe = value.replace(/[^+0-9]/g, "");
+  return `="${safe}"`;
+}
+
 export default function ListenerClubAdmin() {
   const [members, setMembers] = useState<Member[]>([]);
   const [query, setQuery] = useState("");
@@ -171,7 +176,7 @@ export default function ListenerClubAdmin() {
       ],
       ...filtered.map((member) => [
         member.name,
-        member.whatsapp,
+        excelPhone(member.whatsapp),
         member.city,
         member.country,
         member.stationName,
