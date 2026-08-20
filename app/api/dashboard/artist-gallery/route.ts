@@ -144,14 +144,23 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    const formData = await request.formData();
+    const contentType = request.headers.get("content-type") || "";
+    const body = await request.arrayBuffer();
+
+    if (!contentType.toLowerCase().includes("multipart/form-data")) {
+      return noStoreJson(
+        { ok: false, error: "La carga de imagen no tiene un formato válido." },
+        400,
+      );
+    }
 
     const response = await fetch(upstreamUrl(request), {
       method: "POST",
       headers: {
+        "Content-Type": contentType,
         "x-fieramix-admin-key": adminKey,
       },
-      body: formData,
+      body,
       cache: "no-store",
     });
 
