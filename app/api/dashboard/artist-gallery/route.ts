@@ -1,10 +1,13 @@
 import { getStore } from "@netlify/blobs";
+import sharp from "sharp";
 import { getAdminSession } from "@/lib/admin-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const STORE_NAME = "fieramix-artist-gallery";
+const MAX_FILE_SIZE = 8 * 1024 * 1024;
+const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 function noStoreJson(
   body: Record<string, unknown>,
@@ -28,8 +31,39 @@ async function requireAdmin() {
   return session;
 }
 
-function getGalleryAdminKey(): string {
-  return process.env.ARTIST_GALLERY_ADMIN_KEY?.trim() || "";
+function clean(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function getPrimaryArtist(value: string): string {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (!normalized) return "";
+
+  const splitPatterns = [
+    /\s+feat(?:uring)?\.?\s+/i,
+    /\s+ft\.?\s+/i,
+    /\s+con\s+/i,
+    /\s+featuring\s+/i,
+  ];
+
+  for (const pattern of splitPatterns) {
+    const parts = normalized.split(pattern);
+    if (parts.length > 1 && parts[0]?.trim()) {
+      return parts[0].trim();
+    }
+  }
+
+  return normalized;
+}
+
+function normalizeArtist(value: string): string {
+  return getPrimaryArtist(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/&/g, " y ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 function upstreamUrl(request: Request, query = ""): string {
@@ -37,18 +71,6 @@ function upstreamUrl(request: Request, query = ""): string {
   const target = new URL("/api/artist-gallery", source.origin);
   target.search = query;
   return target.toString();
-}
-
-async function passJsonResponse(response: Response): Promise<Response> {
-  const text = await response.text();
-
-  return new Response(text, {
-    status: response.status,
-    headers: {
-      "Content-Type": response.headers.get("content-type") || "application/json; charset=utf-8",
-      "Cache-Control": "no-store, max-age=0",
-    },
-  });
 }
 
 function artistNameFromSlug(slug: string): string {
@@ -85,6 +107,12 @@ function repairGalleryArtist(item: GalleryArtist): GalleryArtist {
       ? `/api/artist-gallery?artist=${encodeURIComponent(slug)}`
       : item.imageUrl,
   };
+}
+
+function arrayBufferFromBuffer(buffer: Buffer): ArrayBuffer {
+  const result = new ArrayBuffer(buffer.byteLength);
+  new Uint8Array(result).set(buffer);
+  return result;
 }
 
 export async function GET(request: Request): Promise<Response> {
@@ -131,44 +159,107 @@ export async function POST(request: Request): Promise<Response> {
     return noStoreJson({ ok: false, error: "Sesión administrativa requerida." }, 401);
   }
 
-  const adminKey = getGalleryAdminKey();
+  try {
+    const formData = await request.formData();
+    const artist = clean(formData.get("artist"));
+    const fileValue = formData.get("file");
 
-  if (!adminKey) {
+    if (!artist) {
+      return noStoreJson({ ok: false, error: "Escribe el nombre del artista." }, 400);
+    }
+
+    if (!(fileValue instanceof File)) {
+      return noStoreJson({ ok: false, error: "Selecciona una imagen JPG, PNG o WEBP." }, 400);
+    }
+
+    if (!ALLOWED_TYPES.has(fileValue.type)) {
+      return noStoreJson({ ok: false, error: "Formato no permitido. Usa JPG, PNG o WEBP." }, 415);
+    }
+
+    if (fileValue.size <= 0) {
+      return noStoreJson({ ok: false, error: "La imagen está vacía." }, 400);
+    }
+
+    if (fileValue.size > MAX_FILE_SIZE) {
+      return noStoreJson({ ok: false, error: "La imagen supera el límite de 8 MB." }, 413);
+    }
+
+    const primaryArtist = getPrimaryArtist(artist);
+    const slug = normalizeArtist(primaryArtist);
+
+    if (!slug) {
+      return noStoreJson({ ok: false, error: "El nombre del artista no es válido." }, 400);
+    }
+
+    const originalBytes = await fileValue.arrayBuffer();
+    const source = Buffer.from(originalBytes);
+    const originalMetadata = await sharp(source).metadata();
+
+    const { data, info } = await sharp(source, { failOn: "warning" })
+      .rotate()
+      .resize({
+        width: 1800,
+        height: 1800,
+        fit: "inside",
+        withoutEnlargement: false,
+        kernel: "lanczos3",
+      })
+      .normalise({ lower: 1, upper: 99 })
+      .sharpen({
+        sigma: 1,
+        m1: 0.8,
+        m2: 1.8,
+        x1: 2,
+        y2: 10,
+        y3: 20,
+      })
+      .webp({
+        quality: 94,
+        effort: 5,
+        smartSubsample: true,
+      })
+      .toBuffer({ resolveWithObject: true });
+
+    const processed = arrayBufferFromBuffer(data);
+    const uploadedAt = new Date().toISOString();
+
+    const metadata = {
+      artist: primaryArtist,
+      slug,
+      contentType: "image/webp",
+      size: processed.byteLength,
+      uploadedAt,
+      originalWidth: typeof originalMetadata.width === "number" ? originalMetadata.width : null,
+      originalHeight: typeof originalMetadata.height === "number" ? originalMetadata.height : null,
+      processedWidth: typeof info.width === "number" ? info.width : null,
+      processedHeight: typeof info.height === "number" ? info.height : null,
+      enhanced: true,
+    };
+
+    const store = getStore({
+      name: STORE_NAME,
+      consistency: "strong",
+    });
+
+    await store.set(`artists/${slug}`, processed, { metadata });
+
+    return noStoreJson({
+      ok: true,
+      artist: primaryArtist,
+      slug,
+      uploadedAt,
+      enhanced: true,
+      imageUrl: `/api/artist-gallery?artist=${encodeURIComponent(primaryArtist)}&v=${encodeURIComponent(uploadedAt)}`,
+      message: "Imagen optimizada y guardada correctamente.",
+    });
+  } catch (error) {
+    console.error("No fue posible guardar la imagen desde el panel.", error);
+    const detail = error instanceof Error ? error.message : "Error desconocido";
     return noStoreJson(
       {
         ok: false,
-        error: "La clave interna de la Galería de Artistas no está configurada.",
+        error: `No fue posible guardar la imagen del artista. ${detail}`,
       },
-      503,
-    );
-  }
-
-  try {
-    const contentType = request.headers.get("content-type") || "";
-    const body = await request.arrayBuffer();
-
-    if (!contentType.toLowerCase().includes("multipart/form-data")) {
-      return noStoreJson(
-        { ok: false, error: "La carga de imagen no tiene un formato válido." },
-        400,
-      );
-    }
-
-    const response = await fetch(upstreamUrl(request), {
-      method: "POST",
-      headers: {
-        "Content-Type": contentType,
-        "x-fieramix-admin-key": adminKey,
-      },
-      body,
-      cache: "no-store",
-    });
-
-    return passJsonResponse(response);
-  } catch (error) {
-    console.error("No fue posible guardar la imagen desde el panel.", error);
-    return noStoreJson(
-      { ok: false, error: "No fue posible guardar la imagen del artista." },
       503,
     );
   }
