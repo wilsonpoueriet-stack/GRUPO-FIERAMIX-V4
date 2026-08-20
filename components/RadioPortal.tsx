@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFloat from "@/components/layout/WhatsAppFloat";
@@ -20,8 +20,189 @@ import LiveNetwork from "@/components/content/LiveNetwork";
 import SongRequest from "@/components/songrequest/SongRequest";
 import { useRadioPortal } from "@/hooks/useRadioPortal";
 
+type ArtistGalleryItem = {
+  artist?: string;
+  slug?: string;
+  imageUrl?: string;
+};
+
+type ArtistGalleryResponse = {
+  ok?: boolean;
+  artists?: ArtistGalleryItem[];
+};
+
+function normalizeArtistLookup(value: string | null | undefined): string {
+  const normalized = (value ?? "")
+    .trim()
+    .replace(/\s+/g, " ");
+
+  if (!normalized) {
+    return "";
+  }
+
+  const primaryArtist = normalized
+    .split(/\s+(?:feat(?:uring)?\.?|ft\.?|con|featuring)\s+/i)[0]
+    ?.trim();
+
+  return (primaryArtist || normalized)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/&/g, " y ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function resolveArtistArtwork(
+  artist: string | null | undefined,
+  radioBossArtwork: string | null | undefined,
+  stationLogo: string,
+  gallery: Record<string, string>,
+): string {
+  const slug = normalizeArtistLookup(artist);
+  const galleryArtwork = slug ? gallery[slug] : "";
+
+  return (
+    galleryArtwork ||
+    (radioBossArtwork ?? "").trim() ||
+    stationLogo
+  );
+}
+
 export default function RadioPortal() {
   const radio = useRadioPortal();
+  const [artistGalleryArtwork, setArtistGalleryArtwork] = useState<
+    Record<string, string>
+  >({});
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadArtistGallery() {
+      try {
+        const response = await fetch("/api/artist-gallery?list=1", {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = (await response.json()) as ArtistGalleryResponse;
+
+        if (cancelled || !Array.isArray(data.artists)) {
+          return;
+        }
+
+        const nextGallery: Record<string, string> = {};
+
+        for (const item of data.artists) {
+          const imageUrl = item.imageUrl?.trim() || "";
+          const slug =
+            item.slug?.trim() || normalizeArtistLookup(item.artist);
+
+          if (slug && imageUrl) {
+            nextGallery[slug] = imageUrl;
+          }
+        }
+
+        setArtistGalleryArtwork(nextGallery);
+      } catch (error) {
+        console.warn(
+          "No se pudo actualizar la Galería FIERAMIX para las portadas del portal:",
+          error,
+        );
+      }
+    }
+
+    void loadArtistGallery();
+
+    const timer = window.setInterval(() => {
+      void loadArtistGallery();
+    }, 30_000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  const visualMetadata = useMemo(() => {
+    const nextMetadata = { ...radio.metadata };
+
+    for (const station of radio.stations) {
+      const info = radio.metadata[station.id];
+
+      if (!info) {
+        continue;
+      }
+
+      nextMetadata[station.id] = {
+        ...info,
+        artwork: resolveArtistArtwork(
+          info.artist,
+          info.artwork,
+          station.logo,
+          artistGalleryArtwork,
+        ),
+        recent: (info.recent ?? []).map((track) => ({
+          ...track,
+          artwork: resolveArtistArtwork(
+            track.artist,
+            track.artwork,
+            station.logo,
+            artistGalleryArtwork,
+          ),
+        })),
+      };
+    }
+
+    return nextMetadata;
+  }, [artistGalleryArtwork, radio.metadata, radio.stations]);
+
+  const visualCurrent = useMemo(() => {
+    const currentFromMetadata = visualMetadata[radio.selected.id];
+
+    if (currentFromMetadata) {
+      return currentFromMetadata;
+    }
+
+    return {
+      ...radio.current,
+      artwork: resolveArtistArtwork(
+        radio.current.artist,
+        radio.current.artwork,
+        radio.selected.logo,
+        artistGalleryArtwork,
+      ),
+    };
+  }, [
+    artistGalleryArtwork,
+    radio.current,
+    radio.selected.id,
+    radio.selected.logo,
+    visualMetadata,
+  ]);
+
+  const visualHistory = useMemo(
+    () =>
+      radio.history.map((item) => {
+        const station = radio.stations.find(
+          (candidate) => candidate.id === item.stationId,
+        );
+
+        return {
+          ...item,
+          artwork: resolveArtistArtwork(
+            item.artist,
+            item.artwork,
+            station?.logo || radio.selected.logo,
+            artistGalleryArtwork,
+          ),
+        };
+      }),
+    [artistGalleryArtwork, radio.history, radio.selected.logo, radio.stations],
+  );
 
   useEffect(() => {
     if (window.location.hash) {
@@ -74,7 +255,7 @@ export default function RadioPortal() {
       <main id="inicio">
         <section className="heroShell">
           <Hero
-            current={radio.current}
+            current={visualCurrent}
             playing={radio.playing}
             onPlaybackToggle={() => void radio.togglePlayback()}
           />
@@ -82,7 +263,7 @@ export default function RadioPortal() {
 
           <PremiumPlayer
             station={radio.selected}
-            current={radio.current}
+            current={visualCurrent}
             playing={radio.playing}
             loading={radio.loading}
             volume={radio.volume}
@@ -96,7 +277,7 @@ export default function RadioPortal() {
 
         <LiveNetwork
           stations={radio.stations}
-          metadata={radio.metadata}
+          metadata={visualMetadata}
           selected={radio.selected}
           onSelect={(station) => void radio.playStation(station)}
         />
@@ -104,7 +285,7 @@ export default function RadioPortal() {
         <StationsGrid
           stations={radio.stations}
           selected={radio.selected}
-          metadata={radio.metadata}
+          metadata={visualMetadata}
           playing={radio.playing}
           onPlayStation={(station) => void radio.playStation(station)}
         />
@@ -112,16 +293,16 @@ export default function RadioPortal() {
         <SongRequest />
 
         <RecentAndRanking
-          history={radio.history}
-          current={radio.current}
+          history={visualHistory}
+          current={visualCurrent}
           selected={radio.selected}
-          metadata={radio.metadata}
+          metadata={visualMetadata}
         />
 
         <MostListenedStations
           stations={radio.stations}
           selected={radio.selected}
-          metadata={radio.metadata}
+          metadata={visualMetadata}
           playing={radio.playing}
           onPlayStation={(station) => {
             if (station.id === radio.selected.id) {
@@ -150,7 +331,7 @@ export default function RadioPortal() {
 
       <StickyPlayer
         selected={radio.selected}
-        current={radio.current}
+        current={visualCurrent}
         playing={radio.playing}
         loading={radio.loading}
         fieramixSoundStatus={radio.fieramixSoundStatus}
