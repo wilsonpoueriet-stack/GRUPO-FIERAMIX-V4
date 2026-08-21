@@ -15,6 +15,7 @@ import StickyPlayer from "@/components/player/StickyPlayer";
 import StationsGrid from "@/components/stations/StationsGrid";
 import MostListenedStations from "@/components/stations/MostListenedStations";
 import RecentAndRanking from "@/components/content/RecentAndRanking";
+import FieramixProgramming from "@/components/content/FieramixProgramming";
 import NewsAndClub from "@/components/content/NewsAndClub";
 import LiveNetwork from "@/components/content/LiveNetwork";
 import SongRequest from "@/components/songrequest/SongRequest";
@@ -298,6 +299,8 @@ export default function RadioPortal() {
           selected={radio.selected}
           metadata={visualMetadata}
         />
+
+        <FieramixProgramming />
 
         <MostListenedStations
           stations={radio.stations}
