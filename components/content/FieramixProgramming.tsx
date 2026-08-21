@@ -1,11 +1,23 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+
+type ScheduleSlot = {
+  title: string;
+  detail: string;
+  schedule: string;
+  startMinute: number;
+  endMinute: number;
+};
+
 const dayparts = [
-  ["La Madrugada de FIERAMIX", "12:00 a. m. – 5:00 a. m."],
-  ["El Amanecer de FIERAMIX", "5:00 a. m. – 7:00 a. m."],
-  ["La Mañana de FIERAMIX", "7:00 a. m. – 12:00 p. m."],
-  ["El Almuerzo de FIERAMIX", "12:00 p. m. – 2:00 p. m."],
-  ["La Tarde de FIERAMIX", "2:00 p. m. – 5:00 p. m."],
-  ["El Atardecer de FIERAMIX", "5:00 p. m. – 7:00 p. m."],
-  ["La Noche de FIERAMIX", "7:00 p. m. – 12:00 a. m."],
+  ["La Madrugada de FIERAMIX", "12:00 a. m. – 5:00 a. m.", 0, 300],
+  ["El Amanecer de FIERAMIX", "5:00 a. m. – 7:00 a. m.", 300, 420],
+  ["La Mañana de FIERAMIX", "7:00 a. m. – 12:00 p. m.", 420, 720],
+  ["El Almuerzo de FIERAMIX", "12:00 p. m. – 2:00 p. m.", 720, 840],
+  ["La Tarde de FIERAMIX", "2:00 p. m. – 5:00 p. m.", 840, 1020],
+  ["El Atardecer de FIERAMIX", "5:00 p. m. – 7:00 p. m.", 1020, 1140],
+  ["La Noche de FIERAMIX", "7:00 p. m. – 12:00 a. m.", 1140, 1440],
 ] as const;
 
 const specialPrograms = [
@@ -54,7 +66,162 @@ const cardStyle = {
     "linear-gradient(145deg, rgba(255,255,255,.07), rgba(255,255,255,.025))",
 };
 
+const weekdayMap: Record<string, number> = {
+  Sun: 0,
+  Mon: 1,
+  Tue: 2,
+  Wed: 3,
+  Thu: 4,
+  Fri: 5,
+  Sat: 6,
+};
+
+function formatMinute(minute: number): string {
+  const normalized = minute === 1440 ? 0 : minute;
+  const hour24 = Math.floor(normalized / 60);
+  const minuteValue = normalized % 60;
+  const suffix = hour24 < 12 ? "a. m." : "p. m.";
+  const hour12 = hour24 % 12 || 12;
+
+  return `${hour12}:${String(minuteValue).padStart(2, "0")} ${suffix}`;
+}
+
+function getSpecialSlots(day: number): ScheduleSlot[] {
+  const slots: ScheduleSlot[] = [];
+
+  if (day >= 2 && day <= 5) {
+    slots.push({
+      title: "Íntimamente",
+      detail: "Música romántica.",
+      schedule: "12:00 a. m. – 2:00 a. m.",
+      startMinute: 0,
+      endMinute: 120,
+    });
+  }
+
+  if (day >= 1 && day <= 4) {
+    slots.push({
+      title: "Románticamente",
+      detail: "Música romántica.",
+      schedule: "6:00 a. m. – 8:00 a. m.",
+      startMinute: 360,
+      endMinute: 480,
+    });
+    slots.push({
+      title: "La Hora Cero",
+      detail: "Música romántica.",
+      schedule: "12:00 p. m. – 1:00 p. m.",
+      startMinute: 720,
+      endMinute: 780,
+    });
+  }
+
+  if (day === 6) {
+    slots.push({
+      title: "Rosariomanía",
+      detail:
+        "Con Wilson Poueriet · Retransmisión desde Estrella 92.3 FM · Homenaje a la Dinastía Rosario.",
+      schedule: "2:00 p. m. – 6:00 p. m.",
+      startMinute: 840,
+      endMinute: 1080,
+    });
+  }
+
+  return slots.sort((a, b) => a.startMinute - b.startMinute);
+}
+
+function getProgrammingAt(day: number, minute: number): ScheduleSlot {
+  const specials = getSpecialSlots(day);
+  const activeSpecial = specials.find(
+    (slot) => minute >= slot.startMinute && minute < slot.endMinute,
+  );
+
+  if (activeSpecial) {
+    return activeSpecial;
+  }
+
+  const daypart =
+    dayparts.find(([, , start, end]) => minute >= start && minute < end) ??
+    dayparts[0];
+
+  const [daypartName, , daypartStart, daypartEnd] = daypart;
+  let effectiveStart = daypartStart;
+  let effectiveEnd = daypartEnd;
+
+  for (const special of specials) {
+    if (
+      special.endMinute <= minute &&
+      special.endMinute > effectiveStart
+    ) {
+      effectiveStart = special.endMinute;
+    }
+
+    if (
+      special.startMinute > minute &&
+      special.startMinute < effectiveEnd
+    ) {
+      effectiveEnd = special.startMinute;
+    }
+  }
+
+  const weekendMode = day === 0 || day === 5 || day === 6;
+
+  return {
+    title: weekendMode ? "Fin de Semana Bravo" : "Programación regular",
+    detail: `${daypartName} · Merengue, bachata y salsa.`,
+    schedule: `${formatMinute(effectiveStart)} – ${formatMinute(effectiveEnd)}`,
+    startMinute: effectiveStart,
+    endMinute: effectiveEnd,
+  };
+}
+
+function getDominicanClock(date: Date): { day: number; minute: number } {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Santo_Domingo",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(date);
+
+  const weekday = parts.find((part) => part.type === "weekday")?.value ?? "Sun";
+  const hour = Number(parts.find((part) => part.type === "hour")?.value ?? 0);
+  const minute = Number(parts.find((part) => part.type === "minute")?.value ?? 0);
+
+  return {
+    day: weekdayMap[weekday] ?? 0,
+    minute: hour * 60 + minute,
+  };
+}
+
+function getLiveProgramming(date: Date) {
+  const clock = getDominicanClock(date);
+  const current = getProgrammingAt(clock.day, clock.minute);
+
+  const nextDay = current.endMinute >= 1440 ? (clock.day + 1) % 7 : clock.day;
+  const nextMinute = current.endMinute >= 1440 ? 0 : current.endMinute;
+  const next = getProgrammingAt(nextDay, nextMinute);
+
+  return { current, next };
+}
+
 export default function FieramixProgramming() {
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const updateClock = () => setCurrentTime(new Date());
+
+    updateClock();
+    const timer = window.setInterval(updateClock, 30_000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const liveProgramming = useMemo(
+    () => (currentTime ? getLiveProgramming(currentTime) : null),
+    [currentTime],
+  );
+
   return (
     <section
       id="programacion"
@@ -109,7 +276,114 @@ export default function FieramixProgramming() {
         </p>
       </header>
 
-      <details style={{ marginTop: "22px" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(270px, 1fr))",
+          gap: "12px",
+          marginTop: "22px",
+        }}
+      >
+        <div
+          style={{
+            ...cardStyle,
+            padding: "18px 20px",
+            background:
+              "linear-gradient(145deg, rgba(32,220,142,.14), rgba(255,255,255,.025))",
+            border: "1px solid rgba(114,240,189,.22)",
+          }}
+        >
+          <span
+            style={{
+              color: "#72f0bd",
+              fontSize: ".7rem",
+              fontWeight: 900,
+              letterSpacing: ".1em",
+            }}
+          >
+            ● AHORA EN FIERAMIX
+          </span>
+          <h3 style={{ margin: "8px 0 4px", fontSize: "1.25rem" }}>
+            {liveProgramming?.current.title ?? "Actualizando programación…"}
+          </h3>
+          {liveProgramming ? (
+            <>
+              <p
+                style={{
+                  margin: 0,
+                  color: "rgba(255,255,255,.72)",
+                  fontSize: ".88rem",
+                  lineHeight: 1.5,
+                }}
+              >
+                {liveProgramming.current.detail}
+              </p>
+              <strong
+                style={{
+                  display: "block",
+                  marginTop: "8px",
+                  color: "#d8fff0",
+                  fontSize: ".82rem",
+                }}
+              >
+                {liveProgramming.current.schedule}
+              </strong>
+            </>
+          ) : null}
+        </div>
+
+        <div style={{ ...cardStyle, padding: "18px 20px" }}>
+          <span
+            style={{
+              color: "rgba(255,255,255,.58)",
+              fontSize: ".7rem",
+              fontWeight: 900,
+              letterSpacing: ".1em",
+            }}
+          >
+            A CONTINUACIÓN
+          </span>
+          <h3 style={{ margin: "8px 0 4px", fontSize: "1.18rem" }}>
+            {liveProgramming?.next.title ?? "Actualizando programación…"}
+          </h3>
+          {liveProgramming ? (
+            <>
+              <p
+                style={{
+                  margin: 0,
+                  color: "rgba(255,255,255,.66)",
+                  fontSize: ".86rem",
+                  lineHeight: 1.5,
+                }}
+              >
+                {liveProgramming.next.detail}
+              </p>
+              <strong
+                style={{
+                  display: "block",
+                  marginTop: "8px",
+                  color: "rgba(255,255,255,.82)",
+                  fontSize: ".8rem",
+                }}
+              >
+                {liveProgramming.next.schedule}
+              </strong>
+            </>
+          ) : null}
+        </div>
+      </div>
+
+      <p
+        style={{
+          margin: "10px 2px 0",
+          color: "rgba(255,255,255,.42)",
+          fontSize: ".72rem",
+        }}
+      >
+        Horario de República Dominicana.
+      </p>
+
+      <details style={{ marginTop: "18px" }}>
         <summary
           style={{
             listStyle: "none",
