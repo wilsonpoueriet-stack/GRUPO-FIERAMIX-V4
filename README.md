@@ -8,6 +8,7 @@ Incluye:
 - Canción, artista y oyentes en cada tarjeta.
 - Historial visual, Top 10, noticias y club de oyentes.
 - Barra inferior persistente.
+- Parrilla semanal oficial de FIERAMIX integrada al portal.
 
 ## Instalación
 
