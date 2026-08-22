@@ -2,6 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+type StationId =
+  | "fieramix"
+  | "merengue"
+  | "bachata"
+  | "salsa"
+  | "baladas"
+  | "reggaeton"
+  | "rancheras"
+  | "internacional"
+  | "cristiana";
+
 type Slot = {
   title: string;
   detail: string;
@@ -22,17 +33,6 @@ type ProgramGroup = {
   items: ProgramItem[];
 };
 
-type StationId =
-  | "fieramix"
-  | "merengue"
-  | "bachata"
-  | "salsa"
-  | "baladas"
-  | "reggaeton"
-  | "rancheras"
-  | "internacional"
-  | "cristiana";
-
 type StationConfig = {
   id: StationId;
   name: string;
@@ -41,7 +41,7 @@ type StationConfig = {
   groups: ProgramGroup[];
   showNetworkCapsules?: boolean;
   showNationalAnthem?: boolean;
-  newsSchedule?: string[];
+  newsTimes?: string[];
 };
 
 type LiveState = {
@@ -59,15 +59,15 @@ const dayIndex: Record<string, number> = {
   Sat: 6,
 };
 
-const universalDayparts = [
-  ["La Madrugada", "12:00 a. m. – 5:00 a. m."],
-  ["El Amanecer", "5:00 a. m. – 7:00 a. m."],
-  ["La Mañana", "7:00 a. m. – 12:00 p. m."],
-  ["El Almuerzo", "12:00 p. m. – 2:00 p. m."],
-  ["La Tarde", "2:00 p. m. – 5:00 p. m."],
-  ["El Atardecer", "5:00 p. m. – 7:00 p. m."],
-  ["La Noche", "7:00 p. m. – 12:00 a. m."],
-] as const;
+const universalDayparts: ProgramItem[] = [
+  { title: "La Madrugada", schedule: "12:00 a. m. – 5:00 a. m." },
+  { title: "El Amanecer", schedule: "5:00 a. m. – 7:00 a. m." },
+  { title: "La Mañana", schedule: "7:00 a. m. – 12:00 p. m." },
+  { title: "El Almuerzo", schedule: "12:00 p. m. – 2:00 p. m." },
+  { title: "La Tarde", schedule: "2:00 p. m. – 5:00 p. m." },
+  { title: "El Atardecer", schedule: "5:00 p. m. – 7:00 p. m." },
+  { title: "La Noche", schedule: "7:00 p. m. – 12:00 a. m." },
+];
 
 const rotation = [
   "Éxitos actuales",
@@ -105,20 +105,26 @@ const twoHourNewsTimes = [
   "5:30 p. m.",
 ];
 
-function formatRange(start: number, end: number): string {
-  const formatMinute = (value: number) => {
-    const normalized = value % 1440;
-    const hour24 = Math.floor(normalized / 60);
-    const minute = normalized % 60;
-    const suffix = hour24 < 12 ? "a. m." : "p. m.";
-    const hour12 = hour24 % 12 || 12;
-    return `${hour12}:${String(minute).padStart(2, "0")} ${suffix}`;
-  };
+const commonDayparts: ProgramGroup = {
+  title: "Franjas del día",
+  description: "Las mismas franjas horarias se aplican en toda la red.",
+  items: universalDayparts,
+};
 
-  return `${formatMinute(start)} – ${formatMinute(end)}`;
+function minuteLabel(value: number): string {
+  const normalized = value % 1440;
+  const hour24 = Math.floor(normalized / 60);
+  const minute = normalized % 60;
+  const suffix = hour24 < 12 ? "a. m." : "p. m.";
+  const hour12 = hour24 % 12 || 12;
+  return `${hour12}:${String(minute).padStart(2, "0")} ${suffix}`;
 }
 
-function daypartAt(start: number): string {
+function rangeLabel(start: number, end: number): string {
+  return `${minuteLabel(start)} – ${minuteLabel(end)}`;
+}
+
+function daypartName(start: number): string {
   if (start < 300) return "La Madrugada";
   if (start < 420) return "El Amanecer";
   if (start < 720) return "La Mañana";
@@ -128,10 +134,10 @@ function daypartAt(start: number): string {
   return "La Noche";
 }
 
-function makeDaypartSchedule(
+function genericSchedule(
   weekdayTitle: string,
   weekendTitle: string,
-  musicDetail: string,
+  detail: string,
 ): (day: number) => Slot[] {
   return (day: number) => {
     const weekend = day === 0 || day === 5 || day === 6;
@@ -142,8 +148,8 @@ function makeDaypartSchedule(
       const end = bounds[index + 1];
       return {
         title,
-        detail: `${daypartAt(start)} · ${musicDetail}`,
-        schedule: formatRange(start, end),
+        detail: `${daypartName(start)} · ${detail}`,
+        schedule: rangeLabel(start, end),
         start,
         end,
       };
@@ -151,7 +157,7 @@ function makeDaypartSchedule(
   };
 }
 
-function fieramixRegular(
+function fieramixBase(
   daypart: string,
   schedule: string,
   start: number,
@@ -170,52 +176,52 @@ function fieramixRegular(
 function fieramixSchedule(day: number): Slot[] {
   if (day === 1) {
     return [
-      fieramixRegular("La Madrugada de FIERAMIX", "12:00 a. m. – 5:00 a. m.", 0, 300, false),
-      fieramixRegular("El Amanecer de FIERAMIX", "5:00 a. m. – 6:00 a. m.", 300, 360, false),
+      fieramixBase("La Madrugada de FIERAMIX", "12:00 a. m. – 5:00 a. m.", 0, 300, false),
+      fieramixBase("El Amanecer de FIERAMIX", "5:00 a. m. – 6:00 a. m.", 300, 360, false),
       { title: "Románticamente", detail: "Música romántica.", schedule: "6:00 a. m. – 8:00 a. m.", start: 360, end: 480 },
-      fieramixRegular("La Mañana de FIERAMIX", "8:00 a. m. – 12:00 p. m.", 480, 720, false),
+      fieramixBase("La Mañana de FIERAMIX", "8:00 a. m. – 12:00 p. m.", 480, 720, false),
       { title: "La Hora Cero", detail: "Música romántica.", schedule: "12:00 p. m. – 1:00 p. m.", start: 720, end: 780 },
-      fieramixRegular("El Almuerzo de FIERAMIX", "1:00 p. m. – 2:00 p. m.", 780, 840, false),
-      fieramixRegular("La Tarde de FIERAMIX", "2:00 p. m. – 5:00 p. m.", 840, 1020, false),
-      fieramixRegular("El Atardecer de FIERAMIX", "5:00 p. m. – 7:00 p. m.", 1020, 1140, false),
-      fieramixRegular("La Noche de FIERAMIX", "7:00 p. m. – 12:00 a. m.", 1140, 1440, false),
+      fieramixBase("El Almuerzo de FIERAMIX", "1:00 p. m. – 2:00 p. m.", 780, 840, false),
+      fieramixBase("La Tarde de FIERAMIX", "2:00 p. m. – 5:00 p. m.", 840, 1020, false),
+      fieramixBase("El Atardecer de FIERAMIX", "5:00 p. m. – 7:00 p. m.", 1020, 1140, false),
+      fieramixBase("La Noche de FIERAMIX", "7:00 p. m. – 12:00 a. m.", 1140, 1440, false),
     ];
   }
 
   if (day >= 2 && day <= 4) {
     return [
       { title: "Íntimamente", detail: "Música romántica.", schedule: "12:00 a. m. – 2:00 a. m.", start: 0, end: 120 },
-      fieramixRegular("La Madrugada de FIERAMIX", "2:00 a. m. – 5:00 a. m.", 120, 300, false),
-      fieramixRegular("El Amanecer de FIERAMIX", "5:00 a. m. – 6:00 a. m.", 300, 360, false),
+      fieramixBase("La Madrugada de FIERAMIX", "2:00 a. m. – 5:00 a. m.", 120, 300, false),
+      fieramixBase("El Amanecer de FIERAMIX", "5:00 a. m. – 6:00 a. m.", 300, 360, false),
       { title: "Románticamente", detail: "Música romántica.", schedule: "6:00 a. m. – 8:00 a. m.", start: 360, end: 480 },
-      fieramixRegular("La Mañana de FIERAMIX", "8:00 a. m. – 12:00 p. m.", 480, 720, false),
+      fieramixBase("La Mañana de FIERAMIX", "8:00 a. m. – 12:00 p. m.", 480, 720, false),
       { title: "La Hora Cero", detail: "Música romántica.", schedule: "12:00 p. m. – 1:00 p. m.", start: 720, end: 780 },
-      fieramixRegular("El Almuerzo de FIERAMIX", "1:00 p. m. – 2:00 p. m.", 780, 840, false),
-      fieramixRegular("La Tarde de FIERAMIX", "2:00 p. m. – 5:00 p. m.", 840, 1020, false),
-      fieramixRegular("El Atardecer de FIERAMIX", "5:00 p. m. – 7:00 p. m.", 1020, 1140, false),
-      fieramixRegular("La Noche de FIERAMIX", "7:00 p. m. – 12:00 a. m.", 1140, 1440, false),
+      fieramixBase("El Almuerzo de FIERAMIX", "1:00 p. m. – 2:00 p. m.", 780, 840, false),
+      fieramixBase("La Tarde de FIERAMIX", "2:00 p. m. – 5:00 p. m.", 840, 1020, false),
+      fieramixBase("El Atardecer de FIERAMIX", "5:00 p. m. – 7:00 p. m.", 1020, 1140, false),
+      fieramixBase("La Noche de FIERAMIX", "7:00 p. m. – 12:00 a. m.", 1140, 1440, false),
     ];
   }
 
   if (day === 5) {
     return [
       { title: "Íntimamente", detail: "Música romántica.", schedule: "12:00 a. m. – 2:00 a. m.", start: 0, end: 120 },
-      fieramixRegular("La Madrugada de FIERAMIX", "2:00 a. m. – 5:00 a. m.", 120, 300, true),
-      fieramixRegular("El Amanecer de FIERAMIX", "5:00 a. m. – 7:00 a. m.", 300, 420, true),
-      fieramixRegular("La Mañana de FIERAMIX", "7:00 a. m. – 12:00 p. m.", 420, 720, true),
-      fieramixRegular("El Almuerzo de FIERAMIX", "12:00 p. m. – 2:00 p. m.", 720, 840, true),
-      fieramixRegular("La Tarde de FIERAMIX", "2:00 p. m. – 5:00 p. m.", 840, 1020, true),
-      fieramixRegular("El Atardecer de FIERAMIX", "5:00 p. m. – 7:00 p. m.", 1020, 1140, true),
-      fieramixRegular("La Noche de FIERAMIX", "7:00 p. m. – 12:00 a. m.", 1140, 1440, true),
+      fieramixBase("La Madrugada de FIERAMIX", "2:00 a. m. – 5:00 a. m.", 120, 300, true),
+      fieramixBase("El Amanecer de FIERAMIX", "5:00 a. m. – 7:00 a. m.", 300, 420, true),
+      fieramixBase("La Mañana de FIERAMIX", "7:00 a. m. – 12:00 p. m.", 420, 720, true),
+      fieramixBase("El Almuerzo de FIERAMIX", "12:00 p. m. – 2:00 p. m.", 720, 840, true),
+      fieramixBase("La Tarde de FIERAMIX", "2:00 p. m. – 5:00 p. m.", 840, 1020, true),
+      fieramixBase("El Atardecer de FIERAMIX", "5:00 p. m. – 7:00 p. m.", 1020, 1140, true),
+      fieramixBase("La Noche de FIERAMIX", "7:00 p. m. – 12:00 a. m.", 1140, 1440, true),
     ];
   }
 
   if (day === 6) {
     return [
-      fieramixRegular("La Madrugada de FIERAMIX", "12:00 a. m. – 5:00 a. m.", 0, 300, true),
-      fieramixRegular("El Amanecer de FIERAMIX", "5:00 a. m. – 7:00 a. m.", 300, 420, true),
-      fieramixRegular("La Mañana de FIERAMIX", "7:00 a. m. – 12:00 p. m.", 420, 720, true),
-      fieramixRegular("El Almuerzo de FIERAMIX", "12:00 p. m. – 2:00 p. m.", 720, 840, true),
+      fieramixBase("La Madrugada de FIERAMIX", "12:00 a. m. – 5:00 a. m.", 0, 300, true),
+      fieramixBase("El Amanecer de FIERAMIX", "5:00 a. m. – 7:00 a. m.", 300, 420, true),
+      fieramixBase("La Mañana de FIERAMIX", "7:00 a. m. – 12:00 p. m.", 420, 720, true),
+      fieramixBase("El Almuerzo de FIERAMIX", "12:00 p. m. – 2:00 p. m.", 720, 840, true),
       {
         title: "Rosariomanía",
         detail: "Con Wilson Poueriet · Retransmisión desde Estrella 92.3 FM · Homenaje en vida a la Dinastía Rosario.",
@@ -223,17 +229,17 @@ function fieramixSchedule(day: number): Slot[] {
         start: 840,
         end: 1080,
       },
-      fieramixRegular("El Atardecer de FIERAMIX", "6:00 p. m. – 7:00 p. m.", 1080, 1140, true),
-      fieramixRegular("La Noche de FIERAMIX", "7:00 p. m. – 12:00 a. m.", 1140, 1440, true),
+      fieramixBase("El Atardecer de FIERAMIX", "6:00 p. m. – 7:00 p. m.", 1080, 1140, true),
+      fieramixBase("La Noche de FIERAMIX", "7:00 p. m. – 12:00 a. m.", 1140, 1440, true),
     ];
   }
 
   return [
-    fieramixRegular("La Madrugada de FIERAMIX", "12:00 a. m. – 5:00 a. m.", 0, 300, true),
-    fieramixRegular("El Amanecer de FIERAMIX", "5:00 a. m. – 7:00 a. m.", 300, 420, true),
-    fieramixRegular("La Mañana de FIERAMIX", "7:00 a. m. – 12:00 p. m.", 420, 720, true),
-    fieramixRegular("El Almuerzo de FIERAMIX", "12:00 p. m. – 2:00 p. m.", 720, 840, true),
-    fieramixRegular("La Tarde de FIERAMIX", "2:00 p. m. – 5:00 p. m.", 840, 1020, true),
+    fieramixBase("La Madrugada de FIERAMIX", "12:00 a. m. – 5:00 a. m.", 0, 300, true),
+    fieramixBase("El Amanecer de FIERAMIX", "5:00 a. m. – 7:00 a. m.", 300, 420, true),
+    fieramixBase("La Mañana de FIERAMIX", "7:00 a. m. – 12:00 p. m.", 420, 720, true),
+    fieramixBase("El Almuerzo de FIERAMIX", "12:00 p. m. – 2:00 p. m.", 720, 840, true),
+    fieramixBase("La Tarde de FIERAMIX", "2:00 p. m. – 5:00 p. m.", 840, 1020, true),
     {
       title: "La Hora de los Mayimbes",
       detail: "Homenaje al Mayimbito, Alex Bueno · Merengue y bachata.",
@@ -241,18 +247,20 @@ function fieramixSchedule(day: number): Slot[] {
       start: 1020,
       end: 1080,
     },
-    fieramixRegular("El Atardecer de FIERAMIX", "6:00 p. m. – 7:00 p. m.", 1080, 1140, true),
-    fieramixRegular("La Noche de FIERAMIX", "7:00 p. m. – 12:00 a. m.", 1140, 1440, true),
+    fieramixBase("El Atardecer de FIERAMIX", "6:00 p. m. – 7:00 p. m.", 1080, 1140, true),
+    fieramixBase("La Noche de FIERAMIX", "7:00 p. m. – 12:00 a. m.", 1140, 1440, true),
   ];
 }
 
 function merengueSchedule(day: number): Slot[] {
   const weekend = day === 0 || day === 5 || day === 6;
-  const title = weekend ? "Fin de Semana Bravo · Maratón de Merengues Clásicos" : "Programación regular";
-  const detail = weekend
-    ? "72 merengues clásicos · Selección especial de Solo Merengue."
-    : "Merengue · éxitos actuales, recurrentes y clásicos.";
-  const base = makeDaypartSchedule(title, title, detail)(day);
+  const base = genericSchedule(
+    "Programación regular",
+    "Fin de Semana Bravo",
+    weekend
+      ? "Merengue · programación especial de fin de semana."
+      : "Merengue · éxitos actuales, recurrentes y clásicos.",
+  )(day);
 
   if (day !== 0) return base;
 
@@ -266,15 +274,15 @@ function merengueSchedule(day: number): Slot[] {
       end: 1080,
     },
     {
-      title,
-      detail: `El Atardecer · ${detail}`,
+      title: "Fin de Semana Bravo",
+      detail: "El Atardecer · Merengue · programación especial de fin de semana.",
       schedule: "6:00 p. m. – 7:00 p. m.",
       start: 1080,
       end: 1140,
     },
     {
-      title,
-      detail: `La Noche · ${detail}`,
+      title: "Fin de Semana Bravo",
+      detail: "La Noche · Merengue · programación especial de fin de semana.",
       schedule: "7:00 p. m. – 12:00 a. m.",
       start: 1140,
       end: 1440,
@@ -283,7 +291,7 @@ function merengueSchedule(day: number): Slot[] {
 }
 
 function bachataSchedule(day: number): Slot[] {
-  const base = makeDaypartSchedule(
+  const base = genericSchedule(
     "Programación regular",
     "Fin de Semana Bravo",
     "Bachata · éxitos actuales, recurrentes y clásicos.",
@@ -317,52 +325,11 @@ function bachataSchedule(day: number): Slot[] {
   ];
 }
 
-function salsaSchedule(): Slot[] {
-  return [
-    {
-      title: "Música Internacionales",
-      detail: "Selección especial de salsa de corte internacional.",
-      schedule: "12:00 a. m. – 7:00 a. m.",
-      start: 0,
-      end: 420,
-    },
-    {
-      title: "Música de Emergentes",
-      detail: "Artistas y propuestas salseras emergentes.",
-      schedule: "7:00 a. m. – 12:00 p. m.",
-      start: 420,
-      end: 720,
-    },
-    {
-      title: "Música de Enamorados",
-      detail: "Salsa para el amor y el ambiente de pareja.",
-      schedule: "12:00 p. m. – 1:00 p. m.",
-      start: 720,
-      end: 780,
-    },
-    {
-      title: "Música de Románticas",
-      detail: "Selección especializada de salsa romántica.",
-      schedule: "1:00 p. m. – 7:00 p. m.",
-      start: 780,
-      end: 1140,
-    },
-    {
-      title: "Música de Sentimientos",
-      detail: "Salsa de contenido emocional y sentimental.",
-      schedule: "7:00 p. m. – 8:00 p. m.",
-      start: 1140,
-      end: 1200,
-    },
-    {
-      title: "Música Internacionales",
-      detail: "Selección especial de salsa de corte internacional.",
-      schedule: "8:00 p. m. – 12:00 a. m.",
-      start: 1200,
-      end: 1440,
-    },
-  ];
-}
+const salsaSchedule = genericSchedule(
+  "Programación regular",
+  "Fin de Semana Bravo",
+  "Salsa · grandes éxitos, recurrentes, clásicos y actualidad.",
+);
 
 function baladasSchedule(day: number): Slot[] {
   const sunday = day === 0;
@@ -402,22 +369,11 @@ function baladasSchedule(day: number): Slot[] {
   ];
 }
 
-function christianSchedule(day: number): Slot[] {
-  const base = makeDaypartSchedule(
-    "Programación 24/7",
-    "Programación 24/7",
-    "Música cristiana, reflexión, enseñanza y mensajes de fe.",
-  )(day);
-  return base;
-}
-
-const commonGroups: ProgramGroup[] = [
-  {
-    title: "Franjas del día",
-    description: "Las mismas franjas horarias se aplican en toda la red.",
-    items: universalDayparts.map(([title, schedule]) => ({ title, schedule })),
-  },
-];
+const christianSchedule = genericSchedule(
+  "Programación 24/7",
+  "Programación 24/7",
+  "Música cristiana, reflexión, enseñanza y mensajes de fe.",
+);
 
 const stations: StationConfig[] = [
   {
@@ -427,7 +383,7 @@ const stations: StationConfig[] = [
     liveSchedule: fieramixSchedule,
     showNetworkCapsules: true,
     showNationalAnthem: true,
-    newsSchedule: mainNewsTimes,
+    newsTimes: mainNewsTimes,
     groups: [
       {
         title: "Formato semanal",
@@ -451,32 +407,42 @@ const stations: StationConfig[] = [
         title: "Rotación musical de FIERAMIX",
         items: rotation.map((title) => ({ title, schedule: "Rotación activa" })),
       },
-      ...commonGroups,
+      commonDayparts,
     ],
   },
   {
     id: "merengue",
     name: "Solo Merengue",
-    intro: "Merengue de todos los tiempos con especiales y fines de semana de clásicos.",
+    intro: "Merengue de todos los tiempos con programas especiales dentro de su Fin de Semana Bravo.",
     liveSchedule: merengueSchedule,
     showNetworkCapsules: true,
     showNationalAnthem: true,
-    newsSchedule: twoHourNewsTimes,
+    newsTimes: twoHourNewsTimes,
     groups: [
       {
         title: "Formato semanal",
         items: [
           { title: "Programación regular", schedule: "Lunes a jueves", detail: "Éxitos actuales, recurrentes y clásicos del merengue." },
-          { title: "Fin de Semana Bravo · Maratón de Merengues Clásicos", schedule: "Viernes a domingo", detail: "72 merengues clásicos." },
+          { title: "Fin de Semana Bravo", schedule: "Viernes a domingo", detail: "Programación especial de fin de semana de Solo Merengue." },
         ],
       },
       {
-        title: "Especial",
+        title: "Programas del Fin de Semana Bravo",
+        description: "Estos son programas que forman parte del Fin de Semana Bravo; no sustituyen el concepto completo del fin de semana.",
         items: [
-          { title: "La Hora de los Mayimbes", schedule: "Domingos · 5:00 p. m. – 6:00 p. m.", detail: "Homenaje a la música del Mayimbe, Fernando Villalona." },
+          {
+            title: "Maratón de Merengues Clásicos",
+            schedule: "Viernes a domingo · dentro del Fin de Semana Bravo",
+            detail: "La Época Dorada del Merengue · puros clásicos · selección especial de Solo Merengue.",
+          },
+          {
+            title: "La Hora de los Mayimbes",
+            schedule: "Domingos · 5:00 p. m. – 6:00 p. m.",
+            detail: "Homenaje a la música del Mayimbe, Fernando Villalona.",
+          },
         ],
       },
-      ...commonGroups,
+      commonDayparts,
     ],
   },
   {
@@ -486,7 +452,7 @@ const stations: StationConfig[] = [
     liveSchedule: bachataSchedule,
     showNetworkCapsules: true,
     showNationalAnthem: true,
-    newsSchedule: twoHourNewsTimes,
+    newsTimes: twoHourNewsTimes,
     groups: [
       {
         title: "Formato semanal",
@@ -501,28 +467,52 @@ const stations: StationConfig[] = [
           { title: "La Hora de los Mayimbes", schedule: "Domingos · 5:00 p. m. – 6:00 p. m.", detail: "Homenaje a la música del Mayimbe, Anthony Santos · merengue y bachata." },
         ],
       },
-      ...commonGroups,
+      commonDayparts,
     ],
   },
   {
     id: "salsa",
     name: "Solo Salsa",
-    intro: "Salsa con ambientes musicales especializados durante todo el día.",
-    liveSchedule: () => salsaSchedule(),
+    intro: "Salsa de todos los tiempos con bloques especiales de cinco canciones según cada ambiente.",
+    liveSchedule: salsaSchedule,
     showNetworkCapsules: true,
     showNationalAnthem: true,
-    newsSchedule: twoHourNewsTimes,
+    newsTimes: twoHourNewsTimes,
     groups: [
       {
-        title: "Ambientes musicales diarios",
-        description: "Selecciones especializadas para cada nivel de ambiente, de lunes a domingo.",
+        title: "Bloques especiales de 5 canciones",
+        description: "Son bloques cortos de cinco canciones seleccionadas para cada ambiente; no son franjas continuas de varias horas.",
         items: [
-          { title: "Música Internacionales", schedule: "2:00 a. m.", detail: "Selección especial de salsa de corte internacional." },
-          { title: "Música de Emergentes", schedule: "7:00 a. m.", detail: "Artistas y propuestas salseras emergentes." },
-          { title: "Música de Enamorados", schedule: "12:00 p. m.", detail: "Salsa orientada al amor y al ambiente de pareja." },
-          { title: "Música de Románticas", schedule: "1:00 p. m.", detail: "Selección especializada de salsa romántica." },
-          { title: "Música de Sentimientos", schedule: "7:00 p. m.", detail: "Salsa de contenido emocional y sentimental." },
-          { title: "Música Internacionales", schedule: "8:00 p. m.", detail: "Segunda franja diaria de selección salsera internacional." },
+          {
+            title: "Los Internacionales de la Salsa",
+            schedule: "2:00 a. m. · bloque de 5 canciones",
+            detail: "Selección salsera internacional especializada.",
+          },
+          {
+            title: "Los Emergentes de la Salsa",
+            schedule: "7:00 a. m. · bloque de 5 canciones",
+            detail: "Cinco canciones de artistas y propuestas salseras emergentes.",
+          },
+          {
+            title: "Los Enamorados de la Salsa",
+            schedule: "12:00 p. m. · bloque de 5 canciones",
+            detail: "Cinco canciones salseras dedicadas al amor y al ambiente de pareja.",
+          },
+          {
+            title: "Los Románticos de la Salsa",
+            schedule: "1:00 p. m. · bloque de 5 canciones",
+            detail: "Cinco canciones de salsa romántica.",
+          },
+          {
+            title: "Los Sentimentales de la Salsa",
+            schedule: "7:00 p. m. · bloque de 5 canciones",
+            detail: "Cinco canciones de contenido emocional y sentimental.",
+          },
+          {
+            title: "Los Internacionales de la Salsa",
+            schedule: "8:00 p. m. · bloque de 5 canciones",
+            detail: "Segunda salida diaria del bloque internacional de cinco canciones.",
+          },
         ],
       },
       {
@@ -532,7 +522,7 @@ const stations: StationConfig[] = [
           { title: "Fin de Semana Bravo", schedule: "Viernes a domingo", detail: "Salsa durante todo el fin de semana." },
         ],
       },
-      ...commonGroups,
+      commonDayparts,
     ],
   },
   {
@@ -542,7 +532,7 @@ const stations: StationConfig[] = [
     liveSchedule: baladasSchedule,
     showNetworkCapsules: true,
     showNationalAnthem: true,
-    newsSchedule: twoHourNewsTimes,
+    newsTimes: twoHourNewsTimes,
     groups: [
       {
         title: "Formato semanal",
@@ -559,14 +549,14 @@ const stations: StationConfig[] = [
           { title: "El 2X1 de Solo Baladas", schedule: "1:20, 3:20, 5:20, 7:20, 9:20, 11:20 a. m. · 1:20, 3:20, 5:20, 7:20, 11:20 p. m.", detail: "Dos canciones románticas de tu artista favorito." },
         ],
       },
-      ...commonGroups,
+      commonDayparts,
     ],
   },
   {
     id: "reggaeton",
     name: "Solo Reggaetón",
     intro: "Reggaetón con actualidad, recurrentes y clásicos del género.",
-    liveSchedule: makeDaypartSchedule(
+    liveSchedule: genericSchedule(
       "Programación regular",
       "Fin de Semana Bravo",
       "Reggaetón · éxitos actuales, recurrentes y clásicos.",
@@ -581,14 +571,14 @@ const stations: StationConfig[] = [
           { title: "Fin de Semana Bravo", schedule: "Viernes a domingo", detail: "Reggaetón durante todo el fin de semana." },
         ],
       },
-      ...commonGroups,
+      commonDayparts,
     ],
   },
   {
     id: "rancheras",
     name: "Solo Rancheras",
     intro: "Música ranchera y mexicana de todos los tiempos.",
-    liveSchedule: makeDaypartSchedule(
+    liveSchedule: genericSchedule(
       "Programación regular",
       "Fin de Semana Bravo",
       "Rancheras · éxitos actuales, recurrentes y clásicos.",
@@ -603,14 +593,14 @@ const stations: StationConfig[] = [
           { title: "Fin de Semana Bravo", schedule: "Viernes a domingo", detail: "Música ranchera y mexicana durante todo el fin de semana." },
         ],
       },
-      ...commonGroups,
+      commonDayparts,
     ],
   },
   {
     id: "internacional",
     name: "Solo Música Internacional",
     intro: "Música internacional de todos los tiempos, con actualidad, recurrentes y clásicos.",
-    liveSchedule: makeDaypartSchedule(
+    liveSchedule: genericSchedule(
       "Programación regular",
       "Fin de Semana Bravo",
       "Música internacional · éxitos actuales, recurrentes y clásicos.",
@@ -625,7 +615,7 @@ const stations: StationConfig[] = [
           { title: "Fin de Semana Bravo", schedule: "Viernes a domingo", detail: "Música internacional durante todo el fin de semana." },
         ],
       },
-      ...commonGroups,
+      commonDayparts,
     ],
   },
   {
@@ -664,12 +654,12 @@ const stations: StationConfig[] = [
           { title: "La Frase del Momento", schedule: "Cada dos horas, en horas impares, aproximadamente entre los minutos :20 y :24." },
         ],
       },
-      ...commonGroups,
+      commonDayparts,
     ],
   },
 ];
 
-function getDominicanClock(date: Date) {
+function dominicanClock(date: Date) {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Santo_Domingo",
     weekday: "short",
@@ -689,16 +679,15 @@ function getDominicanClock(date: Date) {
   };
 }
 
-function getLiveState(date: Date, station: StationConfig): LiveState {
-  const clock = getDominicanClock(date);
+function liveState(date: Date, station: StationConfig): LiveState {
+  const clock = dominicanClock(date);
   const schedule = station.liveSchedule(clock.day);
-  const foundIndex = schedule.findIndex(
+  const found = schedule.findIndex(
     (slot) => clock.minute >= slot.start && clock.minute < slot.end,
   );
-  const index = foundIndex >= 0 ? foundIndex : 0;
+  const index = found >= 0 ? found : 0;
   const current = schedule[index];
   const next = schedule[index + 1] ?? station.liveSchedule((clock.day + 1) % 7)[0];
-
   return { current, next };
 }
 
@@ -718,7 +707,7 @@ export default function FieramixProgramming() {
   );
 
   const live = useMemo(
-    () => (now ? getLiveState(now, selected) : null),
+    () => (now ? liveState(now, selected) : null),
     [now, selected],
   );
 
@@ -854,7 +843,7 @@ export default function FieramixProgramming() {
         </summary>
 
         <div style={{ display: "grid", gap: "16px", marginTop: "22px" }}>
-          {(selected.showNationalAnthem || selected.showNetworkCapsules || selected.newsSchedule) && (
+          {(selected.showNationalAnthem || selected.showNetworkCapsules || selected.newsTimes) && (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "12px" }}>
               {selected.showNationalAnthem ? (
                 <div style={{ ...panelStyle, padding: "18px" }}>
@@ -863,11 +852,11 @@ export default function FieramixProgramming() {
                 </div>
               ) : null}
 
-              {selected.newsSchedule ? (
+              {selected.newsTimes ? (
                 <div style={{ ...panelStyle, padding: "18px" }}>
                   <strong>FIERAMIX NOTICIAS</strong>
                   <p style={{ margin: "7px 0 0", color: "rgba(255,255,255,.68)" }}>
-                    Lunes a jueves · {selected.newsSchedule.join(" · ")}
+                    Lunes a jueves · {selected.newsTimes.join(" · ")}
                   </p>
                 </div>
               ) : null}
@@ -883,8 +872,8 @@ export default function FieramixProgramming() {
             </div>
           )}
 
-          {selected.groups.map((group) => (
-            <div key={group.title} style={{ ...panelStyle, padding: "20px" }}>
+          {selected.groups.map((group, groupIndex) => (
+            <div key={`${selected.id}-${group.title}-${groupIndex}`} style={{ ...panelStyle, padding: "20px" }}>
               <h3 style={{ marginTop: 0, marginBottom: group.description ? "6px" : "12px" }}>{group.title}</h3>
               {group.description ? (
                 <p style={{ margin: "0 0 12px", color: "rgba(255,255,255,.62)", lineHeight: 1.5 }}>{group.description}</p>
