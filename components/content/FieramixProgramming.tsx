@@ -53,6 +53,11 @@ const specials = [
     "Sábados · 2:00 p. m. – 6:00 p. m.",
     "Producido y conducido por Wilson Poueriet. Retransmisión desde Estrella 92.3 FM. Homenaje en vida a la música de la Dinastía Rosario.",
   ],
+  [
+    "La Hora de los Mayimbes",
+    "Domingos · 5:00 p. m. – 6:00 p. m.",
+    "Homenaje al Mayimbito, Alex Bueno. Merengue y bachata.",
+  ],
 ];
 
 const hourlyContent = [
@@ -157,7 +162,14 @@ function getSchedule(day: number): Slot[] {
     regular("La Mañana de FIERAMIX", "7:00 a. m. – 12:00 p. m.", 420, 720, true),
     regular("El Almuerzo de FIERAMIX", "12:00 p. m. – 2:00 p. m.", 720, 840, true),
     regular("La Tarde de FIERAMIX", "2:00 p. m. – 5:00 p. m.", 840, 1020, true),
-    regular("El Atardecer de FIERAMIX", "5:00 p. m. – 7:00 p. m.", 1020, 1140, true),
+    {
+      title: "La Hora de los Mayimbes",
+      detail: "Homenaje al Mayimbito, Alex Bueno · Merengue y bachata.",
+      schedule: "5:00 p. m. – 6:00 p. m.",
+      start: 1020,
+      end: 1080,
+    },
+    regular("El Atardecer de FIERAMIX", "6:00 p. m. – 7:00 p. m.", 1080, 1140, true),
     regular("La Noche de FIERAMIX", "7:00 p. m. – 12:00 a. m.", 1140, 1440, true),
   ];
 }
