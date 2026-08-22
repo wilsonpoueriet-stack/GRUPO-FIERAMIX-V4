@@ -256,9 +256,9 @@ function merengueSchedule(day: number): Slot[] {
   const weekend = day === 0 || day === 5 || day === 6;
   const base = genericSchedule(
     "Programación regular",
-    "Fin de Semana Bravo",
+    "Maratón de Merengues Clásicos",
     weekend
-      ? "Merengue · programación especial de fin de semana."
+      ? "La Época Dorada del Merengue · puros clásicos · selección especial de Solo Merengue · parte del Fin de Semana Bravo."
       : "Merengue · éxitos actuales, recurrentes y clásicos.",
   )(day);
 
@@ -268,21 +268,21 @@ function merengueSchedule(day: number): Slot[] {
     ...base.filter((slot) => slot.end <= 1020),
     {
       title: "La Hora de los Mayimbes",
-      detail: "Homenaje a la música del Mayimbe, Fernando Villalona.",
+      detail: "Homenaje a la música del Mayimbe, Fernando Villalona · programa especial dentro del Fin de Semana Bravo.",
       schedule: "5:00 p. m. – 6:00 p. m.",
       start: 1020,
       end: 1080,
     },
     {
-      title: "Fin de Semana Bravo",
-      detail: "El Atardecer · Merengue · programación especial de fin de semana.",
+      title: "Maratón de Merengues Clásicos",
+      detail: "La Época Dorada del Merengue · puros clásicos · selección especial de Solo Merengue · parte del Fin de Semana Bravo.",
       schedule: "6:00 p. m. – 7:00 p. m.",
       start: 1080,
       end: 1140,
     },
     {
-      title: "Fin de Semana Bravo",
-      detail: "La Noche · Merengue · programación especial de fin de semana.",
+      title: "Maratón de Merengues Clásicos",
+      detail: "La Época Dorada del Merengue · puros clásicos · selección especial de Solo Merengue · parte del Fin de Semana Bravo.",
       schedule: "7:00 p. m. – 12:00 a. m.",
       start: 1140,
       end: 1440,
