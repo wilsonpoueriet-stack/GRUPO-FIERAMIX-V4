@@ -1,6 +1,11 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import { stations } from "@/data/stations";
+import {
+  findPlayedTrack,
+  getMostPlayedTracks,
+  normalizeRadioText,
+} from "@/lib/radio-intelligence";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -183,6 +188,122 @@ function cleanAssistantText(value: string): string {
     .trim();
 }
 
+function findStationIdInMessage(message: string): string | undefined {
+  const normalized = normalizeRadioText(message);
+
+  const found = stations.find((station) => {
+    const candidates = [
+      station.id,
+      station.name,
+      station.shortName,
+      station.genre,
+    ]
+      .filter((value): value is string => Boolean(value))
+      .map(normalizeRadioText)
+      .filter(Boolean);
+
+    return candidates.some((candidate) => normalized.includes(candidate));
+  });
+
+  return found?.id;
+}
+
+function requestedDays(message: string): number {
+  const normalized = normalizeRadioText(message);
+
+  if (/\b(ano|anual|este ano)\b/.test(normalized)) return 365;
+  if (/\b(mes|mensual|este mes)\b/.test(normalized)) return 30;
+  if (/\b(semana|semanal|esta semana)\b/.test(normalized)) return 7;
+  return 1;
+}
+
+function isMostPlayedIntent(message: string): boolean {
+  const normalized = normalizeRadioText(message);
+
+  return (
+    /\b(mas tocad|mas sonad|numero uno|top 1|lider)\w*/.test(normalized) &&
+    /\b(cancion|tema|musica|track|ranking|top)\w*/.test(normalized)
+  );
+}
+
+function isPlayHistoryIntent(message: string): boolean {
+  const normalized = normalizeRadioText(message);
+
+  return (
+    /\b(cuantas|cuantos|veces|tocadas|sonado|sonada|tocado|tocada)\b/.test(normalized) &&
+    /\b(cancion|tema|veces|tocadas|sonado|sonada|tocado|tocada)\b/.test(normalized)
+  );
+}
+
+function isCatalogAvailabilityIntent(message: string): boolean {
+  const normalized = normalizeRadioText(message);
+
+  return (
+    /\b(esta|tienen|tienes|existe|disponible|sistema|catalogo)\b/.test(normalized) &&
+    /\b(cancion|tema|sistema|catalogo|disponible)\b/.test(normalized)
+  );
+}
+
+function periodLabel(days: number): string {
+  if (days === 7) return "esta semana";
+  if (days === 30) return "este mes";
+  if (days === 365) return "este año";
+  return "hoy";
+}
+
+async function answerRadioIntelligence(message: string): Promise<string | null> {
+  const stationId = findStationIdInMessage(message);
+
+  if (isMostPlayedIntent(message)) {
+    const days = requestedDays(message);
+    const tracks = await getMostPlayedTracks({
+      days,
+      stationId,
+      limit: 1,
+    });
+
+    const track = tracks[0];
+
+    if (!track) {
+      return stationId
+        ? "Todavía no tengo suficientes datos de tocadas para esa emisora en el período solicitado."
+        : "Todavía no tengo suficientes datos de tocadas de la red para ese período.";
+    }
+
+    const stationText = stationId
+      ? ` en ${track.stationNames[0] ?? "esa emisora"}`
+      : " en EL GRUPO FIERAMIX.COM";
+
+    return `La canción más tocada ${periodLabel(days)}${stationText} es ${track.title}, de ${track.artist}, con ${track.plays} tocadas registradas.`;
+  }
+
+  if (isPlayHistoryIntent(message)) {
+    const result = await findPlayedTrack(message, {
+      days: 365,
+      stationId,
+      limit: 1,
+    });
+
+    const track = result.matches[0];
+
+    if (!track) {
+      return "No encuentro esa canción en el historial de tocadas disponible. Esto no confirma que no exista en el catálogo de solicitudes; solo significa que no aparece en el historial que puedo consultar ahora mismo.";
+    }
+
+    const stationText = track.stationNames.length > 0
+      ? ` Ha sonado en ${track.stationNames.join(", ")}.`
+      : "";
+
+    return `${track.title}, de ${track.artist}, registra ${track.plays} tocadas en el historial disponible.${stationText}`;
+  }
+
+  if (isCatalogAvailabilityIntent(message)) {
+    return "Todavía no puedo confirmar la disponibilidad actual de una canción dentro del catálogo de SongRequest. Ya puedo consultar el historial real de tocadas, pero estamos conectando la búsqueda del catálogo para no confundirte con datos incompletos.";
+  }
+
+  return null;
+}
+
 export async function POST(
   request: Request,
 ): Promise<Response> {
@@ -249,6 +370,15 @@ export async function POST(
   }
 
   try {
+    const radioAnswer = await answerRadioIntelligence(message);
+
+    if (radioAnswer) {
+      return noStoreJson({
+        ok: true,
+        answer: radioAnswer,
+      });
+    }
+
     const openai = new OpenAI({
       apiKey,
     });
