@@ -107,6 +107,27 @@ function isResumeIntent(message: string): boolean {
   );
 }
 
+function isSongAvailabilityIntent(message: string): boolean {
+  const normalized = normalizeText(message);
+
+  return (
+    /\b(esta|tienen|tienes|existe|disponible|sistema|catalogo|buscar|busca|encuentra)\b/.test(
+      normalized,
+    ) &&
+    /\b(cancion|tema|sistema|catalogo|disponible)\b/.test(normalized)
+  );
+}
+
+function extractSongQuery(message: string): string {
+  return message
+    .replace(/^[¿?\s]*/g, "")
+    .replace(/\b(esta|tienen|tienes|existe|disponible|buscar|busca|encuentra)\b/gi, " ")
+    .replace(/\b(la|el|una|un|cancion|canción|tema|en|del|dentro|catalogo|catálogo|sistema|fieramix|radio)\b/gi, " ")
+    .replace(/[¿?]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export default function FieramixAIController({
   stations,
   selected,
@@ -118,6 +139,24 @@ export default function FieramixAIController({
     const executeCommand = (rawMessage: string) => {
       const message = rawMessage.trim();
       if (!message) return;
+
+      if (isSongAvailabilityIntent(message)) {
+        const query = extractSongQuery(message);
+
+        if (query) {
+          window.dispatchEvent(
+            new CustomEvent("fieramix-songrequest-search", {
+              detail: {
+                query,
+                requestId: `ai-${Date.now()}`,
+                stationId: selected.id,
+                stationName: selected.name,
+              },
+            }),
+          );
+        }
+        return;
+      }
 
       const requestedStation = findRequestedStation(message, stations);
 
