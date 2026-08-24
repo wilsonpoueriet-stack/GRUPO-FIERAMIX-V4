@@ -5,6 +5,8 @@ import { useEffect } from "react";
 type SongRequestSearchDetail = {
   query?: string;
   requestId?: string;
+  stationId?: string;
+  stationName?: string;
 };
 
 type SongRequestResult = {
@@ -15,6 +17,7 @@ type SongRequestResult = {
 
 const SEARCH_EVENT = "fieramix-songrequest-search";
 const RESULT_EVENT = "fieramix-songrequest-results";
+const SELECT_STATION_EVENT = "fieramix-songrequest-select-station";
 
 function getRequestFrame(): HTMLIFrameElement | null {
   return document.querySelector<HTMLIFrameElement>(".radioBossRequestFrame");
@@ -48,6 +51,8 @@ function readResults(frame: HTMLIFrameElement): SongRequestResult[] {
 function emitResults(detail: {
   requestId?: string;
   query: string;
+  stationId?: string;
+  stationName?: string;
   results: SongRequestResult[];
   status: "found" | "not_found" | "unavailable" | "error";
   message?: string;
@@ -59,17 +64,58 @@ function emitResults(detail: {
   );
 }
 
+function waitForFrame(
+  previousFrame: HTMLIFrameElement | null,
+  timeoutMs = 3500,
+): Promise<HTMLIFrameElement | null> {
+  return new Promise((resolve) => {
+    const startedAt = Date.now();
+
+    const check = () => {
+      const frame = getRequestFrame();
+      const doc = frame?.contentDocument;
+      const input = doc?.querySelector<HTMLInputElement>(".rbc_ed_query");
+      const button = doc?.querySelector<HTMLButtonElement>(".rbc_bt_search");
+      const resultBox = doc?.querySelector<HTMLElement>(".rbc_result");
+
+      if (
+        frame &&
+        frame !== previousFrame &&
+        input &&
+        button &&
+        resultBox
+      ) {
+        resolve(frame);
+        return;
+      }
+
+      if (Date.now() - startedAt >= timeoutMs) {
+        resolve(frame && input && button && resultBox ? frame : null);
+        return;
+      }
+
+      window.setTimeout(check, 80);
+    };
+
+    check();
+  });
+}
+
 export default function FieramixSongRequestBridge() {
   useEffect(() => {
-    const handleSearch = (event: Event) => {
+    const handleSearch = async (event: Event) => {
       const customEvent = event as CustomEvent<SongRequestSearchDetail>;
       const query = customEvent.detail?.query?.trim() ?? "";
       const requestId = customEvent.detail?.requestId;
+      const stationId = customEvent.detail?.stationId?.trim() || undefined;
+      const stationName = customEvent.detail?.stationName?.trim() || undefined;
 
       if (!query) {
         emitResults({
           requestId,
           query,
+          stationId,
+          stationName,
           results: [],
           status: "error",
           message: "La búsqueda está vacía.",
@@ -77,13 +123,31 @@ export default function FieramixSongRequestBridge() {
         return;
       }
 
-      const frame = getRequestFrame();
+      let frame = getRequestFrame();
+
+      if (stationId) {
+        const previousFrame = frame;
+
+        window.dispatchEvent(
+          new CustomEvent(SELECT_STATION_EVENT, {
+            detail: {
+              stationId,
+              stationName,
+            },
+          }),
+        );
+
+        frame = await waitForFrame(previousFrame);
+      }
+
       const doc = frame?.contentDocument;
 
       if (!frame || !doc) {
         emitResults({
           requestId,
           query,
+          stationId,
+          stationName,
           results: [],
           status: "unavailable",
           message: "El buscador de canciones todavía no está disponible.",
@@ -99,6 +163,8 @@ export default function FieramixSongRequestBridge() {
         emitResults({
           requestId,
           query,
+          stationId,
+          stationName,
           results: [],
           status: "unavailable",
           message: "RadioBOSS todavía no terminó de cargar el buscador.",
@@ -123,6 +189,8 @@ export default function FieramixSongRequestBridge() {
           emitResults({
             requestId,
             query,
+            stationId,
+            stationName,
             results,
             status: "found",
           });
@@ -141,6 +209,8 @@ export default function FieramixSongRequestBridge() {
           emitResults({
             requestId,
             query,
+            stationId,
+            stationName,
             results: [],
             status: "not_found",
             message: resultText || "No se encontraron canciones.",
@@ -172,6 +242,8 @@ export default function FieramixSongRequestBridge() {
         emitResults({
           requestId,
           query,
+          stationId,
+          stationName,
           results,
           status: results.length > 0 ? "found" : "error",
           message:
