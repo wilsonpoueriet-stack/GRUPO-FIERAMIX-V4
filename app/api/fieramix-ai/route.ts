@@ -220,10 +220,19 @@ function requestedDays(message: string): number {
 function isMostPlayedIntent(message: string): boolean {
   const normalized = normalizeRadioText(message);
 
-  return (
-    /\b(mas tocad|mas sonad|numero uno|top 1|lider)\w*/.test(normalized) &&
-    /\b(cancion|tema|musica|track|ranking|top)\w*/.test(normalized)
-  );
+  const rankingIntent =
+    /\b(mas tocad|mas sonad|mas popular|mas escuchad|mas reproducid|numero uno|numero 1|top 1|lider)\w*/.test(
+      normalized,
+    ) ||
+    /\b(la|el)\s+que\s+mas\s+(suena|sono|tocan|tocaron|escuchan|escucharon|reproducen)\b/.test(
+      normalized,
+    );
+
+  const musicSubject =
+    /\b(cancion|tema|musica|track|ranking|top)\w*/.test(normalized) ||
+    /\b(la|el)\s+que\s+mas\s+/.test(normalized);
+
+  return rankingIntent && musicSubject;
 }
 
 function isPlayHistoryIntent(message: string): boolean {
