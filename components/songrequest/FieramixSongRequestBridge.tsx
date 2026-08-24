@@ -17,10 +17,42 @@ type SongRequestResult = {
 
 const SEARCH_EVENT = "fieramix-songrequest-search";
 const RESULT_EVENT = "fieramix-songrequest-results";
-const SELECT_STATION_EVENT = "fieramix-songrequest-select-station";
+
+const STATION_LABELS: Record<string, string> = {
+  bachata: "BACHATA",
+  merengue: "MERENGUE",
+  salsa: "SALSA",
+  baladas: "BALADAS",
+  reggaeton: "REGGAETÓN",
+  rancheras: "RANCHERAS",
+  internacional: "INTERNACIONAL",
+  cristiana: "CRISTIANA",
+  fieramix: "FIERAMIX",
+};
 
 function getRequestFrame(): HTMLIFrameElement | null {
   return document.querySelector<HTMLIFrameElement>(".radioBossRequestFrame");
+}
+
+function selectSongRequestStation(stationId: string): boolean {
+  const label = STATION_LABELS[stationId];
+  if (!label) return false;
+
+  const buttons = Array.from(
+    document.querySelectorAll<HTMLButtonElement>(".requestStationOption"),
+  );
+
+  const target = buttons.find(
+    (button) => button.textContent?.replace(/\s+/g, " ").trim() === label,
+  );
+
+  if (!target) return false;
+
+  if (target.getAttribute("aria-pressed") !== "true") {
+    target.click();
+  }
+
+  return true;
 }
 
 function readResults(frame: HTMLIFrameElement): SongRequestResult[] {
@@ -66,6 +98,7 @@ function emitResults(detail: {
 
 function waitForFrame(
   previousFrame: HTMLIFrameElement | null,
+  expectReplacement: boolean,
   timeoutMs = 3500,
 ): Promise<HTMLIFrameElement | null> {
   return new Promise((resolve) => {
@@ -77,20 +110,15 @@ function waitForFrame(
       const input = doc?.querySelector<HTMLInputElement>(".rbc_ed_query");
       const button = doc?.querySelector<HTMLButtonElement>(".rbc_bt_search");
       const resultBox = doc?.querySelector<HTMLElement>(".rbc_result");
+      const ready = Boolean(frame && input && button && resultBox);
 
-      if (
-        frame &&
-        frame !== previousFrame &&
-        input &&
-        button &&
-        resultBox
-      ) {
+      if (ready && (!expectReplacement || frame !== previousFrame)) {
         resolve(frame);
         return;
       }
 
       if (Date.now() - startedAt >= timeoutMs) {
-        resolve(frame && input && button && resultBox ? frame : null);
+        resolve(ready ? frame : null);
         return;
       }
 
@@ -127,17 +155,32 @@ export default function FieramixSongRequestBridge() {
 
       if (stationId) {
         const previousFrame = frame;
-
-        window.dispatchEvent(
-          new CustomEvent(SELECT_STATION_EVENT, {
-            detail: {
-              stationId,
-              stationName,
-            },
-          }),
+        const currentButton = Array.from(
+          document.querySelectorAll<HTMLButtonElement>(".requestStationOption"),
+        ).find(
+          (button) =>
+            button.getAttribute("aria-pressed") === "true" &&
+            button.textContent?.replace(/\s+/g, " ").trim() ===
+              STATION_LABELS[stationId],
         );
 
-        frame = await waitForFrame(previousFrame);
+        const alreadySelected = Boolean(currentButton);
+        const selected = selectSongRequestStation(stationId);
+
+        if (!selected) {
+          emitResults({
+            requestId,
+            query,
+            stationId,
+            stationName,
+            results: [],
+            status: "unavailable",
+            message: `No pude seleccionar ${stationName || "la emisora actual"} en SongRequest.`,
+          });
+          return;
+        }
+
+        frame = await waitForFrame(previousFrame, !alreadySelected);
       }
 
       const doc = frame?.contentDocument;
