@@ -15,55 +15,52 @@ type SongRequestResult = {
   index: number;
 };
 
+type SearchStatus = "found" | "not_found" | "unavailable" | "error";
+
+type StationMatch = {
+  stationId: string;
+  stationName: string;
+  results: SongRequestResult[];
+};
+
 const SEARCH_EVENT = "fieramix-songrequest-search";
 const RESULT_EVENT = "fieramix-songrequest-results";
 
-const STATION_LABELS: Record<string, string> = {
-  bachata: "BACHATA",
-  merengue: "MERENGUE",
-  salsa: "SALSA",
-  baladas: "BALADAS",
-  reggaeton: "REGGAETÓN",
-  rancheras: "RANCHERAS",
-  internacional: "INTERNACIONAL",
-  cristiana: "CRISTIANA",
-  fieramix: "FIERAMIX",
-};
+const STATIONS = [
+  { id: "bachata", label: "BACHATA", name: "SOLO BACHATA" },
+  { id: "merengue", label: "MERENGUE", name: "SOLO MERENGUE" },
+  { id: "salsa", label: "SALSA", name: "SOLO SALSA" },
+  { id: "baladas", label: "BALADAS", name: "SOLO BALADAS" },
+  { id: "reggaeton", label: "REGGAETÓN", name: "SOLO REGGAETÓN" },
+  { id: "rancheras", label: "RANCHERAS", name: "SOLO RANCHERAS" },
+  { id: "internacional", label: "INTERNACIONAL", name: "SOLO MÚSICA INTERNACIONAL" },
+  { id: "cristiana", label: "CRISTIANA", name: "SOLO MÚSICA CRISTIANA" },
+  { id: "fieramix", label: "FIERAMIX", name: "FIERAMIX" },
+] as const;
 
 function getRequestFrame(): HTMLIFrameElement | null {
   return document.querySelector<HTMLIFrameElement>(".radioBossRequestFrame");
 }
 
-function selectSongRequestStation(stationId: string): boolean {
-  const label = STATION_LABELS[stationId];
-  if (!label) return false;
+function getStationButton(stationId: string): HTMLButtonElement | null {
+  const station = STATIONS.find((item) => item.id === stationId);
+  if (!station) return null;
 
-  const buttons = Array.from(
-    document.querySelectorAll<HTMLButtonElement>(".requestStationOption"),
+  return (
+    Array.from(
+      document.querySelectorAll<HTMLButtonElement>(".requestStationOption"),
+    ).find(
+      (button) =>
+        button.textContent?.replace(/\s+/g, " ").trim() === station.label,
+    ) ?? null
   );
-
-  const target = buttons.find(
-    (button) => button.textContent?.replace(/\s+/g, " ").trim() === label,
-  );
-
-  if (!target) return false;
-
-  if (target.getAttribute("aria-pressed") !== "true") {
-    target.click();
-  }
-
-  return true;
 }
 
 function readResults(frame: HTMLIFrameElement): SongRequestResult[] {
   const doc = frame.contentDocument;
   if (!doc) return [];
 
-  const items = Array.from(
-    doc.querySelectorAll<HTMLElement>(".rbc_result_item"),
-  );
-
-  return items
+  return Array.from(doc.querySelectorAll<HTMLElement>(".rbc_result_item"))
     .map((item, index) => {
       const button = item.querySelector<HTMLButtonElement>("button");
       const text = item.textContent
@@ -86,14 +83,12 @@ function emitResults(detail: {
   stationId?: string;
   stationName?: string;
   results: SongRequestResult[];
-  status: "found" | "not_found" | "unavailable" | "error";
+  status: SearchStatus;
   message?: string;
+  searchedOtherStations?: boolean;
+  otherStationMatches?: StationMatch[];
 }) {
-  window.dispatchEvent(
-    new CustomEvent(RESULT_EVENT, {
-      detail,
-    }),
-  );
+  window.dispatchEvent(new CustomEvent(RESULT_EVENT, { detail }));
 }
 
 function waitForFrame(
@@ -107,10 +102,12 @@ function waitForFrame(
     const check = () => {
       const frame = getRequestFrame();
       const doc = frame?.contentDocument;
-      const input = doc?.querySelector<HTMLInputElement>(".rbc_ed_query");
-      const button = doc?.querySelector<HTMLButtonElement>(".rbc_bt_search");
-      const resultBox = doc?.querySelector<HTMLElement>(".rbc_result");
-      const ready = Boolean(frame && input && button && resultBox);
+      const ready = Boolean(
+        frame &&
+          doc?.querySelector(".rbc_ed_query") &&
+          doc?.querySelector(".rbc_bt_search") &&
+          doc?.querySelector(".rbc_result"),
+      );
 
       if (ready && (!expectReplacement || frame !== previousFrame)) {
         resolve(frame);
@@ -126,6 +123,105 @@ function waitForFrame(
     };
 
     check();
+  });
+}
+
+async function selectStation(stationId: string): Promise<HTMLIFrameElement | null> {
+  const target = getStationButton(stationId);
+  if (!target) return null;
+
+  const previousFrame = getRequestFrame();
+  const alreadySelected = target.getAttribute("aria-pressed") === "true";
+
+  if (!alreadySelected) {
+    target.click();
+  }
+
+  return waitForFrame(previousFrame, !alreadySelected);
+}
+
+function searchCurrentFrame(
+  frame: HTMLIFrameElement,
+  query: string,
+  timeoutMs = 8000,
+): Promise<{ status: SearchStatus; results: SongRequestResult[]; message?: string }> {
+  return new Promise((resolve) => {
+    const doc = frame.contentDocument;
+    const input = doc?.querySelector<HTMLInputElement>(".rbc_ed_query");
+    const button = doc?.querySelector<HTMLButtonElement>(".rbc_bt_search");
+    const resultBox = doc?.querySelector<HTMLElement>(".rbc_result");
+
+    if (!doc || !input || !button || !resultBox) {
+      resolve({
+        status: "unavailable",
+        results: [],
+        message: "RadioBOSS todavía no terminó de cargar el buscador.",
+      });
+      return;
+    }
+
+    let settled = false;
+    let timeoutId: number | undefined;
+
+    const settle = (
+      status: SearchStatus,
+      results: SongRequestResult[],
+      message?: string,
+    ) => {
+      if (settled) return;
+      settled = true;
+      observer.disconnect();
+      if (timeoutId) window.clearTimeout(timeoutId);
+      resolve({ status, results, message });
+    };
+
+    const inspect = () => {
+      if (settled) return;
+
+      const results = readResults(frame);
+      const resultText = resultBox.textContent?.replace(/\s+/g, " ").trim() ?? "";
+      const visible = getComputedStyle(resultBox).display !== "none";
+
+      if (results.length > 0) {
+        settle("found", results);
+        return;
+      }
+
+      if (
+        visible &&
+        /no se encontraron|no tracks|canción no encontrada|cancion no encontrada/i.test(
+          resultText,
+        )
+      ) {
+        settle("not_found", [], resultText || "No se encontraron canciones.");
+      }
+    };
+
+    const observer = new MutationObserver(() => {
+      window.requestAnimationFrame(inspect);
+    });
+
+    observer.observe(resultBox, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      characterData: true,
+    });
+
+    input.value = query;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    button.click();
+
+    timeoutId = window.setTimeout(() => {
+      const results = readResults(frame);
+      settle(
+        results.length > 0 ? "found" : "error",
+        results,
+        results.length > 0
+          ? undefined
+          : "La búsqueda de RadioBOSS no respondió a tiempo.",
+      );
+    }, timeoutMs);
   });
 }
 
@@ -151,41 +247,7 @@ export default function FieramixSongRequestBridge() {
         return;
       }
 
-      let frame = getRequestFrame();
-
-      if (stationId) {
-        const previousFrame = frame;
-        const currentButton = Array.from(
-          document.querySelectorAll<HTMLButtonElement>(".requestStationOption"),
-        ).find(
-          (button) =>
-            button.getAttribute("aria-pressed") === "true" &&
-            button.textContent?.replace(/\s+/g, " ").trim() ===
-              STATION_LABELS[stationId],
-        );
-
-        const alreadySelected = Boolean(currentButton);
-        const selected = selectSongRequestStation(stationId);
-
-        if (!selected) {
-          emitResults({
-            requestId,
-            query,
-            stationId,
-            stationName,
-            results: [],
-            status: "unavailable",
-            message: `No pude seleccionar ${stationName || "la emisora actual"} en SongRequest.`,
-          });
-          return;
-        }
-
-        frame = await waitForFrame(previousFrame, !alreadySelected);
-      }
-
-      const doc = frame?.contentDocument;
-
-      if (!frame || !doc) {
+      if (!stationId || !STATIONS.some((station) => station.id === stationId)) {
         emitResults({
           requestId,
           query,
@@ -193,16 +255,14 @@ export default function FieramixSongRequestBridge() {
           stationName,
           results: [],
           status: "unavailable",
-          message: "El buscador de canciones todavía no está disponible.",
+          message: "No pude identificar la emisora que estás escuchando.",
         });
         return;
       }
 
-      const input = doc.querySelector<HTMLInputElement>(".rbc_ed_query");
-      const button = doc.querySelector<HTMLButtonElement>(".rbc_bt_search");
-      const resultBox = doc.querySelector<HTMLElement>(".rbc_result");
+      const listenerFrame = await selectStation(stationId);
 
-      if (!input || !button || !resultBox) {
+      if (!listenerFrame) {
         emitResults({
           requestId,
           query,
@@ -210,91 +270,74 @@ export default function FieramixSongRequestBridge() {
           stationName,
           results: [],
           status: "unavailable",
-          message: "RadioBOSS todavía no terminó de cargar el buscador.",
+          message: `No pude abrir el catálogo de ${stationName || "la emisora actual"}.`,
         });
         return;
       }
 
-      let settled = false;
-      let timeoutId: number | undefined;
+      const listenerResult = await searchCurrentFrame(listenerFrame, query);
 
-      const finish = () => {
-        if (settled) return;
-
-        const results = readResults(frame);
-        const resultText = resultBox.textContent?.replace(/\s+/g, " ").trim() ?? "";
-        const visible = getComputedStyle(resultBox).display !== "none";
-
-        if (results.length > 0) {
-          settled = true;
-          observer.disconnect();
-          if (timeoutId) window.clearTimeout(timeoutId);
-          emitResults({
-            requestId,
-            query,
-            stationId,
-            stationName,
-            results,
-            status: "found",
-          });
-          return;
-        }
-
-        if (
-          visible &&
-          /no se encontraron|no tracks|canción no encontrada|cancion no encontrada/i.test(
-            resultText,
-          )
-        ) {
-          settled = true;
-          observer.disconnect();
-          if (timeoutId) window.clearTimeout(timeoutId);
-          emitResults({
-            requestId,
-            query,
-            stationId,
-            stationName,
-            results: [],
-            status: "not_found",
-            message: resultText || "No se encontraron canciones.",
-          });
-        }
-      };
-
-      const observer = new MutationObserver(() => {
-        window.requestAnimationFrame(finish);
-      });
-
-      observer.observe(resultBox, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        characterData: true,
-      });
-
-      input.value = query;
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-      button.click();
-
-      timeoutId = window.setTimeout(() => {
-        if (settled) return;
-        settled = true;
-        observer.disconnect();
-
-        const results = readResults(frame);
+      if (listenerResult.status === "found") {
         emitResults({
           requestId,
           query,
           stationId,
           stationName,
-          results,
-          status: results.length > 0 ? "found" : "error",
-          message:
-            results.length > 0
-              ? undefined
-              : "La búsqueda de RadioBOSS no respondió a tiempo.",
+          results: listenerResult.results,
+          status: "found",
+          searchedOtherStations: false,
         });
-      }, 8000);
+        return;
+      }
+
+      if (listenerResult.status !== "not_found") {
+        emitResults({
+          requestId,
+          query,
+          stationId,
+          stationName,
+          results: [],
+          status: listenerResult.status,
+          message: listenerResult.message,
+        });
+        return;
+      }
+
+      const matches: StationMatch[] = [];
+
+      for (const station of STATIONS) {
+        if (station.id === stationId) continue;
+
+        const frame = await selectStation(station.id);
+        if (!frame) continue;
+
+        const result = await searchCurrentFrame(frame, query);
+
+        if (result.status === "found") {
+          matches.push({
+            stationId: station.id,
+            stationName: station.name,
+            results: result.results,
+          });
+        }
+      }
+
+      await selectStation(stationId);
+
+      emitResults({
+        requestId,
+        query,
+        stationId,
+        stationName,
+        results: [],
+        status: "not_found",
+        searchedOtherStations: true,
+        otherStationMatches: matches,
+        message:
+          matches.length > 0
+            ? undefined
+            : "No se encontraron canciones en ninguna de las emisoras consultadas.",
+      });
     };
 
     window.addEventListener(SEARCH_EVENT, handleSearch);
