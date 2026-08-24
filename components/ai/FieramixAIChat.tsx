@@ -17,6 +17,7 @@ type FieramixAIResponse = {
 
 type SongRequestBridgeResult = {
   query?: string;
+  requestId?: string;
   stationId?: string;
   stationName?: string;
   status?: "found" | "not_found" | "unavailable" | "error";
@@ -98,7 +99,7 @@ export default function FieramixAIChat() {
   };
 
   useEffect(() => {
-    const handleSongRequestResults = (event: Event) => {
+    const handleSongRequestResults = async (event: Event) => {
       const customEvent = event as CustomEvent<SongRequestBridgeResult>;
       const detail = customEvent.detail ?? {};
       const query = detail.query?.trim() || "esa canción";
@@ -141,10 +142,42 @@ export default function FieramixAIChat() {
         }
 
         if (detail.searchedOtherStations) {
-          addMessage(
-            "assistant",
-            `No encontré ${query} en ${stationName} ni en las demás emisoras consultadas de EL GRUPO FIERAMIX.COM.`,
-          );
+          try {
+            const response = await fetch("/api/programming-request", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                query,
+                stationId: detail.stationId,
+                stationName: detail.stationName,
+                requestId: detail.requestId,
+              }),
+            });
+
+            const data = (await response.json()) as {
+              ok?: boolean;
+              error?: string;
+              request?: { id?: string };
+            };
+
+            if (response.ok && data.ok) {
+              addMessage(
+                "assistant",
+                `No encontré ${query} en ${stationName} ni en las demás emisoras de EL GRUPO FIERAMIX.COM. Ya pasé la información al Departamento de Programación y dejé creada una solicitud pendiente para que el tema sea revisado.`,
+              );
+            } else {
+              addMessage(
+                "assistant",
+                `No encontré ${query} en ninguna de nuestras emisoras. Intenté pasar la información al Departamento de Programación, pero no pude registrar la solicitud en este momento.`,
+              );
+            }
+          } catch {
+            addMessage(
+              "assistant",
+              `No encontré ${query} en ninguna de nuestras emisoras. Intenté pasar la información al Departamento de Programación, pero no pude registrar la solicitud en este momento.`,
+            );
+          }
+
           setLoading(false);
           return;
         }
@@ -524,25 +557,27 @@ export default function FieramixAIChat() {
           border: 1px solid rgba(255, 255, 255, .09);
           border-radius: 50%;
           color: #dce2f7;
-          background: rgba(255, 255, 255, .04);
-          cursor: pointer;
-          font-size: 1.35rem;
+          background: rgba(255, 255, 255, .045);
+          font-size: 1.25rem;
           line-height: 1;
+          cursor: pointer;
         }
 
         .fieramixAIMessages {
           min-height: 0;
           overflow-y: auto;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
           padding: 16px;
           scrollbar-width: thin;
-          scrollbar-color: rgba(123, 245, 190, .38) transparent;
+          scrollbar-color: rgba(255, 255, 255, .18) transparent;
         }
 
         .fieramixAIMessage {
           display: flex;
           align-items: flex-end;
           gap: 8px;
-          margin-bottom: 13px;
         }
 
         .fieramixAIMessage.user {
@@ -553,25 +588,21 @@ export default function FieramixAIChat() {
           max-width: 82%;
           margin: 0;
           padding: 10px 12px;
-          border-radius: 15px;
+          border-radius: 15px 15px 15px 5px;
+          color: #edf1ff;
+          background: rgba(255, 255, 255, .07);
+          border: 1px solid rgba(255, 255, 255, .07);
           font-size: .78rem;
+          font-weight: 650;
           line-height: 1.45;
           white-space: pre-wrap;
-          overflow-wrap: anywhere;
-        }
-
-        .fieramixAIMessage.assistant p {
-          color: #e8ecfb;
-          background: rgba(255, 255, 255, .055);
-          border: 1px solid rgba(255, 255, 255, .07);
-          border-bottom-left-radius: 5px;
         }
 
         .fieramixAIMessage.user p {
-          color: #04120c;
-          background: linear-gradient(135deg, #20dc8e, #7bf5be);
-          border-bottom-right-radius: 5px;
-          font-weight: 750;
+          color: #07150f;
+          background: linear-gradient(135deg, #20dc8e, #83f5c1);
+          border-color: transparent;
+          border-radius: 15px 15px 5px 15px;
         }
 
         .fieramixAIAvatar {
@@ -581,17 +612,17 @@ export default function FieramixAIChat() {
           place-items: center;
           flex: 0 0 auto;
           border-radius: 50%;
-          color: #06150e;
+          color: #07150f;
           background: #20dc8e;
-          font-size: .52rem;
+          font-size: .55rem;
           font-weight: 950;
         }
 
         .fieramixAITyping {
-          min-width: 54px;
           display: flex;
           align-items: center;
           gap: 4px;
+          min-width: 52px;
         }
 
         .fieramixAITyping i {
@@ -599,7 +630,7 @@ export default function FieramixAIChat() {
           height: 6px;
           display: block;
           border-radius: 50%;
-          background: #7bf5be;
+          background: #20dc8e;
           animation: fieramixAITyping 1s infinite ease-in-out;
         }
 
@@ -611,13 +642,18 @@ export default function FieramixAIChat() {
           animation-delay: .3s;
         }
 
+        @keyframes fieramixAITyping {
+          0%, 60%, 100% { opacity: .35; transform: translateY(0); }
+          30% { opacity: 1; transform: translateY(-3px); }
+        }
+
         .fieramixAIComposer {
           display: grid;
-          grid-template-columns: 1fr auto;
+          grid-template-columns: minmax(0, 1fr) auto;
           gap: 8px;
           padding: 12px;
           border-top: 1px solid rgba(255, 255, 255, .08);
-          background: rgba(8, 12, 29, .9);
+          background: rgba(8, 12, 29, .88);
         }
 
         .fieramixAIComposer textarea {
@@ -626,72 +662,66 @@ export default function FieramixAIChat() {
           max-height: 92px;
           resize: none;
           padding: 11px 12px;
-          color: #ffffff;
-          background: rgba(255, 255, 255, .055);
-          border: 1px solid rgba(255, 255, 255, .09);
+          border: 1px solid rgba(255, 255, 255, .1);
           border-radius: 13px;
           outline: none;
+          color: #f7f8ff;
+          background: rgba(255, 255, 255, .055);
           font: inherit;
-          font-size: .78rem;
+          font-size: .76rem;
+          font-weight: 650;
           line-height: 1.35;
+        }
+
+        .fieramixAIComposer textarea:focus {
+          border-color: rgba(32, 220, 142, .62);
+          box-shadow: 0 0 0 3px rgba(32, 220, 142, .08);
         }
 
         .fieramixAIComposer textarea::placeholder {
           color: #7f89ad;
         }
 
-        .fieramixAIComposer textarea:focus {
-          border-color: rgba(32, 220, 142, .7);
-          box-shadow: 0 0 0 3px rgba(32, 220, 142, .08);
-        }
-
         .fieramixAIComposer button {
           align-self: stretch;
-          padding: 0 13px;
+          min-width: 68px;
+          padding: 0 12px;
           border: 0;
           border-radius: 13px;
-          color: #04120c;
-          background: linear-gradient(135deg, #20dc8e, #7bf5be);
-          cursor: pointer;
-          font-size: .65rem;
+          color: #06130d;
+          background: linear-gradient(135deg, #20dc8e, #83f5c1);
+          font-size: .62rem;
           font-weight: 950;
           letter-spacing: .04em;
+          cursor: pointer;
         }
 
         .fieramixAIComposer button:disabled,
         .fieramixAIComposer textarea:disabled {
-          cursor: not-allowed;
           opacity: .55;
+          cursor: not-allowed;
         }
 
         .fieramixAIFooter {
           padding: 8px 12px 10px;
-          color: #6f789b;
+          color: #727c9e;
           background: rgba(8, 12, 29, .94);
           text-align: center;
-          font-size: .49rem;
+          font-size: .48rem;
           font-weight: 850;
-          letter-spacing: .05em;
-        }
-
-        @keyframes fieramixAITyping {
-          0%, 60%, 100% {
-            transform: translateY(0);
-            opacity: .45;
-          }
-
-          30% {
-            transform: translateY(-4px);
-            opacity: 1;
-          }
+          letter-spacing: .06em;
         }
 
         @media (max-width: 720px) {
           .fieramixAILauncher {
-            right: 14px;
-            bottom: 170px;
+            right: 12px;
+            bottom: 160px;
             min-height: 52px;
             padding-left: 12px;
+          }
+
+          .fieramixAILauncherText small {
+            display: none;
           }
 
           .fieramixAILauncher > b {
@@ -700,32 +730,11 @@ export default function FieramixAIChat() {
           }
 
           .fieramixAIWindow {
-            right: 12px;
-            bottom: 232px;
-            width: calc(100vw - 24px);
-            height: min(500px, calc(100vh - 255px));
-          }
-        }
-
-        @media (max-width: 430px) {
-          .fieramixAILauncherText {
-            display: none;
-          }
-
-          .fieramixAILauncher {
-            padding: 7px;
-          }
-
-          .fieramixAIWindow {
+            right: 10px;
+            bottom: 220px;
+            width: calc(100vw - 20px);
+            height: min(510px, calc(100vh - 245px));
             border-radius: 20px;
-          }
-
-          .fieramixAIComposer {
-            grid-template-columns: 1fr;
-          }
-
-          .fieramixAIComposer button {
-            min-height: 38px;
           }
         }
       `}</style>
