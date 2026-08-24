@@ -15,6 +15,17 @@ type FieramixAIResponse = {
   responseId?: string;
 };
 
+type SongRequestBridgeResult = {
+  query?: string;
+  status?: "found" | "not_found" | "unavailable" | "error";
+  message?: string;
+  results?: Array<{
+    text?: string;
+    canRequest?: boolean;
+    index?: number;
+  }>;
+};
+
 const MAX_MESSAGE_LENGTH = 1500;
 
 const INITIAL_MESSAGE: ChatMessage = {
@@ -23,6 +34,27 @@ const INITIAL_MESSAGE: ChatMessage = {
   text:
     "¡Hola! Soy FIERAMIX IA, el asistente virtual de EL GRUPO FIERAMIX.COM. ¿En qué puedo ayudarte?",
 };
+
+function normalizeText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isSongAvailabilityIntent(message: string): boolean {
+  const normalized = normalizeText(message);
+
+  return (
+    /\b(esta|tienen|tienes|existe|disponible|sistema|catalogo|buscar|busca|encuentra)\b/.test(
+      normalized,
+    ) &&
+    /\b(cancion|tema|sistema|catalogo|disponible)\b/.test(normalized)
+  );
+}
 
 export default function FieramixAIChat() {
   const [open, setOpen] = useState(false);
@@ -53,6 +85,70 @@ export default function FieramixAIChat() {
     ]);
   };
 
+  useEffect(() => {
+    const handleSongRequestResults = (event: Event) => {
+      const customEvent = event as CustomEvent<SongRequestBridgeResult>;
+      const detail = customEvent.detail ?? {};
+      const query = detail.query?.trim() || "esa canción";
+      const results = Array.isArray(detail.results) ? detail.results : [];
+
+      if (detail.status === "found" && results.length > 0) {
+        const available = results.filter((item) => item.canRequest !== false);
+        const names = available
+          .slice(0, 3)
+          .map((item) => item.text?.trim())
+          .filter((value): value is string => Boolean(value));
+
+        addMessage(
+          "assistant",
+          names.length > 0
+            ? `Sí. Encontré ${query} en el catálogo real de solicitudes de RadioBOSS. ${names.length === 1 ? "Resultado disponible" : "Resultados disponibles"}: ${names.join("; ")}.`
+            : `Sí. Encontré ${query} en el catálogo real de solicitudes de RadioBOSS.`,
+        );
+        setLoading(false);
+        return;
+      }
+
+      if (detail.status === "not_found") {
+        addMessage(
+          "assistant",
+          `No encontré ${query} en el catálogo de solicitudes que RadioBOSS tiene disponible en este momento.`,
+        );
+        setLoading(false);
+        return;
+      }
+
+      if (detail.status === "unavailable") {
+        addMessage(
+          "assistant",
+          detail.message ||
+            "El buscador de canciones todavía no está disponible. Inténtalo nuevamente en un momento.",
+        );
+        setLoading(false);
+        return;
+      }
+
+      addMessage(
+        "assistant",
+        detail.message ||
+          "No pude completar la búsqueda de esa canción en RadioBOSS.",
+      );
+      setLoading(false);
+    };
+
+    window.addEventListener(
+      "fieramix-songrequest-results",
+      handleSongRequestResults,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "fieramix-songrequest-results",
+        handleSongRequestResults,
+      );
+    };
+  }, []);
+
   const sendMessage = async () => {
     const message = input.trim();
 
@@ -69,6 +165,10 @@ export default function FieramixAIChat() {
     setInput("");
     addMessage("user", message);
     setLoading(true);
+
+    if (isSongAvailabilityIntent(message)) {
+      return;
+    }
 
     try {
       const response = await fetch("/api/fieramix-ai", {
