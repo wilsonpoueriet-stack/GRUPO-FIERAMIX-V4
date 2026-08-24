@@ -19,6 +19,7 @@ import FieramixProgramming from "@/components/content/FieramixProgramming";
 import NewsAndClub from "@/components/content/NewsAndClub";
 import LiveNetwork from "@/components/content/LiveNetwork";
 import SongRequest from "@/components/songrequest/SongRequest";
+import FieramixSongRequestBridge from "@/components/songrequest/FieramixSongRequestBridge";
 import { useRadioPortal } from "@/hooks/useRadioPortal";
 
 type ArtistGalleryItem = {
@@ -292,6 +293,7 @@ export default function RadioPortal() {
         />
 
         <SongRequest />
+        <FieramixSongRequestBridge />
 
         <RecentAndRanking
           history={visualHistory}
