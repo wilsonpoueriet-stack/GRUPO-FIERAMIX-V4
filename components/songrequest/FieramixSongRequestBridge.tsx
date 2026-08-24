@@ -94,7 +94,7 @@ function emitResults(detail: {
 function waitForFrame(
   previousFrame: HTMLIFrameElement | null,
   expectReplacement: boolean,
-  timeoutMs = 3500,
+  timeoutMs = 2500,
 ): Promise<HTMLIFrameElement | null> {
   return new Promise((resolve) => {
     const startedAt = Date.now();
@@ -119,7 +119,7 @@ function waitForFrame(
         return;
       }
 
-      window.setTimeout(check, 80);
+      window.setTimeout(check, 70);
     };
 
     check();
@@ -143,7 +143,7 @@ async function selectStation(stationId: string): Promise<HTMLIFrameElement | nul
 function searchCurrentFrame(
   frame: HTMLIFrameElement,
   query: string,
-  timeoutMs = 8000,
+  timeoutMs = 4000,
 ): Promise<{ status: SearchStatus; results: SongRequestResult[]; message?: string }> {
   return new Promise((resolve) => {
     const doc = frame.contentDocument;
@@ -162,6 +162,8 @@ function searchCurrentFrame(
 
     let settled = false;
     let timeoutId: number | undefined;
+    let emptyResultTimer: number | undefined;
+    let sawSearchResponse = false;
 
     const settle = (
       status: SearchStatus,
@@ -172,7 +174,24 @@ function searchCurrentFrame(
       settled = true;
       observer.disconnect();
       if (timeoutId) window.clearTimeout(timeoutId);
+      if (emptyResultTimer) window.clearTimeout(emptyResultTimer);
       resolve({ status, results, message });
+    };
+
+    const scheduleEmptyResultCheck = () => {
+      if (emptyResultTimer) window.clearTimeout(emptyResultTimer);
+
+      emptyResultTimer = window.setTimeout(() => {
+        if (settled || !sawSearchResponse) return;
+
+        const results = readResults(frame);
+        if (results.length > 0) {
+          settle("found", results);
+          return;
+        }
+
+        settle("not_found", [], "No se encontraron canciones.");
+      }, 650);
     };
 
     const inspect = () => {
@@ -189,15 +208,21 @@ function searchCurrentFrame(
 
       if (
         visible &&
-        /no se encontraron|no tracks|canción no encontrada|cancion no encontrada/i.test(
+        /no se encontraron|no tracks|canción no encontrada|cancion no encontrada|nothing found|no results/i.test(
           resultText,
         )
       ) {
         settle("not_found", [], resultText || "No se encontraron canciones.");
+        return;
+      }
+
+      if (sawSearchResponse) {
+        scheduleEmptyResultCheck();
       }
     };
 
     const observer = new MutationObserver(() => {
+      sawSearchResponse = true;
       window.requestAnimationFrame(inspect);
     });
 
@@ -212,14 +237,32 @@ function searchCurrentFrame(
     input.dispatchEvent(new Event("input", { bubbles: true }));
     button.click();
 
+    window.setTimeout(() => {
+      if (settled) return;
+      const results = readResults(frame);
+      if (results.length > 0) {
+        settle("found", results);
+        return;
+      }
+
+      if (getComputedStyle(resultBox).display !== "none") {
+        sawSearchResponse = true;
+        scheduleEmptyResultCheck();
+      }
+    }, 900);
+
     timeoutId = window.setTimeout(() => {
       const results = readResults(frame);
+
+      if (results.length > 0) {
+        settle("found", results);
+        return;
+      }
+
       settle(
-        results.length > 0 ? "found" : "error",
-        results,
-        results.length > 0
-          ? undefined
-          : "La búsqueda de RadioBOSS no respondió a tiempo.",
+        "not_found",
+        [],
+        "RadioBOSS terminó la búsqueda sin resultados.",
       );
     }, timeoutMs);
   });
@@ -275,7 +318,7 @@ export default function FieramixSongRequestBridge() {
         return;
       }
 
-      const listenerResult = await searchCurrentFrame(listenerFrame, query);
+      const listenerResult = await searchCurrentFrame(listenerFrame, query, 4000);
 
       if (listenerResult.status === "found") {
         emitResults({
@@ -311,7 +354,7 @@ export default function FieramixSongRequestBridge() {
         const frame = await selectStation(station.id);
         if (!frame) continue;
 
-        const result = await searchCurrentFrame(frame, query);
+        const result = await searchCurrentFrame(frame, query, 2500);
 
         if (result.status === "found") {
           matches.push({
