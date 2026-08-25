@@ -67,11 +67,31 @@ function wantsLiveData(message: string): boolean {
   );
 }
 
-function wantsRankingData(message: string): boolean {
+function wantsStationComparison(message: string): boolean {
   const normalized = normalizeRadioText(message);
-  return /\b(top|ranking|mas tocad|mas sonad|mas popular|mas escuchad|numero 1|numero uno|lider)\w*/.test(
+
+  const comparative = /\b(mas popular|mas escuchada|mas oida|mas oyentes|mayor audiencia|lider|primera|numero uno)\b/.test(
     normalized,
   );
+  const stationCue = /\b(emisora|radio|estacion|fieramix|bachata|merengue|salsa|baladas|reggaeton|rancheras|cristiana|internacional)\b/.test(
+    normalized,
+  );
+  const genericQuestion = /\b(cual|cuales|que)\b/.test(normalized);
+  const songCue = /\b(cancion|tema|sencillo|track|artista)\b/.test(normalized);
+
+  return comparative && !songCue && (stationCue || genericQuestion);
+}
+
+function wantsRankingData(message: string): boolean {
+  const normalized = normalizeRadioText(message);
+  const explicitRanking = /\b(top|ranking|mas tocad|mas sonad|numero 1|numero uno)\w*/.test(
+    normalized,
+  );
+  const songPopularity =
+    /\b(mas popular|mas escuchad|lider)\w*/.test(normalized) &&
+    /\b(cancion|tema|sencillo|track|artista)\b/.test(normalized);
+
+  return explicitRanking || songPopularity;
 }
 
 function wantsNewsData(message: string): boolean {
@@ -90,9 +110,7 @@ function requestedDays(message: string): number {
 }
 
 async function liveStationContext(stationId?: string): Promise<string> {
-  const ids = stationId
-    ? [stationId]
-    : Object.keys(radioBossStations);
+  const ids = stationId ? [stationId] : Object.keys(radioBossStations);
 
   const rows = await Promise.all(
     ids.map(async (id) => {
@@ -123,6 +141,52 @@ async function liveStationContext(stationId?: string): Promise<string> {
   );
 
   return rows.filter((row): row is string => Boolean(row)).join("\n");
+}
+
+async function networkAudienceContext(): Promise<string> {
+  const rows = await Promise.all(
+    Object.keys(radioBossStations).map(async (id) => {
+      const config = radioBossStations[id as keyof typeof radioBossStations];
+      if (!config) return null;
+
+      const station = stations.find((item) => item.id === id);
+
+      try {
+        const data = await getStationData(config, 1);
+        return {
+          station: station?.name || id,
+          listeners: typeof data.listeners === "number" ? data.listeners : null,
+          title: clean(data.currenttrack_title || data.currenttrack),
+          artist: clean(data.currenttrack_artist),
+        };
+      } catch {
+        return {
+          station: station?.name || id,
+          listeners: null,
+          title: "",
+          artist: "",
+        };
+      }
+    }),
+  );
+
+  const available = rows
+    .filter((row): row is NonNullable<typeof row> => Boolean(row))
+    .sort((a, b) => (b.listeners ?? -1) - (a.listeners ?? -1));
+
+  if (available.length === 0) {
+    return "No fue posible comparar la audiencia de las emisoras en este momento.";
+  }
+
+  return available
+    .map((row, index) => {
+      const audience = row.listeners === null ? "audiencia no disponible" : `${row.listeners} oyentes conectados`;
+      const nowPlaying = row.title
+        ? `; sonando: ${row.title}${row.artist ? ` — ${row.artist}` : ""}`
+        : "";
+      return `${index + 1}. ${row.station}: ${audience}${nowPlaying}`;
+    })
+    .join("\n");
 }
 
 async function rankingContext(message: string, stationId?: string): Promise<string> {
@@ -181,6 +245,7 @@ export async function buildFieramixPortalContext(
   client?: FieramixClientContext,
 ): Promise<string> {
   const stationId = findStationId(message, client);
+  const compareStations = wantsStationComparison(message);
   const blocks: string[] = [
     `HORA OFICIAL DE REPÚBLICA DOMINICANA\n${dominicanNowLabel()}`,
     `MAPA REAL DEL PORTAL\n${PORTAL_SECTIONS.join("\n")}`,
@@ -197,7 +262,11 @@ export async function buildFieramixPortalContext(
     blocks.push(`CONTEXTO ACTUAL DEL USUARIO EN EL PORTAL\n${clientState}`);
   }
 
-  if (wantsLiveData(message) || stationId) {
+  if (compareStations) {
+    blocks.push(
+      `COMPARACIÓN DE AUDIENCIA EN VIVO DE TODA LA RED\n${await networkAudienceContext()}\n\nInterpretación: esta comparación indica cuál emisora tiene más oyentes conectados en este instante. No la presentes como popularidad histórica salvo que existan datos históricos específicos.`,
+    );
+  } else if (wantsLiveData(message) || stationId) {
     blocks.push(`DATOS EN VIVO DE RADIOBOSS\n${await liveStationContext(stationId)}`);
   }
 
