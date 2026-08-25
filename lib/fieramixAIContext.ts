@@ -156,7 +156,7 @@ async function rankingContext(message: string): Promise<string> {
 
 async function audienceHistoryContext(message: string): Promise<string> {
   const normalized = normalize(message);
-  if (!/audiencia|oyente|escuchad/.test(normalized) || !/histor|ranking|top|semana|mes|anual/.test(normalized)) return "";
+  if (!/audiencia|oyente|escuchad|emisora|estacion|toda la red/.test(normalized) || !/histor|ranking|top|semana|mes|anual/.test(normalized)) return "";
 
   const days = requestedDays(message);
   const store = getStore({ name: STORE_NAME, consistency: "strong" });
