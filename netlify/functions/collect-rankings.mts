@@ -20,6 +20,21 @@ type NowPlayingPayload = {
   recent?: RecentTrackPayload[];
   status?: string;
   source?: string;
+  listeners?: number | null;
+};
+
+type AudienceSample = {
+  stationId: string;
+  stationName: string;
+  listeners: number;
+  capturedAt: string;
+};
+
+type DailyAudienceHistory = {
+  version: 1;
+  date: string;
+  updatedAt: string;
+  samples: Record<string, AudienceSample>;
 };
 
 type StoredPlay = {
@@ -165,6 +180,10 @@ function previousDateKey(dateKey: string): string {
   ].join("-");
 }
 
+function dateKeyFromIso(value: string): string {
+  return toDateKey(getDominicanParts(new Date(value)));
+}
+
 function resolvePlayedAt(
   started: string,
   capturedAt: Date,
@@ -302,6 +321,21 @@ async function readDay(
   };
 }
 
+async function readAudienceDay(
+  store: ReturnType<typeof getStore>,
+  dateKey: string,
+): Promise<DailyAudienceHistory> {
+  const stored = (await store.get(`audience/days/${dateKey}`, {
+    type: "json",
+  })) as DailyAudienceHistory | null;
+
+  if (stored?.version === 1 && stored.date === dateKey && stored.samples) {
+    return stored;
+  }
+
+  return { version: 1, date: dateKey, updatedAt: new Date(0).toISOString(), samples: {} };
+}
+
 export default async function collectRankings(): Promise<Response> {
   const runStartedAt = new Date();
   const siteUrl = clean(process.env.URL || process.env.DEPLOY_PRIME_URL);
@@ -324,6 +358,7 @@ export default async function collectRankings(): Promise<Response> {
   });
 
   const playsByDay = new Map<string, StoredPlay[]>();
+  const audienceSamples: AudienceSample[] = [];
   const errors: CollectorStatus["errors"] = [];
   let stationsSucceeded = 0;
   let playsDetected = 0;
@@ -339,6 +374,15 @@ export default async function collectRankings(): Promise<Response> {
         : [];
 
       const stationEvents: StoredPlay[] = [];
+
+      if (typeof payload.listeners === "number" && payload.listeners >= 0) {
+        audienceSamples.push({
+          stationId: station.id,
+          stationName: station.name,
+          listeners: payload.listeners,
+          capturedAt: capturedAtIso,
+        });
+      }
 
       for (const track of recent) {
         const title = clean(track.title);
@@ -437,6 +481,26 @@ export default async function collectRankings(): Promise<Response> {
     });
 
     affectedDays.push(dateKey);
+  }
+
+  const audienceByDay = new Map<string, AudienceSample[]>();
+  for (const sample of audienceSamples) {
+    const key = dateKeyFromIso(sample.capturedAt);
+    const current = audienceByDay.get(key) ?? [];
+    current.push(sample);
+    audienceByDay.set(key, current);
+  }
+
+  for (const [dateKey, samples] of audienceByDay) {
+    const day = await readAudienceDay(store, dateKey);
+    for (const sample of samples) {
+      const bucket = sample.capturedAt.slice(0, 16);
+      day.samples[`${sample.stationId}::${bucket}`] = sample;
+    }
+    day.updatedAt = new Date().toISOString();
+    await store.setJSON(`audience/days/${dateKey}`, day, {
+      metadata: { date: dateKey, sampleCount: Object.keys(day.samples).length, updatedAt: day.updatedAt },
+    });
   }
 
   const status: CollectorStatus = {

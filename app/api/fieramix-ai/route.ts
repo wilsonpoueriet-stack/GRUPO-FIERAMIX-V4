@@ -6,6 +6,7 @@ import {
   getMostPlayedTracks,
   normalizeRadioText,
 } from "@/lib/radio-intelligence";
+import { buildFieramixAIContext } from "@/lib/fieramixAIContext";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -388,6 +389,8 @@ export async function POST(
       });
     }
 
+    const portalContext = await buildFieramixAIContext(message);
+
     const openai = new OpenAI({
       apiKey,
     });
@@ -398,7 +401,7 @@ export async function POST(
           process.env.OPENAI_MODEL?.trim() ||
           "gpt-5.5",
         instructions:
-          FIERAMIX_AI_INSTRUCTIONS,
+          `${FIERAMIX_AI_INSTRUCTIONS}\n\n${portalContext}`,
         input: message,
         max_output_tokens: 800,
         previous_response_id:
@@ -430,13 +433,21 @@ export async function POST(
       error,
     );
 
+    const errorCode =
+      typeof error === "object" && error !== null && "code" in error
+        ? String(error.code)
+        : "";
+
     return noStoreJson(
       {
         ok: false,
         error:
-          "No fue posible obtener una respuesta de FIERAMIX IA.",
+          errorCode === "insufficient_quota"
+            ? "FIERAMIX IA agotó temporalmente el saldo de su servicio de inteligencia artificial."
+            : "No fue posible obtener una respuesta de FIERAMIX IA.",
       },
       502,
     );
   }
 }
+
