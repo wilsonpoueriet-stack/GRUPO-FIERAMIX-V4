@@ -375,11 +375,16 @@ export default async function collectRankings(): Promise<Response> {
 
       const stationEvents: StoredPlay[] = [];
 
-      if (typeof payload.listeners === "number" && payload.listeners >= 0) {
+      const listeners =
+        payload.listeners === null || payload.listeners === undefined
+          ? Number.NaN
+          : Number(payload.listeners);
+
+      if (Number.isFinite(listeners) && listeners >= 0) {
         audienceSamples.push({
           stationId: station.id,
           stationName: station.name,
-          listeners: payload.listeners,
+          listeners,
           capturedAt: capturedAtIso,
         });
       }
