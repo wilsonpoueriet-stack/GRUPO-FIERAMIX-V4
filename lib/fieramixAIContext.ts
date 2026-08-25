@@ -118,6 +118,11 @@ async function rankingContext(message: string): Promise<string> {
   const normalized = normalize(message);
   if (!/ranking|top|tocad|cancion|historial|historico/.test(normalized)) return "";
 
+  const asksForStationRanking =
+    /todas? las emisoras|ranking.{0,40}emisoras|emisoras.{0,40}ranking/.test(normalized) &&
+    !/cancion|tema|tocad|musical/.test(normalized);
+  if (asksForStationRanking) return "";
+
   const days = requestedDays(message);
   const stationId = requestedStationId(message);
   const store = getStore({ name: STORE_NAME, consistency: "strong" });
@@ -194,7 +199,7 @@ async function audienceHistoryContext(message: string): Promise<string> {
     .map((item, index) => `${index + 1}. ${item.name}: promedio ${(item.total / item.samples).toFixed(1)}, pico ${item.peak}, ${item.samples} mediciones`)
     .join("\n");
 
-  return `AUDIENCIA HISTÓRICA REAL (${keys.length} días almacenados):\n${ranking || "La recopilación histórica de audiencia comienza con esta actualización; no existen mediciones anteriores guardadas."}`;
+  return `RESPUESTA PARA RANKING DE EMISORAS: usa exclusivamente esta audiencia histórica y no muestres rankings de canciones. AUDIENCIA HISTÓRICA REAL (${keys.length} días almacenados):\n${ranking || "La recopilación histórica de audiencia comienza con esta actualización; todavía no existen mediciones suficientes para formar el ranking."}`;
 }
 
 export async function buildFieramixAIContext(message: string): Promise<string> {
