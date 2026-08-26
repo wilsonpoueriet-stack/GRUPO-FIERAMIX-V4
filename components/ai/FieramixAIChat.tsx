@@ -69,6 +69,26 @@ function isSongAvailabilityIntent(message: string): boolean {
   );
 }
 
+function isDirectSongRequest(message: string): boolean {
+  const normalized = normalizeText(message);
+  const words = normalized.split(" ").filter(Boolean);
+
+  if (
+    words.length < 2 ||
+    words.length > 12 ||
+    /[?¿!¡]/.test(message)
+  ) {
+    return false;
+  }
+
+  const conversationalIntent =
+    /\b(hola|saludos|buenos dias|buenas tardes|buenas noches|gracias|ayuda|como|cuando|donde|cual|quien|porque|ranking|audiencia|emisora|programacion|pausa|pausar|continua|continuar|reanuda|reanudar|escuchar|sintoniza|sintonizar)\b/.test(
+      normalized,
+    );
+
+  return !conversationalIntent;
+}
+
 export default function FieramixAIChat() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -239,6 +259,46 @@ export default function FieramixAIChat() {
     setLoading(true);
 
     if (isSongAvailabilityIntent(message)) {
+      return;
+    }
+
+    if (isDirectSongRequest(message)) {
+      try {
+        const response = await fetch("/api/programming-request", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: message }),
+        });
+
+        const data = (await response.json()) as {
+          ok?: boolean;
+          emailSent?: boolean;
+          error?: string;
+        };
+
+        if (response.ok && data.ok) {
+          addMessage(
+            "assistant",
+            data.emailSent
+              ? `¡Solicitud enviada! Pasé “${message}” por correo al Departamento de Programación.`
+              : `Registré la solicitud “${message}” para que el Departamento de Programación la revise.`,
+          );
+        } else {
+          addMessage(
+            "assistant",
+            data.error ||
+              "No pude enviar la solicitud musical en este momento. Inténtalo nuevamente.",
+          );
+        }
+      } catch {
+        addMessage(
+          "assistant",
+          "No pude enviar la solicitud musical en este momento. Inténtalo nuevamente.",
+        );
+      } finally {
+        setLoading(false);
+      }
+
       return;
     }
 
