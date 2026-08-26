@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { news } from "@/data/news";
+import { getPublishedNews } from "@/lib/news-store";
 
 type NewsPageProps = {
   params: Promise<{
@@ -39,16 +39,11 @@ function formatPublicationDate(value?: string) {
   return `${weekday} ${dayMonth} · ${time}`;
 }
 
-export function generateStaticParams() {
-  return news.map((item) => ({
-    id: item.id,
-  }));
-}
-
 export async function generateMetadata({
   params,
 }: NewsPageProps): Promise<Metadata> {
   const { id } = await params;
+  const news = await getPublishedNews();
   const item = news.find((newsItem) => newsItem.id === id);
 
   if (!item) {
@@ -100,6 +95,7 @@ export async function generateMetadata({
 
 export default async function NewsDetailPage({ params }: NewsPageProps) {
   const { id } = await params;
+  const news = await getPublishedNews();
   const item = news.find((newsItem) => newsItem.id === id);
 
   if (!item) {
