@@ -1,5 +1,7 @@
 import RadioPortal from "@/components/RadioPortal";
 
+export const dynamic = "force-dynamic";
+
 const SITE_URL = "https://fieramix.com";
 
 const jsonLd = {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { news } from "@/data/news";
+import { getPublishedNews } from "@/lib/news-store";
 
 const newsLinkStyle = {
   position: "absolute" as const,
@@ -31,7 +31,8 @@ const newsContentStyle = {
   zIndex: 2,
 };
 
-export default function NewsAndClub() {
+export default async function NewsAndClub() {
+  const news = await getPublishedNews();
   const featuredNews = news.find((item) => item.featured) ?? news[0];
   const secondaryNews = news
     .filter((item) => item.id !== featuredNews?.id)
