@@ -75,9 +75,9 @@ async function sendProgrammingEmail(input: {
   }
 
   const stationName = input.stationName || "emisora no identificada";
-  const subject = `FIERAMIX IA · canción solicitada no disponible: ${input.songQuery}`;
+  const subject = `FIERAMIX IA · nueva solicitud musical: ${input.songQuery}`;
   const text = [
-    "FIERAMIX IA detectó una canción solicitada que no aparece en ninguna emisora del sistema.",
+    "FIERAMIX IA recibió una solicitud musical para revisión del Departamento de Programación.",
     "",
     `Canción / búsqueda: ${input.songQuery}`,
     `Emisora que escuchaba el oyente: ${stationName}`,
@@ -89,8 +89,8 @@ async function sendProgrammingEmail(input: {
 
   const html = `
     <div style="font-family:Arial,Helvetica,sans-serif;line-height:1.5;color:#111827">
-      <h2 style="margin:0 0 16px">FIERAMIX IA · solicitud pendiente de programación</h2>
-      <p>FIERAMIX IA detectó una canción solicitada que no aparece en ninguna emisora del sistema.</p>
+      <h2 style="margin:0 0 16px">FIERAMIX IA · nueva solicitud musical</h2>
+      <p>FIERAMIX IA recibió una solicitud musical para revisión del Departamento de Programación.</p>
       <p><strong>Canción / búsqueda:</strong> ${escapeHtml(input.songQuery)}</p>
       <p><strong>Emisora que escuchaba el oyente:</strong> ${escapeHtml(stationName)}</p>
       <p><strong>Fecha y hora:</strong> ${escapeHtml(input.createdAt)}</p>
