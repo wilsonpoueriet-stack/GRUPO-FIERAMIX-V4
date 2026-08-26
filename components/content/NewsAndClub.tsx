@@ -1,5 +1,36 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { news } from "@/data/news";
+import type { NewsItem } from "@/data/news";
+
+const fallbackNewsImage = "/noticias/fieramix-noticias-espacio-informativo.png";
+type NewsApiResponse = { news: unknown[] };
+
+function isNewsApiResponse(value: unknown): value is NewsApiResponse {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "news" in value &&
+    Array.isArray(value.news)
+  );
+}
+
+function isPublishedNewsItem(value: unknown): value is NewsItem & { status: "published" } {
+  if (!value || typeof value !== "object") return false;
+
+  const item = value as Partial<NewsItem> & { status?: unknown };
+  return (
+    item.status === "published" &&
+    typeof item.id === "string" &&
+    typeof item.title === "string" &&
+    typeof item.excerpt === "string" &&
+    typeof item.category === "string" &&
+    Array.isArray(item.content) &&
+    item.content.every((paragraph) => typeof paragraph === "string")
+  );
+}
 
 const newsLinkStyle = {
   position: "absolute" as const,
@@ -32,8 +63,46 @@ const newsContentStyle = {
 };
 
 export default function NewsAndClub() {
-  const featuredNews = news.find((item) => item.featured) ?? news[0];
-  const secondaryNews = news
+  const [newsItems, setNewsItems] = useState(news);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 5000);
+
+    async function loadNews() {
+      try {
+        const response = await fetch("/api/news", {
+          signal: controller.signal,
+          cache: "no-store",
+        });
+        if (!response.ok) return;
+
+        const payload: unknown = await response.json();
+        if (!isNewsApiResponse(payload)) return;
+
+        const publishedNews = payload.news.filter(isPublishedNewsItem);
+        if (publishedNews.length !== payload.news.length) return;
+
+        publishedNews.sort((a, b) =>
+          (b.publishedAt || "").localeCompare(a.publishedAt || ""),
+        );
+        if (publishedNews.length > 0) setNewsItems(publishedNews.slice(0, 3));
+      } catch {
+        // Keep the static news when the optional refresh is unavailable.
+      } finally {
+        window.clearTimeout(timeout);
+      }
+    }
+
+    void loadNews();
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, []);
+
+  const featuredNews = newsItems.find((item) => item.featured) ?? newsItems[0];
+  const secondaryNews = newsItems
     .filter((item) => item.id !== featuredNews?.id)
     .slice(0, 2);
 
@@ -63,17 +132,15 @@ export default function NewsAndClub() {
                 overflow: "hidden",
               }}
             >
-              {featuredNews.image ? (
-                <>
-                  <img
-                    src={featuredNews.image}
-                    alt=""
-                    aria-hidden="true"
-                    style={newsImageStyle}
-                  />
-                  <div style={newsOverlayStyle} />
-                </>
-              ) : null}
+              <>
+                <img
+                  src={featuredNews.image || fallbackNewsImage}
+                  alt=""
+                  aria-hidden="true"
+                  style={newsImageStyle}
+                />
+                <div style={newsOverlayStyle} />
+              </>
 
               <Link
                 href={`/noticias/${featuredNews.id}`}
@@ -109,17 +176,15 @@ export default function NewsAndClub() {
                 overflow: "hidden",
               }}
             >
-              {item.image ? (
-                <>
-                  <img
-                    src={item.image}
-                    alt=""
-                    aria-hidden="true"
-                    style={newsImageStyle}
-                  />
-                  <div style={newsOverlayStyle} />
-                </>
-              ) : null}
+              <>
+                <img
+                  src={item.image || fallbackNewsImage}
+                  alt=""
+                  aria-hidden="true"
+                  style={newsImageStyle}
+                />
+                <div style={newsOverlayStyle} />
+              </>
 
               <Link
                 href={`/noticias/${item.id}`}
