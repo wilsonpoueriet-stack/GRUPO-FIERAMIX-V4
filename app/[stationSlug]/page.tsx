@@ -18,6 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const canonical = `/${stationSlug}`;
   const title = `${station.name} | Radio online en vivo`;
+  const socialImage = `/social/${station.id}.jpg`;
   return {
     title,
     description: station.description,
@@ -29,9 +30,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: "EL GRUPO FIERAMIX.COM",
       locale: "es_DO",
       type: "website",
-      images: [{ url: station.logo, alt: station.name }],
+      images: [{ url: socialImage, width: 1200, height: 630, alt: `${station.name} — ${station.slogan}` }],
     },
-    twitter: { card: "summary", title, description: station.description, images: [station.logo] },
+    twitter: { card: "summary_large_image", title, description: station.description, images: [socialImage] },
   };
 }
 

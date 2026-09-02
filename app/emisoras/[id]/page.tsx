@@ -27,6 +27,7 @@ export async function generateMetadata({
   const canonical = `/emisoras/${station.id}`;
   const title = `${station.name} | Radio online de ${station.genre}`;
   const socialTitle = `${station.name} | EL GRUPO FIERAMIX.COM`;
+  const socialImage = `/social/${station.id}.jpg`;
 
   return {
     title,
@@ -43,16 +44,18 @@ export async function generateMetadata({
       type: "website",
       images: [
         {
-          url: station.logo,
+          url: socialImage,
+          width: 1200,
+          height: 630,
           alt: `${station.name} — ${station.slogan}`,
         },
       ],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: socialTitle,
       description: station.description,
-      images: [station.logo],
+      images: [socialImage],
     },
   };
 }

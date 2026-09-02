@@ -4,7 +4,7 @@ import ServiceWorkerRegister from "../components/pwa/ServiceWorkerRegister";
 
 const SITE_NAME = "EL GRUPO FIERAMIX.COM";
 const SITE_URL = "https://fieramix.com";
-const SOCIAL_IMAGE = "/logos/grupo-fieramix.png";
+const SOCIAL_IMAGE = "/social/fieramix.jpg";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -40,14 +40,14 @@ export const metadata: Metadata = {
     images: [
       {
         url: SOCIAL_IMAGE,
-        width: 1080,
-        height: 1080,
+        width: 1200,
+        height: 630,
         alt: "EL GRUPO FIERAMIX.COM — La red latina que mueve al mundo",
       },
     ],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "EL GRUPO FIERAMIX.COM | La red latina que mueve al mundo",
     description:
       "La mejor música latina de todos los tiempos en nueve emisoras online, las 24 horas desde República Dominicana.",
