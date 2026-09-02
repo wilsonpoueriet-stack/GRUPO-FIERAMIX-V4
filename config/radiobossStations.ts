@@ -55,7 +55,7 @@ export const radioBossStations = {
   },
 
   latinamix: {
-    server: "c13.radioboss.fm",
+    server: "c15.radioboss.fm",
     stationId: 233,
   },
 
