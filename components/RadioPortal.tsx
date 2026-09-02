@@ -15,6 +15,7 @@ import PremiumPlayer from "@/components/player/PremiumPlayer";
 import StickyPlayer from "@/components/player/StickyPlayer";
 import StationsGrid from "@/components/stations/StationsGrid";
 import MostListenedStations from "@/components/stations/MostListenedStations";
+import FieramixVipGallery from "@/components/stations/FieramixVipGallery";
 import RecentAndRanking from "@/components/content/RecentAndRanking";
 import FieramixProgramming from "@/components/content/FieramixProgramming";
 import NewsAndClub from "@/components/content/NewsAndClub";
@@ -162,6 +163,10 @@ export default function RadioPortal() {
           }}
         />
         <NewsAndClub />
+        <FieramixVipGallery
+          stations={radio.stations}
+          onPlayStation={(station) => void radio.playStation(station)}
+        />
       </main>
       <Footer />
       <AppDownloadFloat />

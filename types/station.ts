@@ -7,7 +7,14 @@ export type StationId =
   | "reggaeton"
   | "rancheras"
   | "internacional"
-  | "cristiana";
+  | "cristiana"
+  | "ahora"
+  | "utopia"
+  | "latinamix"
+  | "radio-bavaro"
+  | "estrella"
+  | "magia"
+  | "makao";
 
 export type StationFeatures = {
   listeners: boolean;
@@ -45,4 +52,6 @@ export type Station = {
   theme?: StationTheme;
   radioBoss?: StationRadioBossPublicConfig;
   features?: StationFeatures;
+  /** Las emisoras invitadas pueden sonar y medir audiencia sin sumar al TOP. */
+  rankingEligible?: boolean;
 };

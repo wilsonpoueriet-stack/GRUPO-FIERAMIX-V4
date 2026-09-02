@@ -389,6 +389,13 @@ export default async function collectRankings(): Promise<Response> {
         });
       }
 
+      if (station.rankingEligible === false) {
+        return {
+          stationId: station.id,
+          events: stationEvents,
+        };
+      }
+
       for (const track of recent) {
         const title = clean(track.title);
         const artist = clean(track.artist);

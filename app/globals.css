@@ -251,6 +251,19 @@ main { overflow: hidden; }
 .clubSection { margin: 0 5vw 90px; padding: 55px; border-radius: 30px; display: flex; align-items: center; justify-content: space-between; gap: 30px; background: linear-gradient(120deg, #6436d9, #111833 65%, #0b7250); }
 .clubSection h2 { margin: 10px 0; font-size: clamp(2rem, 4vw, 3.5rem); }.clubSection p { color: #d5daf0; }.clubSection a { flex: 0 0 auto; background: #20dc8e; color: #04130d; border-radius: 999px; padding: 16px 24px; font-weight: 900; }
 
+.vipGallery { padding: 30px 5vw 92px; background: radial-gradient(circle at 50% 35%, rgba(139,92,246,.16), transparent 48%); }
+.vipGalleryHeading { text-align: center; margin-bottom: 34px; }
+.vipGalleryHeading span { color: #7bf5be; font-size: .75rem; font-weight: 900; letter-spacing: .2em; }
+.vipGalleryHeading h2 { margin: 9px 0 0; font-size: clamp(2rem, 4.8vw, 4.2rem); letter-spacing: -.045em; }
+.vipStationLogos { max-width: 1400px; margin: auto; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 15px; }
+.vipStationLogo { --station-accent: #8b5cf6; position: relative; min-width: 0; aspect-ratio: 1; padding: 17px; border: 1px solid color-mix(in srgb, var(--station-accent) 34%, rgba(255,255,255,.08)); border-radius: 22px; background: linear-gradient(145deg, rgba(255,255,255,.08), rgba(7,10,25,.94)); overflow: hidden; transition: transform .2s, border-color .2s, box-shadow .2s; }
+.vipStationLogo:hover { transform: translateY(-5px); border-color: var(--station-accent); box-shadow: 0 18px 40px rgba(0,0,0,.32), 0 0 28px color-mix(in srgb, var(--station-accent) 20%, transparent); }
+.vipStationLogo img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.directoryStrip { max-width: 1400px; margin: 30px auto 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; }
+.directoryStrip a { height: 90px; display: grid; place-items: center; padding: 12px; overflow: hidden; border-radius: 18px; background: #fff; border: 1px solid rgba(255,255,255,.14); transition: transform .2s, box-shadow .2s; }
+.directoryStrip a:hover { transform: translateY(-3px); box-shadow: 0 14px 28px rgba(0,0,0,.28); }
+.directoryStrip img { width: 100%; height: 100%; object-fit: contain; }
+
 footer { padding: 35px 5vw 115px; display: flex; align-items: center; gap: 30px; border-top: 1px solid var(--line); background: #030510; color: var(--muted); }
 .footerBrand { display: flex; align-items: center; gap: 12px; }.footerBrand img { width: 55px; height: 55px; object-fit: contain; }.footerBrand div { display: grid; }.footerBrand strong { color: #fff; }.footerLinks { margin-left: auto; display: flex; gap: 18px; } footer small { margin-left: 20px; }
 
@@ -259,6 +272,8 @@ footer { padding: 35px 5vw 115px; display: flex; align-items: center; gap: 30px;
 .stickyControls { display: flex; gap: 10px; align-items: center; }.stickyControls button { border: 0; background: transparent; color: #fff; }.stickyControls .stickyPlay { width: 54px; height: 54px; border-radius: 50%; background: var(--accent); font-size: 1.05rem; }.stickyLive { justify-self: end; color: #7bf5be; font-size: .75rem; font-weight: 900; }
 
 @media (max-width: 1050px) {
+  .vipStationLogos { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .directoryStrip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .siteHeader nav { position: absolute; top: 84px; left: 0; right: 0; display: none; padding: 20px 5vw; background: #070a19; flex-direction: column; align-items: flex-start; }
   .siteHeader nav.open { display: flex; }.menuButton { display: block; }.liveButton { display: none; }
   .heroShell { grid-template-columns: 1fr; padding-top: 65px; }.heroCopy { text-align: center; }.heroCopy > p { margin-inline: auto; }.heroActions, .heroMetrics { justify-content: center; }
@@ -266,6 +281,11 @@ footer { padding: 35px 5vw 115px; display: flex; align-items: center; gap: 30px;
 }
 
 @media (max-width: 680px) {
+  .vipGallery { padding: 20px 18px 65px; }
+  .vipStationLogos { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+  .vipStationLogo { padding: 12px; border-radius: 17px; }
+  .directoryStrip { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .directoryStrip a { height: 78px; }
   body { padding-bottom: 78px; }.siteHeader { min-height: 72px; padding: 8px 16px; }.brand { min-width: 0; }.brand img { width: 52px; height: 52px; }.brand div { display: none; }.siteHeader nav { top: 72px; }
   .heroShell { padding: 48px 18px 60px; gap: 35px; }.heroCopy h1 { font-size: 3rem; }.heroActions { flex-direction: column; }.heroMetrics { gap: 20px; }.heroMetrics strong { font-size: 1.45rem; }
   .premiumPlayer { padding: 20px 16px; border-radius: 24px; }.stationGrid { grid-template-columns: 1fr; }.section, .newsSection, .contentBand { padding: 65px 18px; }.clubSection { margin: 0 18px 65px; padding: 34px 24px; flex-direction: column; align-items: flex-start; }.newsGrid { grid-template-columns: 1fr; }.newsLead { grid-column: auto; }

@@ -43,4 +43,39 @@ export const radioBossStations = {
     server: "c13.radioboss.fm",
     stationId: 188,
   },
+
+  ahora: {
+    server: "c11.radioboss.fm",
+    stationId: 273,
+  },
+
+  utopia: {
+    server: "c13.radioboss.fm",
+    stationId: 183,
+  },
+
+  latinamix: {
+    server: "c13.radioboss.fm",
+    stationId: 233,
+  },
+
+  "radio-bavaro": {
+    server: "c15.radioboss.fm",
+    stationId: 219,
+  },
+
+  estrella: {
+    server: "c13.radioboss.fm",
+    stationId: 187,
+  },
+
+  magia: {
+    server: "c13.radioboss.fm",
+    stationId: 195,
+  },
+
+  makao: {
+    server: "c13.radioboss.fm",
+    stationId: 194,
+  },
 } as const;
