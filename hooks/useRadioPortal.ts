@@ -195,6 +195,10 @@ function isRadioAhoraStation(station: Station): boolean {
   );
 }
 
+function isExternalGuestStation(station: Station): boolean {
+  return station.rankingEligible === false && !isRadioAhoraStation(station);
+}
+
 export function hasFieramixSoundProfile(
   station: Station,
 ): boolean {
@@ -208,7 +212,8 @@ export function hasFieramixSoundProfile(
     isInternacionalStation(station) ||
     isCristianaStation(station) ||
     isFieramixStation(station) ||
-    isRadioAhoraStation(station)
+    isRadioAhoraStation(station) ||
+    isExternalGuestStation(station)
   );
 }
 
@@ -1253,6 +1258,37 @@ export function applyFieramixSoundProfile(
       graph.master.gain,
       0.97,
     );
+
+    return;
+  }
+
+  if (isExternalGuestStation(station)) {
+    // FIERAMIX SOUND WEB — EMISORAS INVITADAS V1 / POTENCIA
+    // Perfil equilibrado para señales externas: más cuerpo y presencia,
+    // con control de picos para conservar claridad sin saturación.
+    setParam(graph.context, graph.lowShelf.frequency, 95);
+    setParam(graph.context, graph.lowShelf.gain, 0.9);
+
+    setParam(graph.context, graph.lowMidClean.frequency, 315);
+    setParam(graph.context, graph.lowMidClean.Q, 0.8);
+    setParam(graph.context, graph.lowMidClean.gain, -0.45);
+
+    setParam(graph.context, graph.presence.frequency, 2_750);
+    setParam(graph.context, graph.presence.Q, 0.72);
+    setParam(graph.context, graph.presence.gain, 0.55);
+
+    setParam(graph.context, graph.air.frequency, 9_500);
+    setParam(graph.context, graph.air.gain, 0.35);
+
+    setStereoWidth(graph, 1.08);
+
+    setParam(graph.context, graph.limiter.threshold, -1.5);
+    setParam(graph.context, graph.limiter.knee, 0);
+    setParam(graph.context, graph.limiter.ratio, 10);
+    setParam(graph.context, graph.limiter.attack, 0.0028);
+    setParam(graph.context, graph.limiter.release, 0.115);
+
+    setParam(graph.context, graph.master.gain, 0.98);
 
     return;
   }
