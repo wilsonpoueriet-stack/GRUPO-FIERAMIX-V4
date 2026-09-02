@@ -38,6 +38,10 @@ export default function FieramixVipGallery({ stations }: Props) {
             style={{ "--station-accent": station.accent } as CSSProperties}
           >
             <img src={station.logo} alt={station.name} loading="lazy" />
+            <span>
+              <b>{station.name}</b>
+              <small>{station.genre}</small>
+            </span>
           </Link>
         ))}
       </div>
