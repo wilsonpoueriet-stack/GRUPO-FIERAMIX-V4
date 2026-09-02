@@ -60,7 +60,7 @@ export const radioBossStations = {
   },
 
   "radio-bavaro": {
-    server: "c15.radioboss.fm",
+    server: "c5.radioboss.fm",
     stationId: 219,
   },
 
