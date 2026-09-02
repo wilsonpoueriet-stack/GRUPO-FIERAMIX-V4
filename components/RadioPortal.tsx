@@ -5,6 +5,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import WhatsAppFloat from "@/components/layout/WhatsAppFloat";
 import AppDownloadFloat from "@/components/layout/AppDownloadFloat";
+import SupportFloat from "@/components/layout/SupportFloat";
 import InstallAppPrompt from "@/components/pwa/InstallAppPrompt";
 import FieramixAIChat from "@/components/ai/FieramixAIChat";
 import FieramixAIController from "@/components/ai/FieramixAIController";
@@ -166,6 +167,7 @@ export default function RadioPortal() {
         <FieramixVipGallery stations={radio.stations} />
       </main>
       <Footer />
+      <SupportFloat />
       <AppDownloadFloat />
       <FieramixAIPortalContextBridge
         stationId={radio.selected.id}
