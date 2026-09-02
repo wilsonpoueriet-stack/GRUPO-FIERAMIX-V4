@@ -29,6 +29,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "daily",
       priority: 0.95,
     },
+    {
+      url: `${SITE_URL}/apoyar`,
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
     ...stationPages,
     ...newsPages,
   ];

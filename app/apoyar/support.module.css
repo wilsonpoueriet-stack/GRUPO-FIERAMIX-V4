@@ -1,0 +1,18 @@
+.page { min-height: 100vh; padding: 28px 6vw 110px; color: #f8f9ff; background: radial-gradient(circle at 75% 12%, rgba(32,220,142,.18), transparent 30%), #050816; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-size: .82rem; font-weight: 900; }
+.brand img { width: 48px; height: 48px; object-fit: contain; }
+.hero { max-width: 850px; margin: 80px auto 100px; text-align: center; }
+.hero > span, .methods > span { color: #7bf5be; font-size: .72rem; font-weight: 900; letter-spacing: .18em; }
+.hero h1 { margin: 14px 0 20px; font-size: clamp(3rem, 7vw, 6.5rem); line-height: .88; letter-spacing: -.065em; }
+.hero > p { max-width: 680px; margin: auto; color: #b9c1df; font-size: 1.05rem; line-height: 1.7; }
+.paypal { margin: 30px auto 0; display: grid; justify-items: center; gap: 10px; }
+.paypal button, .methods > a { min-height: 52px; padding: 0 25px; border: 0; border-radius: 999px; color: #04130d; background: #20dc8e; font-weight: 900; box-shadow: 0 16px 38px rgba(32,220,142,.2); }
+.paypal small { color: #8f99ba; }
+.methods { max-width: 1150px; margin: auto; padding: 48px; border: 1px solid rgba(255,255,255,.1); border-radius: 30px; background: #0c112a; }
+.methods h2 { margin: 9px 0 28px; font-size: clamp(2rem, 4vw, 3.6rem); }
+.methods > div { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+.methods article { padding: 22px; border-radius: 18px; background: rgba(255,255,255,.04); }
+.methods h3 { margin: 0 0 7px; }.methods p { margin: 0; color: #aeb7d7; line-height: 1.55; }
+.methods > a { width: max-content; margin-top: 25px; display: flex; align-items: center; }
+.page footer { max-width: 1150px; margin: 45px auto 0; display: flex; justify-content: space-between; color: #9da7c8; font-size: .76rem; }
+@media (max-width: 650px) { .page { padding-inline: 18px; }.hero { margin: 60px auto 75px; }.methods { padding: 30px 20px; }.methods > div { grid-template-columns: 1fr; }.methods > a { width: 100%; justify-content: center; text-align: center; }.page footer { flex-direction: column; gap: 12px; } }
