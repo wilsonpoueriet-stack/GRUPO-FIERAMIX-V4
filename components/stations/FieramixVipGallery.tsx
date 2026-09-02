@@ -31,6 +31,7 @@ export default function FieramixVipGallery({ stations, onPlayStation }: Props) {
             className="vipStationLogo"
             type="button"
             key={station.id}
+            data-station={station.id}
             onClick={() => onPlayStation(station)}
             aria-label={`Escuchar ${station.name}`}
             title={`Escuchar ${station.name}`}
