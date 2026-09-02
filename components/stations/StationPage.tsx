@@ -15,7 +15,12 @@ import {
   type FieramixSoundStatus,
 } from "@/hooks/useRadioPortal";
 import type { NowPlaying } from "@/types/radio";
+import type { StationId } from "@/types/station";
+import SongRequest, { type RequestStationId } from "@/components/songrequest/SongRequest";
+import { getStationPath } from "@/data/station-routes";
 import styles from "./StationPage.module.css";
+
+type StationPageProps = { stationId?: StationId };
 
 function fallback(stationId: string): NowPlaying {
   const station = stations.find((item) => item.id === stationId) ?? stations[0];
@@ -69,9 +74,10 @@ function getSoundBadge(
   return null;
 }
 
-export default function StationPage() {
-  const params = useParams<{ id: string }>();
-  const stationId = Array.isArray(params.id) ? params.id[0] : params.id;
+export default function StationPage({ stationId: requestedStationId }: StationPageProps) {
+  const params = useParams<{ id?: string }>();
+  const routeStationId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const stationId = requestedStationId ?? routeStationId ?? "";
 
   const station = useMemo(
     () => stations.find((item) => item.id === stationId),
@@ -387,7 +393,8 @@ export default function StationPage() {
               currentStation.name
             )}
           </h1>
-          <p>{currentStation.slogan}</p>
+          <p className={styles.slogan}>{currentStation.slogan}</p>
+          <p className={styles.description}>{currentStation.description}</p>
 
           <div className={styles.actions}>
             <button className={styles.primaryButton} onClick={togglePlayback}>
@@ -528,7 +535,7 @@ export default function StationPage() {
           {stations
             .filter((item) => item.id !== currentStation.id)
             .map((item) => (
-              <Link href={`/emisoras/${item.id}`} key={item.id}>
+              <Link href={getStationPath(item.id)} key={item.id}>
                 <img src={item.logo} alt="" />
                 <span>
                   <b>{item.name}</b>
@@ -539,18 +546,11 @@ export default function StationPage() {
         </div>
       </section>
 
-      {currentStation.id === "bachata" ? (
-        <section className={styles.requestCallout}>
-          <div>
-            <span>SOLO BACHATA</span>
-            <h2>¿Quieres elegir la próxima canción?</h2>
-            <p>
-              Usa nuestro buscador conectado a RadioBOSS y envía tu solicitud a
-              la programación.
-            </p>
-          </div>
-          <Link href="/#solicita">SOLICITAR CANCIÓN</Link>
-        </section>
+      {currentStation.rankingEligible !== false ? (
+        <SongRequest
+          initialStationId={currentStation.id as RequestStationId}
+          locked
+        />
       ) : null}
 
       <footer className={styles.footer}>

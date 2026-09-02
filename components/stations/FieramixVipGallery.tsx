@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import type { CSSProperties } from "react";
 import type { Station } from "@/types/station";
+import { getStationPath } from "@/data/station-routes";
 
 type Props = {
   stations: Station[];
-  onPlayStation: (station: Station) => void;
 };
 
 const directories = [
@@ -17,7 +18,7 @@ const directories = [
   { name: "Radio Dominicana", href: "https://www.radio-dominicana.com/fieramix", logo: "/logos/directories/radio-dominicana.jpg" },
 ];
 
-export default function FieramixVipGallery({ stations, onPlayStation }: Props) {
+export default function FieramixVipGallery({ stations }: Props) {
   return (
     <section className="vipGallery" aria-labelledby="vip-gallery-title">
       <div className="vipGalleryHeading">
@@ -27,18 +28,17 @@ export default function FieramixVipGallery({ stations, onPlayStation }: Props) {
 
       <div className="vipStationLogos">
         {stations.map((station) => (
-          <button
+          <Link
             className="vipStationLogo"
-            type="button"
             key={station.id}
             data-station={station.id}
-            onClick={() => onPlayStation(station)}
-            aria-label={`Escuchar ${station.name}`}
-            title={`Escuchar ${station.name}`}
+            href={getStationPath(station.id)}
+            aria-label={`Abrir ${station.name}`}
+            title={`Abrir ${station.name}`}
             style={{ "--station-accent": station.accent } as CSSProperties}
           >
             <img src={station.logo} alt={station.name} loading="lazy" />
-          </button>
+          </Link>
         ))}
       </div>
 

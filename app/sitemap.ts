@@ -1,12 +1,13 @@
 import type { MetadataRoute } from "next";
 import { stations } from "@/data/stations";
 import { news } from "@/data/news";
+import { stationRouteById } from "@/data/station-routes";
 
 const SITE_URL = "https://fieramix.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const stationPages: MetadataRoute.Sitemap = stations.map((station) => ({
-    url: `${SITE_URL}/emisoras/${station.id}`,
+    url: `${SITE_URL}/${stationRouteById[station.id]}`,
     changeFrequency: "daily",
     priority: 0.9,
   }));

@@ -153,12 +153,16 @@
   word-break: normal;
 }
 
-.identity > p {
+.slogan,
+.description {
   max-width: 620px;
   color: #b9c1df;
   font-size: .98rem;
   line-height: 1.6;
 }
+
+.slogan { margin-bottom: 8px; color: #fff; font-size: 1.08rem; font-weight: 800; }
+.description { margin-top: 0; }
 
 .actions {
   margin-top: 24px;

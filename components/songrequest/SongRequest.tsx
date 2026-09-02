@@ -2,8 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+export type RequestStationId = "bachata" | "merengue" | "salsa" | "baladas" | "reggaeton" | "rancheras" | "internacional" | "cristiana" | "fieramix";
+
 type RequestStation = {
-  id: "bachata" | "merengue" | "salsa" | "baladas" | "reggaeton" | "rancheras" | "internacional" | "cristiana" | "fieramix";
+  id: RequestStationId;
   name: string;
   shortName: string;
   logo: string;
@@ -327,9 +329,11 @@ window.rbcloudSongRequest${station.widgetId} = {
 `;
 }
 
-export default function SongRequest() {
+type SongRequestProps = { initialStationId?: RequestStationId; locked?: boolean };
+
+export default function SongRequest({ initialStationId = "bachata", locked = false }: SongRequestProps = {}) {
   const [selectedStationId, setSelectedStationId] =
-    useState<RequestStation["id"]>("bachata");
+    useState<RequestStation["id"]>(initialStationId);
   const [frameHeight, setFrameHeight] = useState(70);
 
   const selectedStation =
@@ -426,7 +430,7 @@ export default function SongRequest() {
           <img src={selectedStation.logo} alt={selectedStation.name} />
         </div>
 
-        <div className="requestStationSelector" aria-label="Elige tu emisora">
+        {!locked ? <div className="requestStationSelector" aria-label="Elige tu emisora">
           {REQUEST_STATIONS.map((station) => {
             const active = station.id === selectedStation.id;
 
@@ -452,7 +456,7 @@ export default function SongRequest() {
               </button>
             );
           })}
-        </div>
+        </div> : null}
 
         <iframe
           key={selectedStation.widgetId}

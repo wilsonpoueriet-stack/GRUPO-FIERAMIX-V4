@@ -163,10 +163,7 @@ export default function RadioPortal() {
           }}
         />
         <NewsAndClub />
-        <FieramixVipGallery
-          stations={radio.stations}
-          onPlayStation={(station) => void radio.playStation(station)}
-        />
+        <FieramixVipGallery stations={radio.stations} />
       </main>
       <Footer />
       <AppDownloadFloat />
