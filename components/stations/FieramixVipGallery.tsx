@@ -11,9 +11,9 @@ type Props = {
 const directories = [
   { name: "TuneIn", href: "https://tunein.com/radio/FIERAMIX-LA-BRAVA-s275624/", logo: "/logos/directories/tunein.png" },
   { name: "myTuner Radio", href: "https://mytuner-radio.com/es/emisora/fieramix-468744/", logo: "/logos/directories/mytuner.png" },
-  { name: "Streema", href: "https://streema.com/radios/FieraMIX", logo: "/logos/directories/world-radio.png" },
+  { name: "Simple Radio", href: "https://streema.com/radios/FieraMIX", logo: "/logos/directories/simple-radio.jpg" },
   { name: "radio.es", href: "https://www.radio.es/s/fieramix", logo: "/logos/directories/radio-es.png" },
-  { name: "Simple Radio", href: "https://simple-radio.com/es/station/c29e907a-641c-4ad2-bb6a-aa50b2a1126a/", logo: "/logos/directories/simple-radio.jpg" },
+  { name: "Worlds Radio", href: "https://www.worldsradio.com/stations/1d511763-1680-4bb6-b255-ce384cbe2843", logo: "/logos/directories/world-radio.png" },
   { name: "Radio Dominicana", href: "https://www.radio-dominicana.com/fieramix", logo: "/logos/directories/radio-dominicana.jpg" },
 ];
 
