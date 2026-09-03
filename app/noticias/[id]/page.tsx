@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublishedNews } from "@/lib/news-store";
+import NewsShareButtons from "@/components/news/NewsShareButtons";
 
 type NewsPageProps = {
   params: Promise<{
@@ -201,6 +202,11 @@ export default async function NewsDetailPage({ params }: NewsPageProps) {
               {item.source ? <span>FUENTE: {item.source}</span> : null}
             </div>
           )}
+
+          <NewsShareButtons
+            title={item.title}
+            url={`https://fieramix.com/noticias/${item.id}`}
+          />
         </header>
 
         {item.image ? (
@@ -220,7 +226,7 @@ export default async function NewsDetailPage({ params }: NewsPageProps) {
                 display: "block",
                 width: "100%",
                 maxHeight: "560px",
-                objectFit: "cover",
+                objectFit: "contain",
               }}
             />
           </figure>

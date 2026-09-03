@@ -45,6 +45,7 @@ const newsImageStyle = {
   width: "100%",
   height: "100%",
   objectFit: "cover" as const,
+  objectPosition: "center 20%",
   zIndex: 0,
   filter: "brightness(.72) saturate(.92)",
 };

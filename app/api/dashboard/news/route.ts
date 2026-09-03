@@ -74,7 +74,13 @@ export async function POST(request: Request): Promise<Response> {
       if (imageValue.size > MAX_IMAGE_SIZE) return json({ ok: false, error: "La imagen supera el límite de 10 MB." }, 413);
 
       const processedBuffer = await sharp(Buffer.from(await imageValue.arrayBuffer()))
-        .rotate().resize({ width: 1800, height: 1100, fit: "cover" })
+        .rotate()
+        .resize({
+          width: 1800,
+          height: 1013,
+          fit: "cover",
+          position: sharp.strategy.attention,
+        })
         .webp({ quality: 90, effort: 5 }).toBuffer();
       const processed = new ArrayBuffer(processedBuffer.byteLength);
       new Uint8Array(processed).set(processedBuffer);
