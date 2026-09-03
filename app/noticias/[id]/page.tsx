@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPublishedNews } from "@/lib/news-store";
 import NewsShareButtons from "@/components/news/NewsShareButtons";
+import NewsViewCounter from "@/components/news/NewsViewCounter";
 
 type NewsPageProps = {
   params: Promise<{
@@ -200,6 +201,7 @@ export default async function NewsDetailPage({ params }: NewsPageProps) {
                 <span>Publicado: {publicationDate}</span>
               ) : null}
               {item.source ? <span>FUENTE: {item.source}</span> : null}
+              <NewsViewCounter newsId={item.id} />
             </div>
           )}
 

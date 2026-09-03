@@ -9,6 +9,7 @@ import {
   type ManagedNewsItem,
 } from "@/lib/news-store";
 import type { NewsCategory } from "@/data/news";
+import { getNewsViewsMap } from "@/lib/news-views";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,7 +35,9 @@ async function requireAdmin() {
 
 export async function GET(): Promise<Response> {
   if (!(await requireAdmin())) return json({ ok: false, error: "Sesión administrativa requerida." }, 401);
-  return json({ ok: true, news: await getManagedNews() });
+  const news = await getManagedNews();
+  const views = await getNewsViewsMap(news.map((item) => item.id));
+  return json({ ok: true, news: news.map((item) => ({ ...item, views: views[item.id] || 0 })) });
 }
 
 export async function POST(request: Request): Promise<Response> {

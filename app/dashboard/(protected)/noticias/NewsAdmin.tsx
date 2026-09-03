@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ManagedNewsItem } from "@/lib/news-store";
 
+type ManagedNewsWithViews = ManagedNewsItem & { views?: number };
+
 const categories = ["FIERAMIX NOTICIAS", "NACIONALES", "INTERNACIONALES", "MÚSICA", "ESPECTÁCULOS", "DEPORTES", "TECNOLOGÍA", "ACTUALIDAD"];
 const emptyForm = { originalId: "", title: "", excerpt: "", content: "", category: "ACTUALIDAD", source: "FIERAMIX NOTICIAS", status: "published", featured: false, existingImage: "" };
 const inputStyle = { width: "100%", boxSizing: "border-box" as const, borderRadius: 12, border: "1px solid rgba(255,255,255,.14)", background: "rgba(255,255,255,.06)", color: "white", padding: "12px 14px", font: "inherit" };
 
 export default function NewsAdmin() {
-  const [items, setItems] = useState<ManagedNewsItem[]>([]);
+  const [items, setItems] = useState<ManagedNewsWithViews[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [image, setImage] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
@@ -23,7 +25,7 @@ export default function NewsAdmin() {
 
   useEffect(() => { void load(); }, [load]);
 
-  function edit(item: ManagedNewsItem) {
+  function edit(item: ManagedNewsWithViews) {
     setForm({ originalId: item.id, title: item.title, excerpt: item.excerpt, content: item.content.join("\n\n"), category: item.category, source: item.source || "FIERAMIX NOTICIAS", status: item.status, featured: item.featured === true, existingImage: item.image || "" });
     setImage(null); setMessage(""); window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -40,7 +42,7 @@ export default function NewsAdmin() {
     setBusy(false);
   }
 
-  async function remove(item: ManagedNewsItem) {
+  async function remove(item: ManagedNewsWithViews) {
     if (!window.confirm(`¿Eliminar definitivamente “${item.title}”?`)) return;
     const response = await fetch("/api/dashboard/news", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: item.id }) });
     const data = await response.json(); setMessage(data.message || data.error || "Operación terminada.");
@@ -63,7 +65,7 @@ export default function NewsAdmin() {
         {message && <p role="status" style={{ margin: 0, color: "#7bf5be", fontWeight: 700 }}>{message}</p>}
       </form>
       <section style={{ display: "grid", gap: 12 }}><h2 style={{ marginTop: 0 }}>Noticias ({items.length})</h2>{items.map((item) => <article key={item.id} style={{ padding: 18, borderRadius: 18, border: "1px solid rgba(255,255,255,.1)", background: "rgba(255,255,255,.05)", display: "grid", gridTemplateColumns: item.image ? "110px 1fr" : "1fr", gap: 15 }}>
-        {item.image && <img src={item.image} alt="" style={{ width: 110, height: 90, objectFit: "cover", borderRadius: 12 }} />}<div><div style={{ display: "flex", gap: 7, flexWrap: "wrap", fontSize: ".67rem", fontWeight: 900 }}><span style={{ color: "#43f5b1" }}>{item.category}</span><span style={{ color: item.status === "published" ? "#7ecfff" : "#ffc857" }}>{item.status === "published" ? "PUBLICADA" : "BORRADOR"}</span>{item.featured && <span style={{ color: "#ff6e9f" }}>DESTACADA</span>}</div><h3 style={{ margin: "7px 0 12px", fontSize: "1rem" }}>{item.title}</h3><div style={{ display: "flex", gap: 8 }}><button onClick={() => edit(item)} style={{ border: 0, borderRadius: 999, padding: "8px 13px", fontWeight: 800, cursor: "pointer" }}>EDITAR</button><button onClick={() => void remove(item)} style={{ border: "1px solid rgba(255,90,110,.5)", borderRadius: 999, padding: "7px 12px", color: "#ff9cad", background: "transparent", cursor: "pointer" }}>ELIMINAR</button></div></div>
+        {item.image && <img src={item.image} alt="" style={{ width: 110, height: 90, objectFit: "cover", borderRadius: 12 }} />}<div><div style={{ display: "flex", gap: 7, flexWrap: "wrap", fontSize: ".67rem", fontWeight: 900 }}><span style={{ color: "#43f5b1" }}>{item.category}</span><span style={{ color: item.status === "published" ? "#7ecfff" : "#ffc857" }}>{item.status === "published" ? "PUBLICADA" : "BORRADOR"}</span>{item.featured && <span style={{ color: "#ff6e9f" }}>DESTACADA</span>}<span style={{ color: "#ffffff", opacity: .72 }}>👁 {(item.views || 0).toLocaleString("es-DO")} VISTAS</span></div><h3 style={{ margin: "7px 0 12px", fontSize: "1rem" }}>{item.title}</h3><div style={{ display: "flex", gap: 8 }}><button onClick={() => edit(item)} style={{ border: 0, borderRadius: 999, padding: "8px 13px", fontWeight: 800, cursor: "pointer" }}>EDITAR</button><button onClick={() => void remove(item)} style={{ border: "1px solid rgba(255,90,110,.5)", borderRadius: 999, padding: "7px 12px", color: "#ff9cad", background: "transparent", cursor: "pointer" }}>ELIMINAR</button></div></div>
       </article>)}</section>
     </div>
   </main>;
