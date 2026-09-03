@@ -37,7 +37,7 @@ export default function Header({
         <a href="#emisoras">Emisoras</a>
         <a href="#solicita">Solicitud</a>
         <a href="#ranking">Rankings</a>
-        <a href="#noticias">Noticias</a>
+        <a href="/noticias">Noticias</a>
         <a href="#club">Club de oyentes</a>
       </nav>
 

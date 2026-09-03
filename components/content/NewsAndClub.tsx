@@ -120,6 +120,9 @@ export default function NewsAndClub() {
             Actualidad, música, entretenimiento y los acontecimientos que
             conectan a la comunidad latina.
           </p>
+          <Link className="newsHubEntry" href="/noticias">
+            ENTRAR A FIERAMIX NOTICIAS
+          </Link>
         </div>
 
         <div className="newsGrid">

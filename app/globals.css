@@ -897,6 +897,30 @@ footer { padding: 35px 5vw 115px; display: flex; align-items: center; gap: 30px;
   transition: transform .2s;
 }
 
+.newsHubEntry {
+  width: fit-content;
+  min-height: 48px;
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 22px;
+  color: #fff;
+  font-size: .76rem;
+  font-weight: 950;
+  letter-spacing: .07em;
+  background: linear-gradient(135deg, #e11d48, #ff4d2e);
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 999px;
+  box-shadow: 0 12px 30px rgba(225,29,72,.28);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.newsHubEntry:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 17px 36px rgba(225,29,72,.38);
+}
+
 .supportFloat {
   position: fixed;
   z-index: 97;
