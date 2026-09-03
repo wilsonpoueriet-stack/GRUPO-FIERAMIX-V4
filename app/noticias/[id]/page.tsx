@@ -123,7 +123,7 @@ export default async function NewsDetailPage({ params }: NewsPageProps) {
         }}
       >
         <Link
-          href="/#noticias"
+          href="/noticias"
           style={{
             display: "inline-flex",
             alignItems: "center",
