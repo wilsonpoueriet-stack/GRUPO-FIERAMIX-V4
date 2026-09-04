@@ -143,14 +143,19 @@ export default function StickyPlayer({
     >
       <div className="stickyInfo">
         <img src={current.artwork || selected.logo} alt="" />
-        <div>
+        <div className="stickyTrackText">
           <small>{selected.name}</small>
           <strong>{current.title}</strong>
           <span>{current.artist}</span>
+          <div className="stickyMobileStatus" aria-hidden="true">
+            <i /> {playing ? "EN VIVO" : "LISTO"}
+            {soundLabel ? <b>{soundLabel.text.replace("FIERAMIX SOUND · ", "SOUND ")}</b> : null}
+          </div>
         </div>
       </div>
 
       <div
+        className="stickyActions"
         style={{
           display: "flex",
           alignItems: "center",
@@ -183,6 +188,7 @@ export default function StickyPlayer({
         </div>
 
         <button
+          className="stickyFavorite"
           type="button"
           onClick={toggleFavorite}
           aria-pressed={isFavorite}
@@ -224,6 +230,7 @@ export default function StickyPlayer({
       </div>
 
       <div
+        className="stickyDesktopStatus"
         style={{
           display: "flex",
           alignItems: "center",
@@ -270,6 +277,117 @@ export default function StickyPlayer({
           <i /> {playing ? "EN VIVO" : "LISTO"}
         </div>
       </div>
+
+      <style jsx>{`
+        .stickyMobileStatus {
+          display: none;
+        }
+
+        @media (max-width: 700px) {
+          :global(.stickyPlayer) {
+            height: 88px;
+            padding: 8px 10px;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 8px;
+          }
+
+          .stickyInfo {
+            min-width: 0;
+            gap: 9px;
+          }
+
+          .stickyInfo img {
+            width: 52px;
+            height: 52px;
+            border-radius: 10px;
+            flex: 0 0 52px;
+          }
+
+          .stickyTrackText {
+            min-width: 0;
+            display: grid;
+            gap: 1px;
+          }
+
+          .stickyInfo small,
+          .stickyInfo strong,
+          .stickyInfo span {
+            display: block;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+
+          .stickyInfo small {
+            color: var(--accent);
+            font-size: 0.62rem;
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+          }
+
+          .stickyInfo strong {
+            font-size: 0.86rem;
+            line-height: 1.15;
+          }
+
+          .stickyInfo span {
+            color: #c5ccda;
+            font-size: 0.72rem;
+            line-height: 1.15;
+          }
+
+          .stickyMobileStatus {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 2px;
+            color: #7bf5be;
+            font-size: 0.53rem;
+            font-weight: 900;
+            line-height: 1;
+          }
+
+          .stickyMobileStatus i {
+            width: 5px;
+            height: 5px;
+            border-radius: 999px;
+            background: currentColor;
+            box-shadow: 0 0 7px currentColor;
+          }
+
+          .stickyMobileStatus b {
+            padding-left: 3px;
+            color: #d8deea;
+            font-size: inherit;
+            white-space: nowrap;
+          }
+
+          .stickyActions {
+            gap: 6px !important;
+          }
+
+          :global(.stickyControls) {
+            gap: 0;
+          }
+
+          :global(.stickyControls .stickyPlay) {
+            width: 46px;
+            height: 46px;
+          }
+
+          .stickyFavorite {
+            width: 30px !important;
+            height: 30px !important;
+          }
+
+          .stickyDesktopStatus {
+            display: none !important;
+          }
+        }
+      `}</style>
     </aside>
   );
 }
