@@ -65,6 +65,31 @@ function clampPlayerVolume(value: number): number {
   return Math.min(Math.max(value, 0), 1);
 }
 
+function toAbsoluteMediaUrl(value: string | undefined | null): string {
+  const cleanValue = (value ?? "").trim();
+
+  if (!cleanValue) {
+    return "";
+  }
+
+  try {
+    return new URL(cleanValue, window.location.href).href;
+  } catch {
+    return cleanValue;
+  }
+}
+
+function buildMediaArtwork(
+  currentArtwork: string | undefined | null,
+  stationLogo: string | undefined | null,
+): MediaImage[] {
+  const sources = [currentArtwork, stationLogo]
+    .map(toAbsoluteMediaUrl)
+    .filter(Boolean);
+
+  return [...new Set(sources)].map((src) => ({ src }));
+}
+
 export const emptyNowPlaying = (station: Station): NowPlaying => ({
   title: "Programación en vivo",
   artist: station.name,
@@ -1532,6 +1557,96 @@ export function useRadioPortal() {
   const fieramixSoundActive =
     fieramixSoundStatus === "active" &&
     hasFieramixSoundProfile(selected);
+
+  useEffect(() => {
+    if (
+      typeof navigator === "undefined" ||
+      !("mediaSession" in navigator) ||
+      typeof MediaMetadata === "undefined"
+    ) {
+      return;
+    }
+
+    const mediaSession = navigator.mediaSession;
+
+    const title =
+      current.title?.trim() || "Programación en vivo";
+    const artist =
+      current.artist?.trim() || selected.name;
+    const stationName =
+      selected.name?.trim() || "FIERAMIX";
+
+    mediaSession.metadata = new MediaMetadata({
+      title,
+      artist,
+      album: `${stationName} · EL GRUPO FIERAMIX.COM`,
+      artwork: buildMediaArtwork(
+        current.artwork,
+        selected.logo,
+      ),
+    });
+
+    try {
+      mediaSession.playbackState = playing
+        ? "playing"
+        : "paused";
+    } catch {
+      // Algunos navegadores exponen Media Session de forma parcial.
+    }
+
+    const setHandler = (
+      action: MediaSessionAction,
+      handler: MediaSessionActionHandler | null,
+    ) => {
+      try {
+        mediaSession.setActionHandler(action, handler);
+      } catch {
+        // Android, el navegador o el vehículo pueden no ofrecer
+        // todos los controles. La reproducción web continúa normal.
+      }
+    };
+
+    setHandler("play", () => {
+      const audio = audioRef.current;
+
+      if (!audio || audio.paused) {
+        void playStation(selected);
+      }
+    });
+
+    setHandler("pause", () => {
+      const audio = audioRef.current;
+
+      if (!audio || audio.paused) {
+        return;
+      }
+
+      audio.pause();
+      setPlaying(false);
+      setResumeOnReturn(false);
+    });
+
+    setHandler("previoustrack", () => {
+      moveStation(-1);
+    });
+
+    setHandler("nexttrack", () => {
+      moveStation(1);
+    });
+
+    return () => {
+      setHandler("play", null);
+      setHandler("pause", null);
+      setHandler("previoustrack", null);
+      setHandler("nexttrack", null);
+    };
+  }, [
+    current.artist,
+    current.artwork,
+    current.title,
+    playing,
+    selected,
+  ]);
 
   async function ensureFieramixSound(
     station: Station,
