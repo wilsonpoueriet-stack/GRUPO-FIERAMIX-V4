@@ -7,6 +7,8 @@ import {
   normalizeRadioText,
 } from "@/lib/radio-intelligence";
 import { buildFieramixAIContext } from "@/lib/fieramixAIContext";
+import { stationAliasesFor } from "@/data/fieramix-portal-knowledge";
+import { stationRouteById } from "@/data/station-routes";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -198,6 +200,8 @@ function findStationIdInMessage(message: string): string | undefined {
       station.name,
       station.shortName,
       station.genre,
+      stationRouteById[station.id],
+      ...stationAliasesFor(station.id),
     ]
       .filter((value): value is string => Boolean(value))
       .map(normalizeRadioText)
@@ -450,4 +454,3 @@ export async function POST(
     );
   }
 }
-

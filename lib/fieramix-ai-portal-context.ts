@@ -3,6 +3,11 @@ import { stations } from "@/data/stations";
 import { radioBossStations } from "@/config/radiobossStations";
 import { getStationData } from "@/lib/radioboss";
 import { getMostPlayedTracks, normalizeRadioText } from "@/lib/radio-intelligence";
+import {
+  buildOfficialPortalKnowledge,
+  stationAliasesFor,
+} from "@/data/fieramix-portal-knowledge";
+import { stationRouteById } from "@/data/station-routes";
 
 export type FieramixClientContext = {
   path?: string;
@@ -49,7 +54,14 @@ function findStationId(message: string, client?: FieramixClientContext): string 
   const normalized = normalizeRadioText(message);
 
   const matched = stations.find((station) => {
-    const aliases = [station.id, station.name, station.shortName, station.genre]
+    const aliases = [
+      station.id,
+      station.name,
+      station.shortName,
+      station.genre,
+      stationRouteById[station.id],
+      ...stationAliasesFor(station.id),
+    ]
       .filter((value): value is string => Boolean(value))
       .map(normalizeRadioText)
       .filter(Boolean);
@@ -248,11 +260,12 @@ export async function buildFieramixPortalContext(
   const compareStations = wantsStationComparison(message);
   const blocks: string[] = [
     `HORA OFICIAL DE REPÚBLICA DOMINICANA\n${dominicanNowLabel()}`,
+    buildOfficialPortalKnowledge(message),
     `MAPA REAL DEL PORTAL\n${PORTAL_SECTIONS.join("\n")}`,
     `EMISORAS CONFIGURADAS\n${stations
       .map(
         (station) =>
-          `${station.name} (${station.id}) | género: ${station.genre} | ${station.description} | eslogan: ${station.slogan} | página: /emisoras/${station.id}`,
+          `${station.name} (${station.id}) | alias reconocidos: ${[stationRouteById[station.id], ...stationAliasesFor(station.id)].filter(Boolean).join(", ") || "ninguno adicional"} | género: ${station.genre} | ${station.description} | eslogan: ${station.slogan} | página pública: /${stationRouteById[station.id]} | página interna: /emisoras/${station.id}`,
       )
       .join("\n")}`,
   ];
