@@ -75,18 +75,27 @@ function isDirectSongRequest(message: string): boolean {
 
   if (
     words.length < 2 ||
-    words.length > 12 ||
-    /[?¿!¡]/.test(message)
+    words.length > 16 ||
+    /[?¿]/.test(message)
   ) {
     return false;
   }
 
-  const conversationalIntent =
-    /\b(hola|saludos|buenos dias|buenas tardes|buenas noches|gracias|ayuda|como|cuando|donde|cual|quien|porque|ranking|audiencia|emisora|programacion|pausa|pausar|continua|continuar|reanuda|reanudar|escuchar|sintoniza|sintonizar)\b/.test(
+  const navigationOrConversationIntent =
+    /\b(hola|saludos|buenos dias|buenas tardes|buenas noches|gracias|ayuda|ayudame|guia|guiame|guias|lleva|llevame|ir|voy|alla|seccion|pagina|boton|como|cuando|donde|cual|quien|porque|ranking|audiencia|emisora|programacion|pausa|pausar|continua|continuar|reanuda|reanudar|escuchar|sintoniza|sintonizar)\b/.test(
       normalized,
     );
 
-  return !conversationalIntent;
+  if (navigationOrConversationIntent) {
+    return false;
+  }
+
+  const explicitSongRequest =
+    /\b(pon|ponme|toca|tocame|programa|programame|solicito|pido|pedir|complaceme|quiero la cancion|quiero el tema)\b/.test(
+      normalized,
+    );
+
+  return explicitSongRequest;
 }
 
 export default function FieramixAIChat() {
