@@ -6,7 +6,7 @@ import type { ManagedNewsItem } from "@/lib/news-store";
 type ManagedNewsWithViews = ManagedNewsItem & { views?: number };
 
 const categories = ["FIERAMIX NOTICIAS", "NACIONALES", "INTERNACIONALES", "MÚSICA", "ESPECTÁCULOS", "DEPORTES", "TECNOLOGÍA", "ACTUALIDAD"];
-const emptyForm = { originalId: "", title: "", excerpt: "", content: "", category: "ACTUALIDAD", source: "FIERAMIX NOTICIAS", status: "published", featured: false, existingImage: "" };
+const emptyForm = { originalId: "", title: "", excerpt: "", content: "", category: "ACTUALIDAD", source: "FIERAMIX NOTICIAS", status: "published", featured: false, publishToInstagram: true, existingImage: "" };
 const inputStyle = { width: "100%", boxSizing: "border-box" as const, borderRadius: 12, border: "1px solid rgba(255,255,255,.14)", background: "rgba(255,255,255,.06)", color: "white", padding: "12px 14px", font: "inherit" };
 
 export default function NewsAdmin() {
@@ -26,7 +26,7 @@ export default function NewsAdmin() {
   useEffect(() => { void load(); }, [load]);
 
   function edit(item: ManagedNewsWithViews) {
-    setForm({ originalId: item.id, title: item.title, excerpt: item.excerpt, content: item.content.join("\n\n"), category: item.category, source: item.source || "FIERAMIX NOTICIAS", status: item.status, featured: item.featured === true, existingImage: item.image || "" });
+    setForm({ originalId: item.id, title: item.title, excerpt: item.excerpt, content: item.content.join("\n\n"), category: item.category, source: item.source || "FIERAMIX NOTICIAS", status: item.status, featured: item.featured === true, publishToInstagram: false, existingImage: item.image || "" });
     setImage(null); setMessage(""); window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -57,10 +57,12 @@ export default function NewsAdmin() {
         <label>Titular<input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} style={{ ...inputStyle, marginTop: 7 }} /></label>
         <label>Resumen<textarea required rows={3} value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} style={{ ...inputStyle, marginTop: 7, resize: "vertical" }} /></label>
         <label>Contenido <small style={{ opacity: .6 }}>(separa los párrafos con una línea en blanco)</small><textarea required rows={12} value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} style={{ ...inputStyle, marginTop: 7, resize: "vertical", lineHeight: 1.6 }} /></label>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 12 }}><label>Categoría<select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} style={{ ...inputStyle, marginTop: 7 }}>{categories.map((c) => <option key={c} style={{ color: "black" }}>{c}</option>)}</select></label><label>Estado<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} style={{ ...inputStyle, marginTop: 7 }}><option value="published" style={{ color: "black" }}>PUBLICADA</option><option value="draft" style={{ color: "black" }}>BORRADOR</option></select></label></div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 12 }}><label>Categoría<select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} style={{ ...inputStyle, marginTop: 7 }}>{categories.map((c) => <option key={c} style={{ color: "black" }}>{c}</option>)}</select></label><label>Estado<select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value, publishToInstagram: e.target.value === "published" ? form.publishToInstagram : false })} style={{ ...inputStyle, marginTop: 7 }}><option value="published" style={{ color: "black" }}>PUBLICADA</option><option value="draft" style={{ color: "black" }}>BORRADOR</option></select></label></div>
         <label>Fuente<input value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })} style={{ ...inputStyle, marginTop: 7 }} /></label>
         <label>Imagen JPG, PNG o WEBP<input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => setImage(e.target.files?.[0] || null)} style={{ ...inputStyle, marginTop: 7 }} /></label>
         <label style={{ display: "flex", gap: 10, alignItems: "center" }}><input type="checkbox" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} /> Destacar en la portada</label>
+        <label style={{ display: "flex", gap: 10, alignItems: "center", opacity: form.status === "published" ? 1 : .55 }}><input type="checkbox" disabled={form.status !== "published"} checked={form.publishToInstagram} onChange={(e) => setForm({ ...form, publishToInstagram: e.target.checked })} /> Publicar también en Instagram</label>
+        {form.originalId && <small style={{ opacity: .65 }}>Esta opción se desactiva al editar para evitar publicaciones duplicadas. Márcala solo si deseas volver a publicar la noticia.</small>}
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}><button disabled={busy} style={{ border: 0, borderRadius: 999, padding: "13px 22px", fontWeight: 900, background: "linear-gradient(135deg,#43f5b1,#7ecfff)", cursor: "pointer" }}>{busy ? "GUARDANDO..." : form.originalId ? "GUARDAR CAMBIOS" : "CREAR NOTICIA"}</button>{form.originalId && <button type="button" onClick={() => { setForm(emptyForm); setImage(null); }} style={{ borderRadius: 999, padding: "12px 18px", color: "white", border: "1px solid rgba(255,255,255,.2)", background: "transparent" }}>CANCELAR</button>}</div>
         {message && <p role="status" style={{ margin: 0, color: "#7bf5be", fontWeight: 700 }}>{message}</p>}
       </form>
