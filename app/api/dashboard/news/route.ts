@@ -10,6 +10,7 @@ import {
 } from "@/lib/news-store";
 import type { NewsCategory } from "@/data/news";
 import { getNewsViewsMap } from "@/lib/news-views";
+import { publishNewsToInstagram } from "@/lib/instagram-publishing";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -55,6 +56,7 @@ export async function POST(request: Request): Promise<Response> {
     const featured = clean(form.get("featured"), 10) === "true";
     const existingImage = clean(form.get("existingImage"), 500);
     const imageValue = form.get("image");
+    const publishToInstagram = clean(form.get("publishToInstagram"), 10) === "true";
 
     if (title.length < 8) return json({ ok: false, error: "Escribe un titular válido." }, 400);
     if (excerpt.length < 20) return json({ ok: false, error: "Escribe un resumen de al menos 20 caracteres." }, 400);
@@ -115,7 +117,32 @@ export async function POST(request: Request): Promise<Response> {
     next.unshift(item);
     await saveManagedNews(next);
 
-    return json({ ok: true, news: item, message: originalId ? "Noticia actualizada correctamente." : "Noticia guardada correctamente." });
+    let instagramPublished = false;
+    let instagramWarning = "";
+    if (publishToInstagram) {
+      if (status !== "published") {
+        instagramWarning = "La noticia se guardó, pero no se publicó en Instagram porque está en borrador.";
+      } else if (!image) {
+        instagramWarning = "La noticia se guardó, pero Instagram exige una imagen.";
+      } else {
+        try {
+          const imageUrl = new URL(image, request.url).toString();
+          const articleUrl = new URL(`/noticias/${id}`, request.url).toString();
+          await publishNewsToInstagram({ id, title, excerpt, imageUrl, articleUrl });
+          instagramPublished = true;
+        } catch (instagramError) {
+          console.error("No fue posible publicar la noticia en Instagram.", instagramError);
+          instagramWarning = "La noticia se guardó, pero Instagram no pudo publicarla. Puedes intentarlo nuevamente desde Editar.";
+        }
+      }
+    }
+
+    const baseMessage = originalId ? "Noticia actualizada correctamente." : "Noticia guardada correctamente.";
+    const message = instagramPublished
+      ? `${baseMessage} También fue publicada en Instagram.`
+      : instagramWarning || baseMessage;
+
+    return json({ ok: true, news: item, instagramPublished, instagramWarning, message });
   } catch (error) {
     console.error("No fue posible guardar la noticia.", error);
     return json({ ok: false, error: "No fue posible guardar la noticia en este momento." }, 503);
