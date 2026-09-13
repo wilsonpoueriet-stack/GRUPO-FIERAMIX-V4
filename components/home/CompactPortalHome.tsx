@@ -159,7 +159,7 @@ export default function CompactPortalHome({
               const info = metadata[station.id] ?? emptyNowPlaying(station);
               const active = selected.id === station.id;
               return <button key={station.id} className={active ? "compactStation active" : "compactStation"} onClick={() => onPlayStation(station)} style={{ "--station-accent": station.accent } as CSSProperties}>
-                <img src={station.logo} alt="" /><span><b>{station.name}</b><small>{info.title || station.genre}</small></span><i>{info.listeners ?? "•"}</i>
+                <img src={station.logo} alt="" /><span><b>{station.name}</b><small>{info.title && info.artist ? `${info.title} · ${info.artist}` : info.title || info.artist || station.genre}</small></span><i>{info.listeners ?? "•"}</i>
               </button>;
             })}
           </div>
