@@ -226,7 +226,7 @@ export default function CompactPortalHome({
           <Link href="/noticias">▤<span>NOTICIAS</span></Link>
           <a href="#solicita">✉<span>SOLICITUD</span></a>
           <a href="#club">♧<span>CLUB</span></a>
-          <a href="https://fieramix.com/">＋<span>DESCUBRE +</span></a>
+          <Link href="/portal">＋<span>DESCUBRE +</span></Link>
         </nav>
         <div className="compactSocials">
           {socialLinks.map(([icon, href, label]) => <a key={label} className={`social-${icon}`} href={href} target="_blank" rel="noreferrer" aria-label={label} title={label}><SocialIcon name={icon} /></a>)}

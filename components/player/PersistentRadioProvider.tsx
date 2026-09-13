@@ -13,7 +13,10 @@ export function PersistentRadioProvider({ children }: { children: ReactNode }) {
   const radio = useRadioPortal();
   const pathname = usePathname();
   const showPersistentPlayer =
-    pathname === "/" || pathname.startsWith("/noticias") || radio.playing;
+    pathname === "/" ||
+    pathname === "/portal" ||
+    pathname.startsWith("/noticias") ||
+    radio.playing;
 
   return (
     <PersistentRadioContext.Provider value={radio}>
