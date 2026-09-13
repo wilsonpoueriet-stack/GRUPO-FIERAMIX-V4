@@ -210,6 +210,7 @@ button { cursor: pointer; }
   .compactSocials { grid-column: 1 / -1; display: flex; justify-content: center; gap: 7px; }
   .compactSocials a { width: 28px; height: 28px; }
   .compactSocials svg { width: 15px; height: 15px; }
+  .compactLiveButton { display: none; }
   .compactHeader nav { position: fixed; left: 8px; right: 8px; bottom: 8px; z-index: 65; height: 55px; padding: 4px; border: 1px solid rgba(255,255,255,.12); border-radius: 14px; background: rgba(2,5,14,.96); backdrop-filter: blur(14px); }
   .compactHeader nav a { min-width: 0; flex: 1; padding: 4px 2px; font-size: .9rem; }
   .compactHeader nav a span { font-size: .39rem; }
