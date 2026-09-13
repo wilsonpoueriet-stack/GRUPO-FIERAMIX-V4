@@ -172,6 +172,7 @@ export default function CompactPortalHome({
           <Link href="/noticias">▤<span>NOTICIAS</span></Link>
           <a href="#solicita">✉<span>SOLICITUD</span></a>
           <a href="#club">♧<span>CLUB</span></a>
+          <a href="https://fieramix.com/">＋<span>DESCUBRE +</span></a>
         </nav>
         <div className="compactSocials">
           {socialLinks.map(([icon, href, label]) => <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label}>{icon}</a>)}
@@ -275,7 +276,11 @@ export default function CompactPortalHome({
       <footer className="compactFooter">
         <strong>EL GRUPO FIERAMIX.COM</strong>
         <span>© 2026 · TODOS LOS DERECHOS RESERVADOS</span>
-        <nav><a href="/politica-privacidad">Política de privacidad</a><a href="#inicio">Volver arriba</a></nav>
+        <nav>
+          <a href="/terminos-condiciones">Términos y Condiciones</a>
+          <a href="/politica-privacidad">Política de Privacidad</a>
+          <a href="/politica-cookies">Política de Cookies</a>
+        </nav>
         <section className="compactDownloads" aria-label="Descargar FIERAMIX">
           <small>DISPONIBLE EN:</small>
           <div>
