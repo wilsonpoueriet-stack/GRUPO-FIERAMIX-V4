@@ -163,7 +163,7 @@ export default function CompactPortalHome({
       <main id="inicio" className="compactMain">
         <section className="compactPlayerBand" aria-label="Reproductor principal">
           <div className="stationIdentity" data-station={selected.id}>
-            <span className="livePill">◉ EN VIVO</span>
+            <span className="livePill"><i aria-hidden="true" /> EN VIVO</span>
             <img src={selected.logo} alt={selected.name} />
             <div className={`equalizerBars${playing ? " isPlaying" : ""}`} aria-hidden="true">{Array.from({ length: 38 }, (_, index) => {
               const waveHeight = 6 + Math.round((Math.sin(index * 0.72) + 1) * 7);
