@@ -106,7 +106,6 @@ export default function CompactPortalHome({
   onPlayStation,
 }: Props) {
   const [newsItems, setNewsItems] = useState<NewsItem[]>(fallbackNews.slice(0, 5));
-  const [openPanel, setOpenPanel] = useState<"history" | "ranking" | null>(null);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [stationRanking, setStationRanking] = useState<{ stationId: string; tracks: CompactRankingTrack[] }>({ stationId: "", tracks: [] });
   const [programmingClock, setProgrammingClock] = useState<Date | null>(null);
@@ -266,7 +265,6 @@ export default function CompactPortalHome({
           <aside className="recentCard">
             <h2>HISTORIAL RECIENTE</h2>
             <ol>{recent.map((track, index) => <li key={`${track.title}-${index}`}><span>♫</span><b>{track.artist} · {track.title}</b><time>{"started" in track ? track.started : ""}</time></li>)}</ol>
-            <button className="compactPanelButton" type="button" onClick={() => setOpenPanel("history")}>VER HISTORIAL COMPLETO</button>
           </aside>
         </section>
 
@@ -319,22 +317,6 @@ export default function CompactPortalHome({
           <div>{newsItems.slice(0, 5).map((item) => <Link key={item.id} href={`/noticias/${item.id}`}><img src={item.image || "/noticias/fieramix-noticias-espacio-informativo.png"} alt=""/><span><b>{item.title}</b><small>{item.publishedAt?.slice(0, 10) ?? ""}</small></span></Link>)}</div>
         </section>
       </main>
-
-      {openPanel ? (
-        <div className="compactModalBackdrop" role="presentation" onMouseDown={() => setOpenPanel(null)}>
-          <section className="compactModal" role="dialog" aria-modal="true" aria-labelledby="compact-modal-title" onMouseDown={(event) => event.stopPropagation()}>
-            <header>
-              <div><span>{openPanel === "ranking" ? `RANKING ${selected.name}` : selected.name}</span><h2 id="compact-modal-title">{openPanel === "ranking" ? "TOP 10 DE LA EMISORA" : "HISTORIAL COMPLETO"}</h2></div>
-              <button type="button" onClick={() => setOpenPanel(null)} aria-label="Cerrar">×</button>
-            </header>
-            {openPanel === "ranking" ? (
-              <ol className="compactModalList">{ranking.map((track, index) => <li key={trackKey(track.title, track.artist)}><strong>{String(index + 1).padStart(2, "0")}</strong><img src={track.artwork || selected.logo} alt=""/><span><b>{track.title}</b><small>{track.artist}</small></span><em>{typeof track.change === "number" ? track.change > 0 ? `▲ ${track.change}` : track.change < 0 ? `▼ ${Math.abs(track.change)}` : "—" : ""}</em></li>)}</ol>
-            ) : (
-              <ol className="compactModalList">{fullRecent.map((track, index) => <li key={`${trackKey(track.title, track.artist)}-${index}`}><strong>{String(index + 1).padStart(2, "0")}</strong><img src={track.artwork || selected.logo} alt=""/><span><b>{track.title}</b><small>{track.artist}</small></span><em>{track.started}</em></li>)}</ol>
-            )}
-          </section>
-        </div>
-      ) : null}
 
       <footer className="compactFooter">
         <strong>EL GRUPO FIERAMIX.COM</strong>
