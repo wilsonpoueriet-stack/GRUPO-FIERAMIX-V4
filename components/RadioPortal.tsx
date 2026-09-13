@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
 import WhatsAppFloat from "@/components/layout/WhatsAppFloat";
 import AppDownloadFloat from "@/components/layout/AppDownloadFloat";
 import SupportFloat from "@/components/layout/SupportFloat";
@@ -10,19 +8,9 @@ import InstallAppPrompt from "@/components/pwa/InstallAppPrompt";
 import FieramixAIChat from "@/components/ai/FieramixAIChat";
 import FieramixAIController from "@/components/ai/FieramixAIController";
 import FieramixAIPortalContextBridge from "@/components/ai/FieramixAIPortalContextBridge";
-import Hero from "@/components/home/Hero";
-import AppHeroUpgrade from "@/components/home/AppHeroUpgrade";
-import PremiumPlayer from "@/components/player/PremiumPlayer";
 import StickyPlayer from "@/components/player/StickyPlayer";
-import StationsGrid from "@/components/stations/StationsGrid";
-import MostListenedStations from "@/components/stations/MostListenedStations";
-import FieramixVipGallery from "@/components/stations/FieramixVipGallery";
-import RecentAndRanking from "@/components/content/RecentAndRanking";
-import FieramixProgramming from "@/components/content/FieramixProgramming";
-import NewsAndClub from "@/components/content/NewsAndClub";
-import LiveNetwork from "@/components/content/LiveNetwork";
-import SongRequest from "@/components/songrequest/SongRequest";
 import FieramixSongRequestBridge from "@/components/songrequest/FieramixSongRequestBridge";
+import CompactPortalHome from "@/components/home/CompactPortalHome";
 import { useRadioPortal } from "@/hooks/useRadioPortal";
 
 type ArtistGalleryItem = { artist?: string; slug?: string; imageUrl?: string };
@@ -140,33 +128,21 @@ export default function RadioPortal() {
   return (
     <>
       <InstallAppPrompt />
-      <Header playing={radio.playing} menuOpen={radio.menuOpen} onMenuToggle={() => radio.setMenuOpen((value) => !value)} onPlaybackToggle={() => void radio.togglePlayback()} />
-      <main id="inicio">
-        <section className="heroShell">
-          <Hero current={visualCurrent} playing={radio.playing} onPlaybackToggle={() => void radio.togglePlayback()} />
-          <AppHeroUpgrade />
-          <PremiumPlayer station={radio.selected} current={visualCurrent} playing={radio.playing} loading={radio.loading} volume={radio.volume} fieramixSoundStatus={radio.fieramixSoundStatus} fieramixSoundActive={radio.fieramixSoundActive} onPlaybackToggle={() => void radio.togglePlayback()} onMoveStation={radio.moveStation} onVolumeChange={radio.setVolume} />
-        </section>
-        <LiveNetwork stations={radio.stations} metadata={visualMetadata} selected={radio.selected} onSelect={(station) => void radio.playStation(station)} />
-        <StationsGrid stations={radio.stations} selected={radio.selected} metadata={visualMetadata} playing={radio.playing} onPlayStation={(station) => void radio.playStation(station)} />
-        <SongRequest />
-        <FieramixSongRequestBridge />
-        <RecentAndRanking history={visualHistory} current={visualCurrent} selected={radio.selected} metadata={visualMetadata} />
-        <FieramixProgramming />
-        <MostListenedStations
-          stations={radio.stations}
-          selected={radio.selected}
-          metadata={visualMetadata}
-          playing={radio.playing}
-          onPlayStation={(station) => {
-            if (station.id === radio.selected.id) { void radio.togglePlayback(); return; }
-            void radio.playStation(station);
-          }}
-        />
-        <NewsAndClub />
-        <FieramixVipGallery stations={radio.stations} />
-      </main>
-      <Footer />
+      <CompactPortalHome
+        stations={radio.stations}
+        selected={radio.selected}
+        current={visualCurrent}
+        metadata={visualMetadata}
+        history={visualHistory}
+        playing={radio.playing}
+        loading={radio.loading}
+        volume={radio.volume}
+        onPlaybackToggle={() => void radio.togglePlayback()}
+        onMoveStation={radio.moveStation}
+        onVolumeChange={radio.setVolume}
+        onPlayStation={(station) => void radio.playStation(station)}
+      />
+      <FieramixSongRequestBridge />
       <SupportFloat />
       <AppDownloadFloat />
       <FieramixAIPortalContextBridge
