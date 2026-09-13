@@ -89,7 +89,7 @@ export default function CompactPortalHome({
 
   const ranking = useMemo(() => {
     const counts = new Map<string, { title: string; artist: string; artwork: string; plays: number }>();
-    for (const station of stations) {
+    for (const station of stations.filter((item) => item.rankingEligible !== false)) {
       const info = metadata[station.id] ?? emptyNowPlaying(station);
       const tracks = [{ title: info.title, artist: info.artist, artwork: info.artwork }, ...(info.recent ?? [])];
       for (const track of tracks) {
