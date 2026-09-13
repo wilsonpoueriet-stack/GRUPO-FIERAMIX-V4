@@ -1,11 +1,6 @@
 import { getStore } from "@netlify/blobs";
-import { radioBossStations } from "@/config/radiobossStations";
 import { stations } from "@/data/stations";
-import {
-  getOptimizedArtworkUrl,
-  getRecentArtworkUrl,
-  getStationData,
-} from "@/lib/radioboss";
+import { captureStationPlays, readStationTop10 } from "@/lib/station-top10";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -131,85 +126,6 @@ function isPlayableTrack(title: string, artist: string): boolean {
     "en vivo",
     "sin informacion",
   ].includes(safeTitle);
-}
-
-async function buildImmediateStationRanking(
-  stationId: string,
-): Promise<Array<{
-  position: number;
-  title: string;
-  artist: string;
-  artwork: string;
-  plays: number;
-  stationCount: number;
-  stationIds: string[];
-  stationNames: string[];
-  lastPlayedAt: string;
-}>> {
-  const config = radioBossStations[
-    stationId as keyof typeof radioBossStations
-  ];
-  const station = stations.find((item) => item.id === stationId);
-
-  if (!config || !station) return [];
-
-  const data = await getStationData(config, 50);
-  const aggregate = new Map<
-    string,
-    {
-      title: string;
-      artist: string;
-      artwork: string;
-      plays: number;
-      lastPlayedAt: string;
-      firstSeen: number;
-    }
-  >();
-
-  data.recent.forEach((track, index) => {
-    const title = clean(track.tracktitle || track.title);
-    const artist = clean(track.trackartist);
-
-    if (!isPlayableTrack(title, artist)) return;
-
-    const key = trackKey(title, artist);
-    const existing = aggregate.get(key);
-
-    if (existing) {
-      existing.plays += 1;
-      return;
-    }
-
-    const artworkSource = getRecentArtworkUrl(config, track.artworkid);
-    aggregate.set(key, {
-      title,
-      artist,
-      artwork: getOptimizedArtworkUrl(
-        artworkSource,
-        `${stationId}:${track.artworkid || index}:${artist}:${title}`,
-      ),
-      plays: 1,
-      lastPlayedAt: clean(track.started),
-      firstSeen: index,
-    });
-  });
-
-  return [...aggregate.values()]
-    .sort((first, second) =>
-      second.plays - first.plays || first.firstSeen - second.firstSeen,
-    )
-    .slice(0, 10)
-    .map((track, index) => ({
-      position: index + 1,
-      title: track.title,
-      artist: track.artist,
-      artwork: track.artwork,
-      plays: track.plays,
-      stationCount: 1,
-      stationIds: [stationId],
-      stationNames: [station.name],
-      lastPlayedAt: track.lastPlayedAt,
-    }));
 }
 
 function dominicanDateKey(date = new Date()): string {
@@ -398,7 +314,7 @@ async function buildHistoricalRanking(
       });
     });
 
-    let ranking = [...aggregate.values()]
+    const ranking = [...aggregate.values()]
       .sort((first, second) => {
         if (second.plays !== first.plays) {
           return second.plays - first.plays;
@@ -424,16 +340,6 @@ async function buildHistoricalRanking(
         stationNames: [...track.stationNames],
         lastPlayedAt: track.lastPlayedAt,
       }));
-
-    let rankingSource = "persistent-history";
-
-    if (period === "actual" && stationFilter && ranking.length === 0) {
-      ranking = await buildImmediateStationRanking(stationFilter);
-      rankingSource = "radioboss-recent";
-    }
-
-    const effectiveTotalPlays =
-      totalPlays || ranking.reduce((sum, track) => sum + track.plays, 0);
 
     const oldestStoredDate =
       allDayKeys.length > 0
@@ -473,14 +379,14 @@ async function buildHistoricalRanking(
         windowStart: startKey,
         windowEnd: todayKey,
         generatedAt: new Date().toISOString(),
-        source: rankingSource,
+        source: "persistent-history",
         available: ranking.length > 0,
         isOfficial,
         historyDays,
         coveragePercent,
         oldestStoredDate,
         newestStoredDate,
-        totalPlays: effectiveTotalPlays,
+        totalPlays,
         uniqueSongs: aggregate.size,
         collectorLastRunAt: collector?.lastRunAt ?? null,
         collectorStatus: collector ?? null,
@@ -559,6 +465,44 @@ export async function GET(request: Request): Promise<Response> {
       },
       { status: 404 },
     );
+  }
+
+  if (stationFilter && period === "actual") {
+    try {
+      const newPlays = await captureStationPlays(stationFilter);
+      const { ranking, totalPlays } = await readStationTop10(stationFilter);
+      const station = stations.find((item) => item.id === stationFilter);
+
+      return rankingResponse(
+        {
+          ok: true,
+          period: "actual",
+          label: "TOP 10 POR EMISORA",
+          limit: 10,
+          station: stationFilter,
+          stationName: station?.name ?? null,
+          scope: "station",
+          source: "station-play-counter-v1",
+          generatedAt: new Date().toISOString(),
+          available: ranking.length > 0,
+          totalPlays,
+          newPlays,
+          ranking,
+        },
+        15,
+      );
+    } catch (error) {
+      return Response.json(
+        {
+          ok: false,
+          period: "actual",
+          station: stationFilter,
+          ranking: [],
+          error: error instanceof Error ? error.message : "No fue posible contar las tocadas.",
+        },
+        { status: 502 },
+      );
+    }
   }
 
   return buildHistoricalRanking(period, stationFilter);
