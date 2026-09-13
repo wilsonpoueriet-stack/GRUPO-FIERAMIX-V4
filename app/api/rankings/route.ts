@@ -256,11 +256,17 @@ async function buildHistoricalRanking(
           (station) => station.id === event.stationId,
         );
 
-        if (!rankingStation || rankingStation.rankingEligible === false) {
+        if (!rankingStation) {
           return;
         }
 
         if (stationFilter && event.stationId !== stationFilter) {
+          return;
+        }
+
+        // Las emisoras invitadas pueden consultar su propio ranking,
+        // pero nunca deben mezclarse en el ranking general de FIERAMIX.
+        if (!stationFilter && rankingStation.rankingEligible === false) {
           return;
         }
 
@@ -444,17 +450,14 @@ export async function GET(request: Request): Promise<Response> {
 
   if (
     stationFilter &&
-    !stations.some(
-      (station) =>
-        station.id === stationFilter && station.rankingEligible !== false,
-    )
+    !stations.some((station) => station.id === stationFilter)
   ) {
     return Response.json(
       {
         ok: false,
         error: "Emisora no encontrada.",
         station: stationFilter,
-        validStations: stations.filter((station) => station.rankingEligible !== false).map((station) => ({
+        validStations: stations.map((station) => ({
           id: station.id,
           name: station.name,
         })),
