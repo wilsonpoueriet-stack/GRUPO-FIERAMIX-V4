@@ -27,7 +27,19 @@ type CompactRankingTrack = {
   title: string;
   artist: string;
   artwork: string;
-  plays: number;
+  change?: number;
+};
+
+const onlineRadioBoxSlugs: Record<string, string> = {
+  fieramix: "fieramixlabrava",
+  bachata: "fieramix",
+  merengue: "fieramixlamerenguera",
+  salsa: "fieramixlasalsera",
+  baladas: "fieramixlaromantica",
+  reggaeton: "fieramixlaurbana",
+  rancheras: "fieramixlamexicana",
+  internacional: "fieramixlaamericana",
+  cristiana: "fieramixlacristiana",
 };
 
 interface BeforeInstallPromptEvent extends Event {
@@ -58,6 +70,12 @@ function requestStationId(id: string): RequestStationId {
 
 function trackKey(title: string, artist: string) {
   return `${title.trim().toLowerCase()}::${artist.trim().toLowerCase()}`;
+}
+
+function splitOnlineRadioBoxTrack(name: string) {
+  const separator = name.indexOf(" - ");
+  if (separator < 1) return { artist: "Artista no identificado", title: name.trim() };
+  return { artist: name.slice(0, separator).trim(), title: name.slice(separator + 3).trim() };
 }
 
 export default function CompactPortalHome({
@@ -96,18 +114,34 @@ export default function CompactPortalHome({
     setStationRanking({ stationId: "", tracks: [] });
 
     async function loadOfficialStationTop10() {
+      const slug = onlineRadioBoxSlugs[selected.id];
+      if (!slug) {
+        setStationRanking({ stationId: selected.id, tracks: [] });
+        return;
+      }
+
       for (let attempt = 0; attempt < 3; attempt += 1) {
         if (attempt > 0) {
           await new Promise<void>((resolve) => window.setTimeout(resolve, attempt === 1 ? 700 : 1400));
         }
         if (cancelled) return;
         try {
-          const response = await fetch(`/api/rankings?period=actual&station=${encodeURIComponent(selected.id)}&t=${Date.now()}`, { cache: "no-store" });
-          const payload = (await response.json()) as { ok?: boolean; station?: string | null; ranking?: CompactRankingTrack[] };
+          const query = new URLSearchParams({
+            size: "10",
+            tz: String(new Date().getTimezoneOffset()),
+            rnd: String(Math.random()),
+          });
+          const response = await fetch(`https://onlineradiobox.com/json/do/${slug}/top?${query}`, { cache: "no-store" });
+          const payload = (await response.json()) as { top?: Array<{ name?: string; img?: string; change?: number }> };
           if (cancelled) return;
-          if (!response.ok || !payload.ok || payload.station !== selected.id || !Array.isArray(payload.ranking)) return;
-          setStationRanking({ stationId: selected.id, tracks: payload.ranking.slice(0, 25) });
-          if (payload.ranking.length > 0) return;
+          if (!response.ok || !Array.isArray(payload.top)) return;
+          const tracks = payload.top.flatMap((track) => {
+            if (!track.name?.trim()) return [];
+            const parsed = splitOnlineRadioBoxTrack(track.name);
+            return [{ ...parsed, artwork: track.img ?? "", change: track.change }];
+          });
+          setStationRanking({ stationId: selected.id, tracks });
+          if (tracks.length > 0) return;
         } catch {
           if (attempt === 2) return;
         }
@@ -234,9 +268,9 @@ export default function CompactPortalHome({
           </article>
 
           <article id="ranking" className="compactPanel rankingCompact">
-            <h2>TOP 25 · {selected.name}</h2>
+            <h2>TOP 10 · {selected.name}</h2>
             <ol>{ranking.slice(0, 10).map((track, index) => <li key={trackKey(track.title, track.artist)}><strong>{String(index + 1).padStart(2, "0")}</strong><img src={track.artwork || selected.logo} alt=""/><span><b>{track.title}</b><small>{track.artist}</small></span></li>)}</ol>
-            <button className="compactPanelButton" type="button" onClick={() => setOpenPanel("ranking")}>VER MÁS</button>
+            <button className="compactPanelButton" type="button" onClick={() => setOpenPanel("ranking")}>VER TOP COMPLETO</button>
           </article>
 
           <article className="compactPanel compactNews">
@@ -261,11 +295,11 @@ export default function CompactPortalHome({
         <div className="compactModalBackdrop" role="presentation" onMouseDown={() => setOpenPanel(null)}>
           <section className="compactModal" role="dialog" aria-modal="true" aria-labelledby="compact-modal-title" onMouseDown={(event) => event.stopPropagation()}>
             <header>
-              <div><span>{openPanel === "ranking" ? `RANKING ${selected.name}` : selected.name}</span><h2 id="compact-modal-title">{openPanel === "ranking" ? "TOP 25 DE LA EMISORA" : "HISTORIAL COMPLETO"}</h2></div>
+              <div><span>{openPanel === "ranking" ? `RANKING ${selected.name}` : selected.name}</span><h2 id="compact-modal-title">{openPanel === "ranking" ? "TOP 10 DE LA EMISORA" : "HISTORIAL COMPLETO"}</h2></div>
               <button type="button" onClick={() => setOpenPanel(null)} aria-label="Cerrar">×</button>
             </header>
             {openPanel === "ranking" ? (
-              <ol className="compactModalList">{ranking.map((track, index) => <li key={trackKey(track.title, track.artist)}><strong>{String(index + 1).padStart(2, "0")}</strong><img src={track.artwork || selected.logo} alt=""/><span><b>{track.title}</b><small>{track.artist}</small></span><em>{track.plays} {track.plays === 1 ? "tocada" : "tocadas"}</em></li>)}</ol>
+              <ol className="compactModalList">{ranking.map((track, index) => <li key={trackKey(track.title, track.artist)}><strong>{String(index + 1).padStart(2, "0")}</strong><img src={track.artwork || selected.logo} alt=""/><span><b>{track.title}</b><small>{track.artist}</small></span><em>{typeof track.change === "number" ? track.change > 0 ? `▲ ${track.change}` : track.change < 0 ? `▼ ${Math.abs(track.change)}` : "—" : ""}</em></li>)}</ol>
             ) : (
               <ol className="compactModalList">{fullRecent.map((track, index) => <li key={`${trackKey(track.title, track.artist)}-${index}`}><strong>{String(index + 1).padStart(2, "0")}</strong><img src={track.artwork || selected.logo} alt=""/><span><b>{track.title}</b><small>{track.artist}</small></span><em>{track.started}</em></li>)}</ol>
             )}

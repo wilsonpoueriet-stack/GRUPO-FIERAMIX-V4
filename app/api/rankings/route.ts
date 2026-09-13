@@ -1,10 +1,6 @@
 import { getStore } from "@netlify/blobs";
 import { stations } from "@/data/stations";
 import { captureStationPlays, readStationTop10 } from "@/lib/station-top10";
-import {
-  readOnlineRadioBoxTop25,
-  supportsOnlineRadioBoxRanking,
-} from "@/lib/onlineradiobox-ranking";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -473,31 +469,6 @@ export async function GET(request: Request): Promise<Response> {
 
   if (stationFilter && period === "actual") {
     try {
-      if (supportsOnlineRadioBoxRanking(stationFilter)) {
-        // Una fuente y un conteo independiente para cada emisora durante siete días.
-        const { ranking, totalPlays } = await readOnlineRadioBoxTop25(stationFilter);
-        const station = stations.find((item) => item.id === stationFilter);
-
-        return rankingResponse(
-          {
-            ok: true,
-            period: "actual",
-            label: "TOP 25 POR EMISORA",
-            limit: 25,
-            station: stationFilter,
-            stationName: station?.name ?? null,
-            scope: "station",
-            source: "onlineradiobox-seven-day-history",
-            windowDays: 7,
-            generatedAt: new Date().toISOString(),
-            available: ranking.length > 0,
-            totalPlays,
-            ranking,
-          },
-          900,
-        );
-      }
-
       const newPlays = await captureStationPlays(stationFilter);
       const { ranking, totalPlays } = await readStationTop10(stationFilter);
       const station = stations.find((item) => item.id === stationFilter);
