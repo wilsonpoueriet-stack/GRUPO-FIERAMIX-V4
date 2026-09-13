@@ -1,6 +1,10 @@
 import { getStore } from "@netlify/blobs";
 import { stations } from "@/data/stations";
 import { captureStationPlays, readStationTop10 } from "@/lib/station-top10";
+import {
+  readOnlineRadioBoxTop25,
+  supportsOnlineRadioBoxRanking,
+} from "@/lib/onlineradiobox-ranking";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -469,6 +473,30 @@ export async function GET(request: Request): Promise<Response> {
 
   if (stationFilter && period === "actual") {
     try {
+      if (supportsOnlineRadioBoxRanking(stationFilter)) {
+        const { ranking, totalPlays } = await readOnlineRadioBoxTop25(stationFilter);
+        const station = stations.find((item) => item.id === stationFilter);
+
+        return rankingResponse(
+          {
+            ok: true,
+            period: "actual",
+            label: "TOP 25 POR EMISORA",
+            limit: 25,
+            station: stationFilter,
+            stationName: station?.name ?? null,
+            scope: "station",
+            source: "onlineradiobox-seven-day-history",
+            windowDays: 7,
+            generatedAt: new Date().toISOString(),
+            available: ranking.length > 0,
+            totalPlays,
+            ranking,
+          },
+          900,
+        );
+      }
+
       const newPlays = await captureStationPlays(stationFilter);
       const { ranking, totalPlays } = await readStationTop10(stationFilter);
       const station = stations.find((item) => item.id === stationFilter);
@@ -490,20 +518,3 @@ export async function GET(request: Request): Promise<Response> {
           ranking,
         },
         15,
-      );
-    } catch (error) {
-      return Response.json(
-        {
-          ok: false,
-          period: "actual",
-          station: stationFilter,
-          ranking: [],
-          error: error instanceof Error ? error.message : "No fue posible contar las tocadas.",
-        },
-        { status: 502 },
-      );
-    }
-  }
-
-  return buildHistoricalRanking(period, stationFilter);
-}
