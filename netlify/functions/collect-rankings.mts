@@ -1,6 +1,7 @@
 import { getStore } from "@netlify/blobs";
 import type { Config } from "@netlify/functions";
 import { stations } from "../../data/stations";
+import { captureStationPlays } from "../../lib/station-top10";
 
 const STORE_NAME = "fieramix-ranking-history";
 const DOMINICAN_TIME_ZONE = "America/Santo_Domingo";
@@ -528,6 +529,11 @@ export default async function collectRankings(): Promise<Response> {
       stationsFailed: status.stationsFailed,
     },
   });
+
+  // Contador independiente usado por el TOP 10 de cada emisora.
+  await Promise.allSettled(
+    stations.map((station) => captureStationPlays(station.id)),
+  );
 
   console.log("FIERAMIX ranking collector", status);
 
