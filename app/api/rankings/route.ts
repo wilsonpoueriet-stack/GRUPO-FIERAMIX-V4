@@ -252,6 +252,14 @@ async function buildHistoricalRanking(
 
     storedDays.forEach((day) => {
       Object.values(day.events).forEach((event) => {
+        const rankingStation = stations.find(
+          (station) => station.id === event.stationId,
+        );
+
+        if (!rankingStation || rankingStation.rankingEligible === false) {
+          return;
+        }
+
         if (stationFilter && event.stationId !== stationFilter) {
           return;
         }
@@ -436,14 +444,17 @@ export async function GET(request: Request): Promise<Response> {
 
   if (
     stationFilter &&
-    !stations.some((station) => station.id === stationFilter)
+    !stations.some(
+      (station) =>
+        station.id === stationFilter && station.rankingEligible !== false,
+    )
   ) {
     return Response.json(
       {
         ok: false,
         error: "Emisora no encontrada.",
         station: stationFilter,
-        validStations: stations.map((station) => ({
+        validStations: stations.filter((station) => station.rankingEligible !== false).map((station) => ({
           id: station.id,
           name: station.name,
         })),
