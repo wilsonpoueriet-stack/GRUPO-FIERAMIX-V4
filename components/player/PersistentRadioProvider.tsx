@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import StickyPlayer from "@/components/player/StickyPlayer";
 import { useRadioPortal } from "@/hooks/useRadioPortal";
@@ -11,9 +11,57 @@ type PersistentRadio = ReturnType<typeof useRadioPortal>;
 
 const PersistentRadioContext = createContext<PersistentRadio | null>(null);
 
+type ArtistGalleryItem = { artist?: string; slug?: string; imageUrl?: string };
+
+function normalizeArtistLookup(value: string | null | undefined): string {
+  const normalized = (value ?? "").trim().replace(/\s+/g, " ");
+  if (!normalized) return "";
+  const primaryArtist = normalized.split(/\s+(?:feat(?:uring)?\.?|ft\.?|con|featuring)\s+/i)[0]?.trim();
+  return (primaryArtist || normalized)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/&/g, " y ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export function PersistentRadioProvider({ children }: { children: ReactNode }) {
   const radio = useRadioPortal();
   const pathname = usePathname();
+  const [artistGalleryArtwork, setArtistGalleryArtwork] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadArtistGallery() {
+      try {
+        const response = await fetch("/api/artist-gallery?list=1", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = (await response.json()) as { artists?: ArtistGalleryItem[] };
+        if (cancelled || !Array.isArray(data.artists)) return;
+        const gallery: Record<string, string> = {};
+        for (const item of data.artists) {
+          const slug = item.slug?.trim() || normalizeArtistLookup(item.artist);
+          const imageUrl = item.imageUrl?.trim();
+          if (slug && imageUrl) gallery[slug] = imageUrl;
+        }
+        setArtistGalleryArtwork(gallery);
+      } catch {
+        // El reproductor conserva la portada de RadioBOSS o el logo como respaldo.
+      }
+    }
+    void loadArtistGallery();
+    const timer = window.setInterval(() => void loadArtistGallery(), 30_000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, []);
+
+  const stickyCurrent = useMemo(() => {
+    const slug = normalizeArtistLookup(radio.current.artist);
+    return {
+      ...radio.current,
+      artwork: (slug && artistGalleryArtwork[slug]) || radio.current.artwork || radio.selected.logo,
+    };
+  }, [artistGalleryArtwork, radio.current, radio.selected.logo]);
   const showPersistentPlayer =
     pathname === "/" ||
     pathname === "/portal" ||
@@ -28,7 +76,7 @@ export function PersistentRadioProvider({ children }: { children: ReactNode }) {
       {showPersistentPlayer ? (
         <StickyPlayer
           selected={radio.selected}
-          current={radio.current}
+          current={stickyCurrent}
           playing={radio.playing}
           loading={radio.loading}
           fieramixSoundStatus={radio.fieramixSoundStatus}

@@ -55,10 +55,17 @@ const APP_STORE_URL = "https://apps.apple.com/es/app/fieramix/id6755240653";
 const FAVORITE_STATIONS_STORAGE_KEY = "fieramix-favorite-stations";
 const FAVORITES_UPDATED_EVENT = "fieramix-favorites-updated";
 const compactPromos = [
-  { kicker: "LA RED LATINA QUE MUEVE AL MUNDO", title: "EL GRUPO\nFIERAMIX.COM", action: "CONOCER EL PORTAL →", href: "/portal", tone: "green" },
-  { kicker: "TU MÚSICA, TU ESTILO, TU RADIO", title: "EXPLORA\nNUESTRAS EMISORAS", action: "VER EMISORAS →", href: "#emisoras", tone: "blue" },
-  { kicker: "SIEMPRE CONTIGO", title: "ESCUCHA EN VIVO\n24 HORAS AL DÍA", action: "ESCUCHAR AHORA →", href: "#inicio", tone: "red" },
-  { kicker: "TU MÚSICA TAMBIÉN CUENTA", title: "SOLICITA\nTU CANCIÓN", action: "HACER SOLICITUD →", href: "#solicita", tone: "purple" },
+  { kicker: "LA RED LATINA QUE MUEVE AL MUNDO", title: "EL GRUPO\nFIERAMIX.COM", action: "CONOCER EL PORTAL →", href: "/portal", tone: "green", image: "group" },
+  { kicker: "TU MÚSICA, TU ESTILO, TU RADIO", title: "EXPLORA\nNUESTRAS EMISORAS", action: "VER EMISORAS →", href: "#emisoras", tone: "blue", image: "station" },
+  { kicker: "SIEMPRE CONTIGO", title: "ESCUCHA EN VIVO\n24 HORAS AL DÍA", action: "ESCUCHAR AHORA →", href: "#inicio", tone: "red", image: "artwork" },
+  { kicker: "TU MÚSICA TAMBIÉN CUENTA", title: "SOLICITA\nTU CANCIÓN", action: "HACER SOLICITUD →", href: "#solicita", tone: "purple", image: "group" },
+  { kicker: "INFORMACIÓN QUE TE MANTIENE AL DÍA", title: "FIERAMIX\nNOTICIAS", action: "VER NOTICIAS →", href: "/noticias", tone: "red", image: "group" },
+  { kicker: "LO MÁS ESCUCHADO Y LO MÁS NUEVO", title: "TOP MUSICALES\nY ESTRENOS", action: "VER RANKING →", href: "#ranking", tone: "blue", image: "artwork" },
+  { kicker: "MUCHO MÁS QUE RADIO", title: "VIVE LA\nEXPERIENCIA FIERAMIX", action: "DESCUBRIR MÁS →", href: "/portal", tone: "green", image: "station" },
+  { kicker: "FIERAMIX SIEMPRE CONTIGO", title: "DESCARGA\nNUESTRA APP", action: "DISPONIBLE PARA TI →", href: GOOGLE_PLAY_URL, tone: "blue", image: "group" },
+  { kicker: "CONECTA CON NUESTRA COMUNIDAD", title: "SÍGUENOS\nEN REDES SOCIALES", action: "CONECTAR AHORA →", href: "https://www.instagram.com/fieramix", tone: "purple", image: "group" },
+  { kicker: "HAZ CRECER TU MARCA", title: "LA PUBLICIDAD\nDE TU NEGOCIO AQUÍ", action: "CONTÁCTANOS →", href: "https://wa.me/18098419586", tone: "red", image: "group" },
+  { kicker: "SÉ PARTE DE NUESTRA COMUNIDAD", title: "CLUB\nDE OYENTES", action: "ÚNETE AHORA →", href: "/club-de-oyentes", tone: "green", image: "group" },
 ] as const;
 
 const socialLinks = [
@@ -249,6 +256,12 @@ export default function CompactPortalHome({
   }, [history, metadata, selected.id]);
 
   const recent = fullRecent.slice(0, 10);
+  const activePromo = compactPromos[promoIndex];
+  const activePromoImage = activePromo.image === "artwork"
+    ? (current.artwork || selected.logo)
+    : activePromo.image === "station"
+      ? selected.logo
+      : "/logos/grupo-fieramix.png";
 
   const ranking = stationRanking.stationId === selected.id ? stationRanking.tracks : [];
   const liveProgramming = programmingClock ? getLiveProgramming(selected.id, programmingClock) : null;
@@ -305,9 +318,9 @@ export default function CompactPortalHome({
           </div>
 
           <aside className="recentCard compactBanners" aria-label="Promociones FIERAMIX">
-            <Link className={`compactBannerSlide tone-${compactPromos[promoIndex].tone}`} href={compactPromos[promoIndex].href} key={promoIndex}>
-              <span className="compactBannerCopy"><small>{compactPromos[promoIndex].kicker}</small><strong>{compactPromos[promoIndex].title.split("\n").map((line) => <span key={line}>{line}</span>)}</strong><b>{compactPromos[promoIndex].action}</b></span>
-              <img src={promoIndex === 0 || promoIndex === 3 ? "/logos/grupo-fieramix.png" : promoIndex === 2 ? (current.artwork || selected.logo) : selected.logo} onError={(event) => { event.currentTarget.src = selected.logo; }} alt="" />
+            <Link className={`compactBannerSlide tone-${activePromo.tone}`} href={activePromo.href} key={promoIndex}>
+              <span className="compactBannerCopy"><small>{activePromo.kicker}</small><strong>{activePromo.title.split("\n").map((line) => <span key={line}>{line}</span>)}</strong><b>{activePromo.action}</b></span>
+              <img src={activePromoImage} onError={(event) => { event.currentTarget.src = selected.logo; }} alt="" />
             </Link>
             <div className="compactBannerDots" aria-label="Seleccionar promoción">
               {compactPromos.map((promo, index) => <button key={promo.title} type="button" className={index === promoIndex ? "active" : ""} onClick={() => setPromoIndex(index)} aria-label={`Ver promoción ${index + 1}`} />)}
