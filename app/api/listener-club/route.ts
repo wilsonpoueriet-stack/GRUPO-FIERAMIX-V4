@@ -45,6 +45,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const name = clean(body.name, 100);
   const whatsapp = normalizeWhatsapp(body.whatsapp);
+  const birthDate = clean(body.birthDate, 10);
   const city = clean(body.city, 80);
   const country = clean(body.country, 80);
   const stationId = clean(body.stationId, 60);
@@ -62,6 +63,10 @@ export async function POST(request: Request): Promise<Response> {
       },
       400,
     );
+  }
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(birthDate) || Number.isNaN(Date.parse(`${birthDate}T00:00:00Z`)) || birthDate > new Date().toISOString().slice(0, 10)) {
+    return json({ ok: false, error: "Indica una fecha de nacimiento válida." }, 400);
   }
 
   if (!city) {
@@ -107,6 +112,7 @@ export async function POST(request: Request): Promise<Response> {
       name,
       whatsapp: `+${whatsapp}`,
       whatsappDigits: whatsapp,
+      birthDate,
       city,
       country,
       stationId: station.id,

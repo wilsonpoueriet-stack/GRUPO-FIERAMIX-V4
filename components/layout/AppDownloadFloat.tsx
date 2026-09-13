@@ -2,6 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
 const GOOGLE_PLAY_URL =
   "https://play.google.com/store/apps/details?id=com.fieramix.webapp";
 const APP_STORE_URL =
@@ -9,7 +14,17 @@ const APP_STORE_URL =
 
 export default function AppDownloadFloat() {
   const [open, setOpen] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const shellRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const rememberPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
+    };
+    window.addEventListener("beforeinstallprompt", rememberPrompt);
+    return () => window.removeEventListener("beforeinstallprompt", rememberPrompt);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -64,6 +79,23 @@ export default function AppDownloadFloat() {
           </p>
 
           <div className="appDownloadStores">
+            <button
+              type="button"
+              className="storeButton"
+              onClick={async () => {
+                if (installPrompt) {
+                  await installPrompt.prompt();
+                  await installPrompt.userChoice;
+                  setInstallPrompt(null);
+                } else {
+                  window.alert("En Windows, abre el menú del navegador y selecciona ‘Instalar aplicación’. ");
+                }
+                setOpen(false);
+              }}
+            >
+              <b aria-hidden="true">⊞</b>
+              <span><small>ESCRITORIO</small><strong>WINDOWS</strong></span>
+            </button>
             <a
               href={GOOGLE_PLAY_URL}
               target="_blank"

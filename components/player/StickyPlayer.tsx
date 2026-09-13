@@ -142,7 +142,7 @@ export default function StickyPlayer({
       style={{ "--accent": selected.accent } as CSSProperties}
     >
       <div className="stickyInfo">
-        <img src={current.artwork || selected.logo} alt="" />
+        <img src={current.artwork || selected.logo} onError={(event) => { event.currentTarget.src = selected.logo; }} alt={`Portada de ${current.title}`} />
         <div className="stickyTrackText">
           <small>{selected.name}</small>
           <strong>{current.title}</strong>

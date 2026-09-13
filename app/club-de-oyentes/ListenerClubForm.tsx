@@ -32,6 +32,7 @@ export default function ListenerClubForm({ stations }: Props) {
     const payload = {
       name: String(form.get("name") ?? ""),
       whatsapp: String(form.get("whatsapp") ?? ""),
+      birthDate: String(form.get("birthDate") ?? ""),
       city: String(form.get("city") ?? ""),
       country: String(form.get("country") ?? ""),
       stationId: String(form.get("stationId") ?? ""),
@@ -113,6 +114,12 @@ export default function ListenerClubForm({ stations }: Props) {
               placeholder="Ej.: +1 809 555 1234"
             />
             <small>Incluye el código de país.</small>
+          </label>
+
+          <label>
+            Fecha de nacimiento
+            <input name="birthDate" type="date" autoComplete="bday" required max={new Date().toISOString().slice(0, 10)} />
+            <small>La usaremos para felicitarte en tu cumpleaños.</small>
           </label>
 
           <div className="twoCols">

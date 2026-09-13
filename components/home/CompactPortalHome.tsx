@@ -52,6 +52,8 @@ interface BeforeInstallPromptEvent extends Event {
 
 const GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=com.fieramix.webapp";
 const APP_STORE_URL = "https://apps.apple.com/es/app/fieramix/id6755240653";
+const FAVORITE_STATIONS_STORAGE_KEY = "fieramix-favorite-stations";
+const FAVORITES_UPDATED_EVENT = "fieramix-favorites-updated";
 
 const socialLinks = [
   ["facebook", "https://www.facebook.com/FieraMIXRD", "Facebook"],
@@ -109,6 +111,33 @@ export default function CompactPortalHome({
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [stationRanking, setStationRanking] = useState<{ stationId: string; tracks: CompactRankingTrack[] }>({ stationId: "", tracks: [] });
   const [programmingClock, setProgrammingClock] = useState<Date | null>(null);
+  const [favoriteStations, setFavoriteStations] = useState<string[]>([]);
+
+  useEffect(() => {
+    const loadFavorites = () => {
+      try {
+        const saved = JSON.parse(window.localStorage.getItem(FAVORITE_STATIONS_STORAGE_KEY) || "[]") as unknown;
+        setFavoriteStations(Array.isArray(saved) ? saved.map(String) : []);
+      } catch { setFavoriteStations([]); }
+    };
+    loadFavorites();
+    window.addEventListener(FAVORITES_UPDATED_EVENT, loadFavorites);
+    window.addEventListener("storage", loadFavorites);
+    return () => {
+      window.removeEventListener(FAVORITES_UPDATED_EVENT, loadFavorites);
+      window.removeEventListener("storage", loadFavorites);
+    };
+  }, []);
+
+  const toggleFavorite = () => {
+    const stationId = String(selected.id);
+    const next = favoriteStations.includes(stationId)
+      ? favoriteStations.filter((id) => id !== stationId)
+      : [...favoriteStations, stationId];
+    setFavoriteStations(next);
+    try { window.localStorage.setItem(FAVORITE_STATIONS_STORAGE_KEY, JSON.stringify(next)); } catch {}
+    window.dispatchEvent(new Event(FAVORITES_UPDATED_EVENT));
+  };
 
   useEffect(() => {
     const update = () => setProgrammingClock(new Date());
@@ -207,7 +236,7 @@ export default function CompactPortalHome({
     );
   }, [history, metadata, selected.id]);
 
-  const recent = fullRecent.slice(0, 5);
+  const recent = fullRecent.slice(0, 10);
 
   const ranking = stationRanking.stationId === selected.id ? stationRanking.tracks : [];
   const liveProgramming = programmingClock ? getLiveProgramming(selected.id, programmingClock) : null;
@@ -247,7 +276,7 @@ export default function CompactPortalHome({
           </div>
 
           <div className="nowPlayingCard">
-            <img src={current.artwork || selected.logo} alt={`Portada de ${current.title}`} />
+            <img src={current.artwork || selected.logo} onError={(event) => { event.currentTarget.src = selected.logo; }} alt={`Portada de ${current.title}`} />
             <div className="nowPlayingCopy">
               <span>SONANDO AHORA</span>
               <h1>{current.title}</h1>
@@ -257,14 +286,15 @@ export default function CompactPortalHome({
                 <button onClick={() => onMoveStation(-1)} aria-label="Emisora anterior">◀◀</button>
                 <button className="compactMainPlay" onClick={onPlaybackToggle} aria-label={playing ? "Pausar" : "Reproducir"}>{loading ? "•••" : playing ? "❚❚" : "▶"}</button>
                 <button onClick={() => onMoveStation(1)} aria-label="Emisora siguiente">▶▶</button>
+                <button className={`compactFavorite${favoriteStations.includes(String(selected.id)) ? " active" : ""}`} type="button" onClick={toggleFavorite} aria-pressed={favoriteStations.includes(String(selected.id))} aria-label={favoriteStations.includes(String(selected.id)) ? `Quitar ${selected.name} de favoritas` : `Agregar ${selected.name} a favoritas`}>{favoriteStations.includes(String(selected.id)) ? "♥" : "♡"}</button>
                 <label><span>🔊</span><input aria-label="Volumen" type="range" min="0" max="1" step="0.01" value={volume} onChange={(event) => onVolumeChange(Number(event.target.value))} /></label>
               </div>
             </div>
           </div>
 
-          <aside className="recentCard">
-            <h2>HISTORIAL RECIENTE</h2>
-            <ol>{recent.map((track, index) => <li key={`${track.title}-${index}`}><span>♫</span><b>{track.artist} · {track.title}</b><time>{"started" in track ? track.started : ""}</time></li>)}</ol>
+          <aside className="recentCard compactBanners" aria-label="Promociones FIERAMIX">
+            <a href="#emisoras"><small>LA RED LATINA QUE MUEVE AL MUNDO</small><strong>9 EMISORAS<br/>UNA SOLA PASIÓN</strong><span>ESCUCHAR AHORA →</span></a>
+            <Link href="/portal"><small>TODO FIERAMIX EN UN SOLO LUGAR</small><strong>DESCUBRE<br/>NUESTRO PORTAL</strong><span>ENTRAR AL PORTAL →</span></Link>
           </aside>
         </section>
 
@@ -282,9 +312,9 @@ export default function CompactPortalHome({
         </section>
 
         <section className="compactDashboard">
-          <article id="en-vivo" className="compactPanel livePanel">
-            <h2>¿QUÉ SUENA EN FIERAMIX?<small>EN TIEMPO REAL</small></h2>
-            <ul>{stations.slice(0, 9).map((station) => { const info = metadata[station.id] ?? emptyNowPlaying(station); return <li key={station.id}><img src={station.logo} alt=""/><b>{station.name}</b><span>{info.artist} · {info.title}</span><i>EN VIVO</i></li>; })}</ul>
+          <article id="en-vivo" className="compactPanel livePanel recentHistoryPanel">
+            <h2>HISTORIAL RECIENTE<small>10 CANCIONES</small></h2>
+            <ul>{recent.map((track, index) => <li key={`${track.title}-${index}`}><img src={track.artwork || selected.logo} onError={(event) => { event.currentTarget.src = selected.logo; }} alt={`Portada de ${track.title}`}/><b>{track.artist}</b><span>{track.title}</span><time>{"started" in track ? track.started : ""}</time></li>)}</ul>
           </article>
 
           <article id="ranking" className="compactPanel rankingCompact">
@@ -308,7 +338,7 @@ export default function CompactPortalHome({
             <span>CLUB DE OYENTES</span>
             <h2>DEL GRUPO FIERAMIX.COM</h2>
             <p>Únete a nuestra comunidad oficial y recibe novedades, estrenos, noticias y promociones.</p>
-            <a href="https://chat.whatsapp.com/JJfXFBwAG3O8DlKs9ufvJt" target="_blank" rel="noreferrer">◉ ¡UNIRME AL CLUB!</a>
+            <Link href="/club-de-oyentes">◉ ¡UNIRME AL CLUB!</Link>
           </article>
         </section>
 
@@ -319,7 +349,7 @@ export default function CompactPortalHome({
       </main>
 
       <footer className="compactFooter">
-        <strong>EL GRUPO FIERAMIX.COM</strong>
+        <div className="compactFooterBrand"><strong>EL GRUPO FIERAMIX.COM</strong><small>LA RED LATINA QUE MUEVE AL MUNDO</small></div>
         <span>© 2026 · TODOS LOS DERECHOS RESERVADOS</span>
         <nav>
           <a href="/terminos-condiciones">Términos y Condiciones</a>

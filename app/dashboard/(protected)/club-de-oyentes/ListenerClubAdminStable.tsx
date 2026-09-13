@@ -6,6 +6,7 @@ type Member = {
   key: string;
   name: string;
   whatsapp: string;
+  birthDate: string;
   city: string;
   country: string;
   stationId: string;
@@ -113,7 +114,7 @@ export default function ListenerClubAdminStable() {
   const filtered = useMemo(() => {
     const text = query.trim().toLocaleLowerCase("es");
     return members.filter((member) => {
-      const matchesText = !text || [member.name, member.whatsapp, member.city, member.country, member.stationName]
+      const matchesText = !text || [member.name, member.whatsapp, member.birthDate, member.city, member.country, member.stationName]
         .join(" ")
         .toLocaleLowerCase("es")
         .includes(text);
@@ -155,10 +156,11 @@ export default function ListenerClubAdminStable() {
   const exportCsv = () => {
     if (!filtered.length) return;
     const rows = [
-      ["Nombre", "WhatsApp", "Ciudad", "País", "Emisora favorita", "Consentimiento WhatsApp", "Fecha consentimiento", "Fecha registro", "Última actualización"],
+      ["Nombre", "WhatsApp", "Fecha de nacimiento", "Ciudad", "País", "Emisora favorita", "Consentimiento WhatsApp", "Fecha consentimiento", "Fecha registro", "Última actualización"],
       ...filtered.map((member) => [
         member.name,
         member.whatsapp.replace(/[^+0-9]/g, ""),
+        member.birthDate,
         member.city,
         member.country,
         member.stationName,
@@ -187,10 +189,11 @@ export default function ListenerClubAdminStable() {
       const { default: JSZip } = await import("jszip");
       const zip = new JSZip();
       const exportDate = new Intl.DateTimeFormat("es-DO", { dateStyle: "full", timeStyle: "short" }).format(new Date());
-      const headers = ["Nombre", "WhatsApp", "Ciudad", "País", "Emisora favorita", "Consentimiento WhatsApp", "Fecha consentimiento", "Fecha registro", "Última actualización"];
+      const headers = ["Nombre", "WhatsApp", "Fecha de nacimiento", "Ciudad", "País", "Emisora favorita", "Consentimiento WhatsApp", "Fecha consentimiento", "Fecha registro", "Última actualización"];
       const dataRows = filtered.map((member) => [
         member.name,
         member.whatsapp.replace(/[^+0-9]/g, ""),
+        member.birthDate,
         member.city,
         member.country,
         member.stationName,
@@ -304,8 +307,8 @@ export default function ListenerClubAdminStable() {
         {error ? <div className="error">⚠️ {error}</div> : null}
 
         {loading ? <div className="state">Cargando registros...</div> : filtered.length === 0 ? <div className="state">No hay oyentes que coincidan con los filtros.</div> : (
-          <div className="tableWrap"><table><thead><tr><th>OYENTE</th><th>WHATSAPP</th><th>UBICACIÓN</th><th>EMISORA FAVORITA</th><th>CONSENTIMIENTO</th><th>REGISTRO</th><th></th></tr></thead><tbody>
-            {filtered.map((member) => <tr key={member.key}><td><strong>{member.name}</strong></td><td>{member.whatsapp}</td><td>{[member.city, member.country].filter(Boolean).join(", ")}</td><td>{member.stationName || "—"}</td><td><span className={member.consentWhatsApp ? "okBadge" : "noBadge"}>{member.consentWhatsApp ? "AUTORIZADO" : "NO"}</span></td><td>{formatDate(member.registeredAt)}</td><td><button className="deleteButton" type="button" onClick={() => void deleteMember(member)}>ELIMINAR</button></td></tr>)}
+          <div className="tableWrap"><table><thead><tr><th>OYENTE</th><th>WHATSAPP</th><th>CUMPLEAÑOS</th><th>UBICACIÓN</th><th>EMISORA FAVORITA</th><th>CONSENTIMIENTO</th><th>REGISTRO</th><th></th></tr></thead><tbody>
+            {filtered.map((member) => <tr key={member.key}><td><strong>{member.name}</strong></td><td>{member.whatsapp}</td><td>{member.birthDate || "—"}</td><td>{[member.city, member.country].filter(Boolean).join(", ")}</td><td>{member.stationName || "—"}</td><td><span className={member.consentWhatsApp ? "okBadge" : "noBadge"}>{member.consentWhatsApp ? "AUTORIZADO" : "NO"}</span></td><td>{formatDate(member.registeredAt)}</td><td><button className="deleteButton" type="button" onClick={() => void deleteMember(member)}>ELIMINAR</button></td></tr>)}
           </tbody></table></div>
         )}
       </section>

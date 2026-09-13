@@ -33,6 +33,7 @@ export async function GET(): Promise<Response> {
           key: blob.key,
           name: typeof metadata.name === "string" ? metadata.name : "",
           whatsapp: typeof metadata.whatsapp === "string" ? metadata.whatsapp : "",
+          birthDate: typeof metadata.birthDate === "string" ? metadata.birthDate : "",
           city: typeof metadata.city === "string" ? metadata.city : "",
           country: typeof metadata.country === "string" ? metadata.country : "",
           stationId: typeof metadata.stationId === "string" ? metadata.stationId : "",
