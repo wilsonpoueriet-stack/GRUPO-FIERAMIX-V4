@@ -482,7 +482,7 @@ export async function GET(request: Request): Promise<Response> {
           station: stationFilter,
           stationName: station?.name ?? null,
           scope: "station",
-          source: "station-play-counter-v1",
+          source: "station-play-counter-v2",
           generatedAt: new Date().toISOString(),
           available: ranking.length > 0,
           totalPlays,
