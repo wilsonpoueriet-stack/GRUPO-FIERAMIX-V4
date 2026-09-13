@@ -329,9 +329,9 @@ window.rbcloudSongRequest${station.widgetId} = {
 `;
 }
 
-type SongRequestProps = { initialStationId?: RequestStationId; locked?: boolean };
+type SongRequestProps = { initialStationId?: RequestStationId; locked?: boolean; compact?: boolean };
 
-export default function SongRequest({ initialStationId = "bachata", locked = false }: SongRequestProps = {}) {
+export default function SongRequest({ initialStationId = "bachata", locked = false, compact = false }: SongRequestProps = {}) {
   const [selectedStationId, setSelectedStationId] =
     useState<RequestStation["id"]>(initialStationId);
   const [frameHeight, setFrameHeight] = useState(70);
@@ -379,8 +379,8 @@ export default function SongRequest({ initialStationId = "bachata", locked = fal
   };
 
   return (
-    <section id="solicita" className="songRequestSection">
-      <div className="songRequestIntro">
+    <section id="solicita" className={compact ? "songRequestSection compact" : "songRequestSection"}>
+      {!compact ? <div className="songRequestIntro">
         <span>TU MÚSICA. TU ELECCIÓN.</span>
 
         <h2>
@@ -410,7 +410,7 @@ export default function SongRequest({ initialStationId = "bachata", locked = fal
             <span>Solicítala</span>
           </div>
         </div>
-      </div>
+      </div> : null}
 
       <div
         className="songRequestCard"
@@ -430,7 +430,16 @@ export default function SongRequest({ initialStationId = "bachata", locked = fal
           <img src={selectedStation.logo} alt={selectedStation.name} />
         </div>
 
-        {!locked ? <div className="requestStationSelector" aria-label="Elige tu emisora">
+        {compact && !locked ? (
+          <label className="compactStationSelect">
+            <span>EMISORA</span>
+            <select value={selectedStationId} onChange={(event) => selectStation(event.target.value as RequestStationId)}>
+              {REQUEST_STATIONS.map((station) => <option key={station.id} value={station.id}>{station.name}</option>)}
+            </select>
+          </label>
+        ) : null}
+
+        {!compact && !locked ? <div className="requestStationSelector" aria-label="Elige tu emisora">
           {REQUEST_STATIONS.map((station) => {
             const active = station.id === selectedStation.id;
 
@@ -609,6 +618,69 @@ export default function SongRequest({ initialStationId = "bachata", locked = fal
           border: 0;
           background: transparent;
           transition: height 0.22s ease;
+        }
+
+        .songRequestSection.compact {
+          display: block;
+          min-height: 100%;
+          padding: 0;
+          background: transparent;
+        }
+
+        .songRequestSection.compact::before,
+        .songRequestSection.compact::after {
+          display: none;
+        }
+
+        .songRequestSection.compact .songRequestCard {
+          min-height: 100%;
+          padding: 14px;
+          border-radius: 14px;
+          background: linear-gradient(145deg, rgba(10, 14, 29, .98), rgba(4, 7, 17, .98));
+          box-shadow: none !important;
+        }
+
+        .songRequestSection.compact .requestCardHeader {
+          margin-bottom: 8px;
+        }
+
+        .songRequestSection.compact .requestCardHeader img {
+          width: 42px;
+          height: 42px;
+        }
+
+        .songRequestSection.compact .requestCardHeader h3 {
+          margin: 3px 0 0;
+          font-size: .95rem;
+        }
+
+        .songRequestSection.compact .requestNotice {
+          margin: 5px 0 0;
+          font-size: .55rem;
+        }
+
+        .compactStationSelect {
+          display: grid;
+          grid-template-columns: auto 1fr;
+          align-items: center;
+          gap: 8px;
+          margin-bottom: 7px;
+          color: rgba(255,255,255,.55);
+          font-size: .55rem;
+          font-weight: 900;
+          letter-spacing: .08em;
+        }
+
+        .compactStationSelect select {
+          min-width: 0;
+          height: 30px;
+          padding: 0 8px;
+          border: 1px solid rgba(255,255,255,.1);
+          border-radius: 8px;
+          color: #fff;
+          background: #070b1d;
+          font-size: .65rem;
+          font-weight: 800;
         }
 
         @media (max-width: 1050px) {
