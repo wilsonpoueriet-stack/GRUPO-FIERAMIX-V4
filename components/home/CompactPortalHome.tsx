@@ -40,6 +40,8 @@ const onlineRadioBoxSlugs: Record<string, string> = {
   rancheras: "fieramixlamexicana",
   internacional: "fieramixlaamericana",
   cristiana: "fieramixlacristiana",
+  utopia: "utopia",
+  ahora: "ahora",
 };
 
 interface BeforeInstallPromptEvent extends Event {
@@ -270,7 +272,6 @@ export default function CompactPortalHome({
           <article id="ranking" className="compactPanel rankingCompact">
             <h2>TOP 10 · {selected.name}</h2>
             <ol>{ranking.slice(0, 10).map((track, index) => <li key={trackKey(track.title, track.artist)}><strong>{String(index + 1).padStart(2, "0")}</strong><img src={track.artwork || selected.logo} alt=""/><span><b>{track.title}</b><small>{track.artist}</small></span></li>)}</ol>
-            <button className="compactPanelButton" type="button" onClick={() => setOpenPanel("ranking")}>VER TOP COMPLETO</button>
           </article>
 
           <article className="compactPanel compactNews">
