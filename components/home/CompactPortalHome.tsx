@@ -54,12 +54,20 @@ const GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=com.fiera
 const APP_STORE_URL = "https://apps.apple.com/es/app/fieramix/id6755240653";
 
 const socialLinks = [
-  ["f", "https://www.facebook.com/FieraMIXRD", "Facebook"],
-  ["◎", "https://www.instagram.com/fieramix", "Instagram"],
-  ["𝕏", "https://x.com/FieraMIX", "X"],
-  ["▶", "https://www.youtube.com/@fieramixtv5937", "YouTube"],
-  ["♪", "https://www.tiktok.com/@elgrupofieramix", "TikTok"],
+  ["facebook", "https://www.facebook.com/FieraMIXRD", "Facebook"],
+  ["instagram", "https://www.instagram.com/fieramix", "Instagram"],
+  ["x", "https://x.com/FieraMIX", "X"],
+  ["youtube", "https://www.youtube.com/@fieramixtv5937", "YouTube"],
+  ["tiktok", "https://www.tiktok.com/@elgrupofieramix", "TikTok"],
 ] as const;
+
+function SocialIcon({ name }: { name: (typeof socialLinks)[number][0] }) {
+  if (name === "facebook") return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.7 22v-9h3l.5-3.5h-3.5V7.2c0-1 .3-1.7 1.8-1.7h1.9V2.4c-.3 0-1.5-.1-2.8-.1-2.8 0-4.7 1.7-4.7 4.8v2.4H6.8V13h3.1v9h3.8Z" /></svg>;
+  if (name === "instagram") return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5"/><circle cx="12" cy="12" r="4.1"/><circle className="socialIconDot" cx="17.6" cy="6.7" r="1"/></svg>;
+  if (name === "x") return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 2H22l-6.8 7.8L23.2 22h-6.3L12 15.6 6.4 22H3.2l7.3-8.3L2.8 2h6.4l4.4 5.8L18.9 2Zm-1.1 17.8h1.7L8.2 4H6.4l11.4 15.8Z" /></svg>;
+  if (name === "youtube") return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 7.1a3 3 0 0 0-2.1-2.2C19 4.4 12 4.4 12 4.4s-7 0-8.9.5A3 3 0 0 0 1 7.1 31 31 0 0 0 .5 12 31 31 0 0 0 1 16.9a3 3 0 0 0 2.1 2.2c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.2 31 31 0 0 0 .5-4.9 31 31 0 0 0-.5-4.9ZM9.7 15.3V8.7L15.5 12l-5.8 3.3Z" /></svg>;
+  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.7 2c.4 2.5 1.8 4 4.3 4.2v3.1a8.6 8.6 0 0 1-4.3-1v6.4a7 7 0 1 1-6-6.9v3.3a3.7 3.7 0 1 0 2.7 3.6V2h3.3Z" /></svg>;
+}
 
 function requestStationId(id: string): RequestStationId {
   const allowed: RequestStationId[] = [
@@ -221,7 +229,7 @@ export default function CompactPortalHome({
           <a href="https://fieramix.com/">＋<span>DESCUBRE +</span></a>
         </nav>
         <div className="compactSocials">
-          {socialLinks.map(([icon, href, label]) => <a key={label} href={href} target="_blank" rel="noreferrer" aria-label={label}>{icon}</a>)}
+          {socialLinks.map(([icon, href, label]) => <a key={label} className={`social-${icon}`} href={href} target="_blank" rel="noreferrer" aria-label={label} title={label}><SocialIcon name={icon} /></a>)}
         </div>
         <button className="compactLiveButton" onClick={onPlaybackToggle}>{playing ? "❚❚ EN VIVO" : "▶ ESCUCHA EN VIVO"}</button>
       </header>
