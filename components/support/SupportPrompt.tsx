@@ -39,6 +39,12 @@ export default function SupportPrompt({ playing, stationName }: { playing: boole
     return () => window.clearInterval(timer);
   }, [playing]);
 
+  useEffect(() => {
+    const showSupportPrompt = () => setOpen(true);
+    window.addEventListener("fieramix-open-support", showSupportPrompt);
+    return () => window.removeEventListener("fieramix-open-support", showSupportPrompt);
+  }, []);
+
   function close() { setOpen(false); }
   function markSupporter() {
     try {
