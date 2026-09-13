@@ -167,7 +167,8 @@ button { cursor: pointer; }
   .compactMain { padding: 8px 10px; }
   .compactPlayerBand { grid-template-columns: 1fr; }
   .stationIdentity { min-height: 140px; }.stationIdentity > img { height: 85px; }
-  .nowPlayingCard { grid-template-columns: 120px minmax(0,1fr); }.nowPlayingCard > img { min-height: 160px; }
+  .nowPlayingCard { grid-template-columns: 132px minmax(0,1fr); align-items: center; }
+  .nowPlayingCard > img { width: 132px; height: 132px; min-height: 0; align-self: center; object-fit: cover; border-radius: 0 12px 12px 0; }
   .recentCard { min-height: 180px; }
   .compactStationGrid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .compactDashboard { grid-template-columns: 1fr; }
@@ -177,7 +178,7 @@ button { cursor: pointer; }
 @media (max-width: 480px) {
   .compactBrand > img { width: 42px; height: 42px; }.compactBrand strong { font-size: .82rem; }
   .compactHeader nav a:nth-child(3),.compactHeader nav a:nth-child(7) { display: none; }
-  .compactPlayerBand { gap: 7px; }.nowPlayingCard { grid-template-columns: 100px minmax(0,1fr); }.nowPlayingCopy { padding: 10px; }.compactControls label { display: none; }
+  .compactPlayerBand { gap: 7px; }.nowPlayingCard { grid-template-columns: 118px minmax(0,1fr); }.nowPlayingCard > img { width: 118px; height: 118px; }.nowPlayingCopy { padding: 10px; }.compactControls label { display: none; }
   .compactStationGrid { grid-template-columns: 1fr 1fr; }.compactStation { grid-template-columns: 32px minmax(0,1fr); }.compactStation > i { display: none; }
 }
 
