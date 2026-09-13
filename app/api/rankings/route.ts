@@ -477,8 +477,8 @@ export async function GET(request: Request): Promise<Response> {
         {
           ok: true,
           period: "actual",
-          label: "TOP 10 POR EMISORA",
-          limit: 10,
+          label: "TOP 25 POR EMISORA",
+          limit: 25,
           station: stationFilter,
           stationName: station?.name ?? null,
           scope: "station",
