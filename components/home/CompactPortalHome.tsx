@@ -59,6 +59,7 @@ const socialLinks = [
   ["x", "https://x.com/FieraMIX", "X"],
   ["youtube", "https://www.youtube.com/@fieramixtv5937", "YouTube"],
   ["tiktok", "https://www.tiktok.com/@elgrupofieramix", "TikTok"],
+  ["whatsapp", "https://wa.me/18098419586", "WhatsApp"],
 ] as const;
 
 function SocialIcon({ name }: { name: (typeof socialLinks)[number][0] }) {
@@ -66,6 +67,7 @@ function SocialIcon({ name }: { name: (typeof socialLinks)[number][0] }) {
   if (name === "instagram") return <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5"/><circle cx="12" cy="12" r="4.1"/><circle className="socialIconDot" cx="17.6" cy="6.7" r="1"/></svg>;
   if (name === "x") return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.9 2H22l-6.8 7.8L23.2 22h-6.3L12 15.6 6.4 22H3.2l7.3-8.3L2.8 2h6.4l4.4 5.8L18.9 2Zm-1.1 17.8h1.7L8.2 4H6.4l11.4 15.8Z" /></svg>;
   if (name === "youtube") return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M23 7.1a3 3 0 0 0-2.1-2.2C19 4.4 12 4.4 12 4.4s-7 0-8.9.5A3 3 0 0 0 1 7.1 31 31 0 0 0 .5 12 31 31 0 0 0 1 16.9a3 3 0 0 0 2.1 2.2c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.2 31 31 0 0 0 .5-4.9 31 31 0 0 0-.5-4.9ZM9.7 15.3V8.7L15.5 12l-5.8 3.3Z" /></svg>;
+  if (name === "whatsapp") return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.7 11.7 0 0 0 12.1 0 11.9 11.9 0 0 0 1.8 17.8L.1 24l6.4-1.7A11.9 11.9 0 0 0 24 11.9c0-3.2-1.2-6.2-3.5-8.4Zm-8.4 18.4a9.8 9.8 0 0 1-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 1 1 8.4 4.7Zm5.4-7.3c-.3-.2-1.8-.9-2.1-1-.3-.1-.5-.2-.7.2l-1 1.2c-.2.2-.4.2-.7.1-2-.9-3.3-1.7-4.6-4-.3-.6.3-.6.9-1.4.1-.2.1-.4 0-.6l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.4-1.2 1.2-1.2 2.9s1.2 3.4 1.4 3.6c.2.2 2.4 3.7 5.9 5.2 2.2 1 3.1 1 4.2.8 1.3-.2 1.8-1.2 2-1.7.2-.5.2-1 .1-1.1-.1-.2-.4-.3-.7-.4Z" /></svg>;
   return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.7 2c.4 2.5 1.8 4 4.3 4.2v3.1a8.6 8.6 0 0 1-4.3-1v6.4a7 7 0 1 1-6-6.9v3.3a3.7 3.7 0 1 0 2.7 3.6V2h3.3Z" /></svg>;
 }
 

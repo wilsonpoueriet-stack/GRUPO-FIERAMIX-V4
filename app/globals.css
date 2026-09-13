@@ -47,7 +47,7 @@ button { cursor: pointer; }
 .compactBrand > img { width: 48px; height: 48px; object-fit: contain; }
 .compactBrand > span { display: grid; line-height: 1; }
 .compactBrand strong { font-size: .72rem; font-weight: 950; letter-spacing: .015em; white-space: nowrap; }
-.compactBrand b { margin-top: 5px; color: #fff; font-size: .46rem; letter-spacing: .06em; }
+.compactBrand b { margin-top: 5px; color: #fff; font-size: .58rem; font-weight: 850; letter-spacing: .055em; }
 .compactHeader nav { height: 100%; display: flex; justify-content: center; align-items: stretch; gap: 3px; }
 .compactHeader nav a {
   min-width: 61px;
@@ -76,6 +76,7 @@ button { cursor: pointer; }
 .compactSocials .social-x { background: linear-gradient(145deg,#252525,#000); }
 .compactSocials .social-youtube { background: linear-gradient(145deg,#ff3441,#c8000c); }
 .compactSocials .social-tiktok { background: linear-gradient(145deg,#18242a,#050505); text-shadow: 1px 0 #25f4ee,-1px 0 #fe2c55; }
+.compactSocials .social-whatsapp { background: linear-gradient(145deg,#35e879,#079343); }
 .compactLiveButton { min-height: 38px; padding: 0 18px; border: 1px solid #39e75f; border-radius: 999px; color: #fff; background: linear-gradient(180deg,#15982f,#08691f); box-shadow: inset 0 0 14px rgba(102,255,123,.18), 0 0 16px rgba(32,220,80,.13); font-size: .7rem; font-weight: 900; white-space: nowrap; }
 .compactMain { width: min(100%, 1600px); margin: auto; padding: 10px 18px 12px; overflow: visible; }
 .compactPlayerBand { min-height: 185px; display: grid; grid-template-columns: .78fr 1.18fr .82fr; gap: 10px; }
