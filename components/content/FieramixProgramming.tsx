@@ -44,7 +44,7 @@ type StationConfig = {
   newsTimes?: string[];
 };
 
-type LiveState = {
+export type LiveState = {
   current: Slot;
   next: Slot;
 };
@@ -689,6 +689,11 @@ function liveState(date: Date, station: StationConfig): LiveState {
   const current = schedule[index];
   const next = schedule[index + 1] ?? station.liveSchedule((clock.day + 1) % 7)[0];
   return { current, next };
+}
+
+export function getLiveProgramming(stationId: string, date: Date): LiveState | null {
+  const station = stations.find((candidate) => candidate.id === stationId);
+  return station ? liveState(date, station) : null;
 }
 
 const panelStyle = {

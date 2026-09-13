@@ -1,5 +1,6 @@
 import { getStore } from "@netlify/blobs";
 import { stations } from "@/data/stations";
+import { captureStationPlays, readStationTop10 } from "@/lib/station-top10";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -252,7 +253,21 @@ async function buildHistoricalRanking(
 
     storedDays.forEach((day) => {
       Object.values(day.events).forEach((event) => {
+        const rankingStation = stations.find(
+          (station) => station.id === event.stationId,
+        );
+
+        if (!rankingStation) {
+          return;
+        }
+
         if (stationFilter && event.stationId !== stationFilter) {
+          return;
+        }
+
+        // Las emisoras invitadas pueden consultar su propio ranking,
+        // pero nunca deben mezclarse en el ranking general de FIERAMIX.
+        if (!stationFilter && rankingStation.rankingEligible === false) {
           return;
         }
 
@@ -450,6 +465,44 @@ export async function GET(request: Request): Promise<Response> {
       },
       { status: 404 },
     );
+  }
+
+  if (stationFilter && period === "actual") {
+    try {
+      const newPlays = await captureStationPlays(stationFilter);
+      const { ranking, totalPlays } = await readStationTop10(stationFilter);
+      const station = stations.find((item) => item.id === stationFilter);
+
+      return rankingResponse(
+        {
+          ok: true,
+          period: "actual",
+          label: "TOP 25 POR EMISORA",
+          limit: 25,
+          station: stationFilter,
+          stationName: station?.name ?? null,
+          scope: "station",
+          source: "station-play-counter-v2",
+          generatedAt: new Date().toISOString(),
+          available: ranking.length > 0,
+          totalPlays,
+          newPlays,
+          ranking,
+        },
+        15,
+      );
+    } catch (error) {
+      return Response.json(
+        {
+          ok: false,
+          period: "actual",
+          station: stationFilter,
+          ranking: [],
+          error: error instanceof Error ? error.message : "No fue posible contar las tocadas.",
+        },
+        { status: 502 },
+      );
+    }
   }
 
   return buildHistoricalRanking(period, stationFilter);
