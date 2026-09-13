@@ -3,10 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import WhatsAppFloat from "@/components/layout/WhatsAppFloat";
 import AppDownloadFloat from "@/components/layout/AppDownloadFloat";
-import SupportFloat from "@/components/layout/SupportFloat";
 import InstallAppPrompt from "@/components/pwa/InstallAppPrompt";
-import FieramixAIChat from "@/components/ai/FieramixAIChat";
-import FieramixAIController from "@/components/ai/FieramixAIController";
 import FieramixAIPortalContextBridge from "@/components/ai/FieramixAIPortalContextBridge";
 import FieramixSongRequestBridge from "@/components/songrequest/FieramixSongRequestBridge";
 import CompactPortalHome from "@/components/home/CompactPortalHome";
@@ -142,7 +139,6 @@ export default function RadioPortal() {
         onPlayStation={(station) => void radio.playStation(station)}
       />
       <FieramixSongRequestBridge />
-      <SupportFloat />
       <AppDownloadFloat />
       <FieramixAIPortalContextBridge
         stationId={radio.selected.id}
@@ -151,8 +147,6 @@ export default function RadioPortal() {
         currentTitle={visualCurrent.title}
         currentArtist={visualCurrent.artist}
       />
-      <FieramixAIChat />
-      <FieramixAIController stations={radio.stations} selected={radio.selected} playing={radio.playing} onPlayStation={(station) => void radio.playStation(station)} onTogglePlayback={() => void radio.togglePlayback()} />
       <WhatsAppFloat />
     </>
   );
