@@ -112,7 +112,7 @@ export async function readStationTop10(stationId: string): Promise<{
   const counter = await readCounter(stationId);
   const ranking = Object.values(counter.songs)
     .sort((a, b) => b.plays - a.plays || b.lastPlayedAt.localeCompare(a.lastPlayedAt))
-    .slice(0, 10)
+    .slice(0, 25)
     .map((song, index) => ({
       position: index + 1,
       ...song,
