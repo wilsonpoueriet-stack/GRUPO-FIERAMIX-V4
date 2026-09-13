@@ -8,10 +8,9 @@ import InstallAppPrompt from "@/components/pwa/InstallAppPrompt";
 import FieramixAIChat from "@/components/ai/FieramixAIChat";
 import FieramixAIController from "@/components/ai/FieramixAIController";
 import FieramixAIPortalContextBridge from "@/components/ai/FieramixAIPortalContextBridge";
-import StickyPlayer from "@/components/player/StickyPlayer";
 import FieramixSongRequestBridge from "@/components/songrequest/FieramixSongRequestBridge";
 import CompactPortalHome from "@/components/home/CompactPortalHome";
-import { useRadioPortal } from "@/hooks/useRadioPortal";
+import { usePersistentRadio } from "@/components/player/PersistentRadioProvider";
 
 type ArtistGalleryItem = { artist?: string; slug?: string; imageUrl?: string };
 type ArtistGalleryResponse = { ok?: boolean; artists?: ArtistGalleryItem[] };
@@ -41,7 +40,7 @@ function resolveArtistArtwork(
 }
 
 export default function RadioPortal() {
-  const radio = useRadioPortal();
+  const radio = usePersistentRadio();
   const [artistGalleryArtwork, setArtistGalleryArtwork] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -155,8 +154,6 @@ export default function RadioPortal() {
       <FieramixAIChat />
       <FieramixAIController stations={radio.stations} selected={radio.selected} playing={radio.playing} onPlayStation={(station) => void radio.playStation(station)} onTogglePlayback={() => void radio.togglePlayback()} />
       <WhatsAppFloat />
-      <StickyPlayer selected={radio.selected} current={visualCurrent} playing={radio.playing} loading={radio.loading} fieramixSoundStatus={radio.fieramixSoundStatus} fieramixSoundActive={radio.fieramixSoundActive} onPlaybackToggle={() => void radio.togglePlayback()} onMoveStation={radio.moveStation} />
-      <audio ref={radio.audioRef} preload="none" onPlay={() => undefined} onPause={() => undefined} />
     </>
   );
 }
