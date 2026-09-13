@@ -379,7 +379,7 @@ export default function CompactPortalHome({
       </main>
 
       <footer className="compactFooter">
-        <div className="compactFooterBrand"><img src="/logos/grupo-fieramix.png" alt=""/><span><strong>EL GRUPO FIERAMIX.COM</strong><small>LA RED LATINA QUE MUEVE AL MUNDO</small></span></div>
+        <Link className="compactFooterBrand" href="/" aria-label="Ir al inicio de EL GRUPO FIERAMIX.COM"><img src="/logos/grupo-fieramix.png" alt=""/><span><strong>EL GRUPO FIERAMIX.COM</strong><small>LA RED LATINA QUE MUEVE AL MUNDO</small></span></Link>
         <span>© 2026 · TODOS LOS DERECHOS RESERVADOS</span>
         <nav>
           <a href="/terminos-condiciones">Términos y Condiciones</a>
