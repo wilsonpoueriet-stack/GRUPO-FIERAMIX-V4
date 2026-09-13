@@ -125,10 +125,10 @@ button { cursor: pointer; }
 .compactStations > h2 span { width: 70px; height: 1px; background: linear-gradient(90deg, transparent, #ef2535); }
 .compactStations > h2 span:last-child { transform: scaleX(-1); }
 .compactStationGrid { display: grid; grid-template-columns: repeat(8, minmax(0,1fr)); gap: 6px; }
-.compactStation { --station-accent: #f04452; min-width: 0; min-height: 48px; padding: 5px 7px; display: grid; grid-template-columns: 35px minmax(0,1fr) auto; gap: 7px; align-items: center; border: 1px solid rgba(255,255,255,.1); border-radius: 9px; color: #fff; background: #0a0f21; text-align: left; }
+.compactStation { --station-accent: #f04452; min-width: 0; min-height: 50px; padding: 5px 7px; display: grid; grid-template-columns: 32px minmax(0,1fr) auto; gap: 7px; align-items: center; border: 1px solid rgba(255,255,255,.1); border-radius: 9px; color: #fff; background: #0a0f21; text-align: left; }
 .compactStation:hover,
 .compactStation.active { border-color: var(--station-accent); box-shadow: inset 0 0 18px color-mix(in srgb, var(--station-accent) 8%, transparent), 0 0 12px color-mix(in srgb, var(--station-accent) 10%, transparent); }
-.compactStationLogo { width: 35px; height: 35px; display: grid; place-items: center; overflow: hidden; border-radius: 7px; background: #fff; }
+.compactStationLogo { width: 32px; height: 32px; display: grid; place-items: center; overflow: hidden; border-radius: 7px; background: #fff; }
 .compactStationLogo img { width: 100%; height: 100%; object-fit: contain; }
 .compactStation[data-station="merengue"] .compactStationLogo img,
 .compactStation[data-station="bachata"] .compactStationLogo img,
@@ -137,7 +137,7 @@ button { cursor: pointer; }
 .compactStation[data-station="reggaeton"] .compactStationLogo img,
 .compactStation[data-station="rancheras"] .compactStationLogo img,
 .compactStation[data-station="internacional"] .compactStationLogo img,
-.compactStation[data-station="cristiana"] .compactStationLogo img { transform: scale(1.52); }
+.compactStation[data-station="cristiana"] .compactStationLogo img { transform: scale(1.16); }
 .compactStation > .compactStationInfo { min-width: 0; display: grid; gap: 1px; }
 .compactStation b,
 .compactStation small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
