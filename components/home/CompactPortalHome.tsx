@@ -106,7 +106,7 @@ export default function CompactPortalHome({
           const payload = (await response.json()) as { ok?: boolean; station?: string | null; ranking?: CompactRankingTrack[] };
           if (cancelled) return;
           if (!response.ok || !payload.ok || payload.station !== selected.id || !Array.isArray(payload.ranking)) return;
-          setStationRanking({ stationId: selected.id, tracks: payload.ranking.slice(0, 10) });
+          setStationRanking({ stationId: selected.id, tracks: payload.ranking.slice(0, 25) });
           if (payload.ranking.length > 0) return;
         } catch {
           if (attempt === 2) return;
@@ -233,9 +233,9 @@ export default function CompactPortalHome({
           </article>
 
           <article id="ranking" className="compactPanel rankingCompact">
-            <h2>TOP 10 · {selected.name}</h2>
+            <h2>TOP 25 · {selected.name}</h2>
             <ol>{ranking.slice(0, 10).map((track, index) => <li key={trackKey(track.title, track.artist)}><strong>{String(index + 1).padStart(2, "0")}</strong><img src={track.artwork || selected.logo} alt=""/><span><b>{track.title}</b><small>{track.artist}</small></span></li>)}</ol>
-            <button className="compactPanelButton" type="button" onClick={() => setOpenPanel("ranking")}>VER TOP 10 COMPLETO</button>
+            <button className="compactPanelButton" type="button" onClick={() => setOpenPanel("ranking")}>VER MÁS</button>
           </article>
 
           <article className="compactPanel compactNews">
@@ -260,7 +260,7 @@ export default function CompactPortalHome({
         <div className="compactModalBackdrop" role="presentation" onMouseDown={() => setOpenPanel(null)}>
           <section className="compactModal" role="dialog" aria-modal="true" aria-labelledby="compact-modal-title" onMouseDown={(event) => event.stopPropagation()}>
             <header>
-              <div><span>{openPanel === "ranking" ? `RANKING ${selected.name}` : selected.name}</span><h2 id="compact-modal-title">{openPanel === "ranking" ? "TOP 10 DE LA EMISORA" : "HISTORIAL COMPLETO"}</h2></div>
+              <div><span>{openPanel === "ranking" ? `RANKING ${selected.name}` : selected.name}</span><h2 id="compact-modal-title">{openPanel === "ranking" ? "TOP 25 DE LA EMISORA" : "HISTORIAL COMPLETO"}</h2></div>
               <button type="button" onClick={() => setOpenPanel(null)} aria-label="Cerrar">×</button>
             </header>
             {openPanel === "ranking" ? (
