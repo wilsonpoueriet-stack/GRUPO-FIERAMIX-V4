@@ -52,12 +52,19 @@ function normalize(value: string): string {
 }
 
 function dateKey(date = new Date()): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: TIME_ZONE,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: TIME_ZONE,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    })
+      .formatToParts(date)
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value]),
+  );
+
+  return `${parts.year}-${parts.month}-${parts.day}`;
 }
 
 function playedAt(started: string, capturedAt: Date): string | null {
@@ -201,4 +208,3 @@ export async function readStationTop10(stationId: string): Promise<{
     totalPlays: Object.keys(document.plays).length,
   };
 }
-
