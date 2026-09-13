@@ -77,7 +77,7 @@ export default function CompactPortalHome({
   const [newsItems, setNewsItems] = useState<NewsItem[]>(fallbackNews.slice(0, 3));
   const [openPanel, setOpenPanel] = useState<"history" | "ranking" | null>(null);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [stationRanking, setStationRanking] = useState<CompactRankingTrack[]>([]);
+  const [stationRanking, setStationRanking] = useState<{ stationId: string; tracks: CompactRankingTrack[] }>({ stationId: "", tracks: [] });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -93,17 +93,18 @@ export default function CompactPortalHome({
 
   useEffect(() => {
     const controller = new AbortController();
-    setStationRanking([]);
+    setStationRanking({ stationId: "", tracks: [] });
     if (selected.rankingEligible === false) {
       return () => controller.abort();
     }
-    void fetch(`/api/rankings?period=actual&station=${encodeURIComponent(selected.id)}`, {
+    void fetch(`/api/rankings?period=actual&station=${encodeURIComponent(selected.id)}&stationCheck=${Date.now()}`, {
       cache: "no-store",
       signal: controller.signal,
     })
       .then((response) => (response.ok ? response.json() : null))
-      .then((payload: { ranking?: CompactRankingTrack[] } | null) => {
-        setStationRanking(Array.isArray(payload?.ranking) ? payload.ranking.slice(0, 10) : []);
+      .then((payload: { station?: string | null; ranking?: CompactRankingTrack[] } | null) => {
+        if (payload?.station !== selected.id || !Array.isArray(payload.ranking)) return;
+        setStationRanking({ stationId: selected.id, tracks: payload.ranking.slice(0, 10) });
       })
       .catch(() => undefined);
     return () => controller.abort();
@@ -162,7 +163,9 @@ export default function CompactPortalHome({
       .slice(0, 10);
   }, [metadata, selected]);
 
-  const ranking = stationRanking.length > 0 ? stationRanking : rankingFallback;
+  const ranking = stationRanking.stationId === selected.id && stationRanking.tracks.length > 0
+    ? stationRanking.tracks
+    : rankingFallback;
 
   return (
     <div className="compactPortal" style={{ "--portal-accent": selected.accent } as CSSProperties}>
