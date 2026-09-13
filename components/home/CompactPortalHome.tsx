@@ -54,6 +54,10 @@ const GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=com.fiera
 const APP_STORE_URL = "https://apps.apple.com/es/app/fieramix/id6755240653";
 const FAVORITE_STATIONS_STORAGE_KEY = "fieramix-favorite-stations";
 const FAVORITES_UPDATED_EVENT = "fieramix-favorites-updated";
+const compactPromos = [
+  { kicker: "LA RED LATINA QUE MUEVE AL MUNDO", title: "9 EMISORAS\nUNA SOLA PASIÓN", action: "ESCUCHAR AHORA →", href: "#emisoras", tone: "red" },
+  { kicker: "TODO FIERAMIX EN UN SOLO LUGAR", title: "DESCUBRE\nNUESTRO PORTAL", action: "ENTRAR AL PORTAL →", href: "/portal", tone: "blue" },
+] as const;
 
 const socialLinks = [
   ["facebook", "https://www.facebook.com/FieraMIXRD", "Facebook"],
@@ -112,6 +116,12 @@ export default function CompactPortalHome({
   const [stationRanking, setStationRanking] = useState<{ stationId: string; tracks: CompactRankingTrack[] }>({ stationId: "", tracks: [] });
   const [programmingClock, setProgrammingClock] = useState<Date | null>(null);
   const [favoriteStations, setFavoriteStations] = useState<string[]>([]);
+  const [promoIndex, setPromoIndex] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setPromoIndex((index) => (index + 1) % compactPromos.length), 6500);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const loadFavorites = () => {
@@ -293,8 +303,14 @@ export default function CompactPortalHome({
           </div>
 
           <aside className="recentCard compactBanners" aria-label="Promociones FIERAMIX">
-            <a href="#emisoras"><small>LA RED LATINA QUE MUEVE AL MUNDO</small><strong>9 EMISORAS<br/>UNA SOLA PASIÓN</strong><span>ESCUCHAR AHORA →</span></a>
-            <Link href="/portal"><small>TODO FIERAMIX EN UN SOLO LUGAR</small><strong>DESCUBRE<br/>NUESTRO PORTAL</strong><span>ENTRAR AL PORTAL →</span></Link>
+            <Link className={`compactBannerSlide tone-${compactPromos[promoIndex].tone}`} href={compactPromos[promoIndex].href} key={promoIndex}>
+              <small>{compactPromos[promoIndex].kicker}</small>
+              <strong>{compactPromos[promoIndex].title.split("\n").map((line) => <span key={line}>{line}</span>)}</strong>
+              <b>{compactPromos[promoIndex].action}</b>
+            </Link>
+            <div className="compactBannerDots" aria-label="Seleccionar promoción">
+              {compactPromos.map((promo, index) => <button key={promo.title} type="button" className={index === promoIndex ? "active" : ""} onClick={() => setPromoIndex(index)} aria-label={`Ver promoción ${index + 1}`} />)}
+            </div>
           </aside>
         </section>
 

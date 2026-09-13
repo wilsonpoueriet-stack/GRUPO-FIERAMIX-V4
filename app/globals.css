@@ -123,11 +123,15 @@ button { cursor: pointer; }
 .recentCard ol { margin: 0; padding: 0; list-style: none; }
 .recentCard li { min-width: 0; padding: 5px 0; display: grid; grid-template-columns: 14px minmax(0,1fr) auto; gap: 5px; align-items: center; border-top: 1px solid rgba(255,255,255,.08); font-size: .58rem; }
 .recentCard li span { color: #fff; }.recentCard li b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.recentCard li time { color: #7f8799; }
-.compactBanners { padding: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
-.compactBanners a { min-width: 0; padding: 13px; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; border: 1px solid rgba(255,65,82,.42); border-radius: 9px; background: radial-gradient(circle at 90% 10%,rgba(255,42,65,.3),transparent 35%),linear-gradient(145deg,#17101b,#060914); }
-.compactBanners a:last-child { border-color: rgba(88,156,255,.42); background: radial-gradient(circle at 90% 10%,rgba(44,112,255,.3),transparent 35%),linear-gradient(145deg,#0d162b,#060914); }
-.compactBanners small { color: #ff5a68; font-size: .42rem; font-weight: 950; }.compactBanners a:last-child small { color: #75b6ff; }
-.compactBanners strong { margin: 5px 0 12px; font-size: .88rem; line-height: 1.04; }.compactBanners span { color: #fff; font-size: .43rem; font-weight: 900; }
+.compactBanners { position: relative; padding: 8px; display: block; }
+.compactBannerSlide { width: 100%; height: 100%; min-width: 0; padding: 18px; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; border: 1px solid rgba(255,65,82,.42); border-radius: 9px; background: radial-gradient(circle at 85% 5%,rgba(255,42,65,.38),transparent 38%),linear-gradient(145deg,#20101b,#060914); animation: compactBannerIn .45s ease; }
+.compactBannerSlide.tone-blue { border-color: rgba(88,156,255,.5); background: radial-gradient(circle at 85% 5%,rgba(44,112,255,.4),transparent 38%),linear-gradient(145deg,#0d1b38,#060914); }
+.compactBannerSlide small { color: #ff6673; font-size: .48rem; font-weight: 950; }.compactBannerSlide.tone-blue small { color: #75b6ff; }
+.compactBannerSlide strong { margin: 7px 0 14px; color: #fff; font-size: 1.25rem; line-height: 1.02; }.compactBannerSlide strong span { display: block; }
+.compactBannerSlide > b { color: #fff; font-size: .5rem; font-weight: 900; }
+.compactBannerDots { position: absolute; right: 18px; bottom: 18px; display: flex; gap: 5px; }
+.compactBannerDots button { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%; background: rgba(255,255,255,.38); }.compactBannerDots button.active { width: 20px; border-radius: 99px; background: #fff; }
+@keyframes compactBannerIn { from { opacity: .35; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
 .compactPanelButton { width: 100%; height: 24px; margin-top: 5px; display: grid; place-items: center; border: 1px solid #ef2d3b; border-radius: 999px; color: #f04b57; background: transparent; font-size: .55rem; font-weight: 900; }
 .compactPanelButton:hover { color: #fff; background: rgba(239,45,59,.15); }
 .compactStations { padding: 6px 0 8px; }
