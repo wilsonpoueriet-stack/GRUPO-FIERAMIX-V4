@@ -399,8 +399,13 @@ export default function CompactPortalHome({
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.7 12.8c0-2.7 2.2-4 2.3-4.1-1.3-1.9-3.3-2.1-4-2.1-1.7-.2-3.3 1-4.1 1-.8 0-2.1-1-3.5-.9-1.8 0-3.5 1.1-4.4 2.7-1.9 3.3-.5 8.1 1.3 10.7.9 1.3 2 2.8 3.4 2.7 1.3-.1 1.9-.9 3.5-.9 1.6 0 2.1.9 3.5.8 1.5 0 2.4-1.3 3.3-2.6 1-1.5 1.5-3 1.5-3.1-.1 0-2.8-1.1-2.8-4.2ZM13.9 4.8c.7-.9 1.2-2.2 1.1-3.5-1.1 0-2.5.8-3.3 1.7-.7.8-1.3 2.1-1.1 3.4 1.2.1 2.5-.6 3.3-1.6Z" /></svg><span>iPhone</span>
             </a>
             <button className="compactDonateFlag" type="button" onClick={() => window.dispatchEvent(new Event("fieramix-open-support"))} aria-label="Abrir ventana de donación" title="Tu donación aquí">
-              <svg viewBox="0 0 54 44" aria-hidden="true"><path className="donateFlagPole" d="M5 2h3v40H5z"/><path className="donateFlagCloth" d="M8 4c12-7 23 6 39-1v27c-16 7-27-6-39 1V4Z"/></svg>
-              <span><b>TU</b><b>DONACIÓN</b><b>AQUÍ</b></span>
+              <svg viewBox="0 0 72 54" aria-hidden="true">
+                <path className="donateRibbonShadow" d="M18 31h38v18L43 44v9L30 46V39H18Z"/>
+                <path className="donateRibbonBottom" d="M17 25h44l-5 22H17Z"/>
+                <path className="donateRibbonTop" d="M8 8 66 3v25L8 33Z"/>
+                <text className="donateRibbonTopText" x="37" y="22">DONACIÓN</text>
+                <text className="donateRibbonBottomText" x="38" y="41">AQUÍ</text>
+              </svg>
             </button>
           </div>
         </section>
