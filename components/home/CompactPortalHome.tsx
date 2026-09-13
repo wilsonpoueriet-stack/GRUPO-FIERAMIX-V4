@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { getLiveProgramming } from "@/components/content/FieramixProgramming";
 import SongRequest, { type RequestStationId } from "@/components/songrequest/SongRequest";
 import { news as fallbackNews, type NewsItem } from "@/data/news";
 import { emptyNowPlaying } from "@/hooks/useRadioPortal";
@@ -94,10 +95,18 @@ export default function CompactPortalHome({
   onVolumeChange,
   onPlayStation,
 }: Props) {
-  const [newsItems, setNewsItems] = useState<NewsItem[]>(fallbackNews.slice(0, 3));
+  const [newsItems, setNewsItems] = useState<NewsItem[]>(fallbackNews.slice(0, 5));
   const [openPanel, setOpenPanel] = useState<"history" | "ranking" | null>(null);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [stationRanking, setStationRanking] = useState<{ stationId: string; tracks: CompactRankingTrack[] }>({ stationId: "", tracks: [] });
+  const [programmingClock, setProgrammingClock] = useState<Date | null>(null);
+
+  useEffect(() => {
+    const update = () => setProgrammingClock(new Date());
+    update();
+    const timer = window.setInterval(update, 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -105,7 +114,7 @@ export default function CompactPortalHome({
       .then((response) => (response.ok ? response.json() : null))
       .then((payload: { news?: NewsItem[] } | null) => {
         if (!payload?.news?.length) return;
-        setNewsItems(payload.news.slice(0, 3));
+        setNewsItems(payload.news.slice(0, 5));
       })
       .catch(() => undefined);
     return () => controller.abort();
@@ -192,6 +201,7 @@ export default function CompactPortalHome({
   const recent = fullRecent.slice(0, 5);
 
   const ranking = stationRanking.stationId === selected.id ? stationRanking.tracks : [];
+  const liveProgramming = programmingClock ? getLiveProgramming(selected.id, programmingClock) : null;
 
   return (
     <div className="compactPortal" style={{ "--portal-accent": selected.accent } as CSSProperties}>
@@ -274,9 +284,12 @@ export default function CompactPortalHome({
             <ol>{ranking.slice(0, 10).map((track, index) => <li key={trackKey(track.title, track.artist)}><strong>{String(index + 1).padStart(2, "0")}</strong><img src={track.artwork || selected.logo} alt=""/><span><b>{track.title}</b><small>{track.artist}</small></span></li>)}</ol>
           </article>
 
-          <article className="compactPanel compactNews">
-            <h2>FIERAMIX NOTICIAS<Link href="/noticias">VER TODAS</Link></h2>
-            <div>{newsItems.map((item) => <Link key={item.id} href={`/noticias/${item.id}`}><img src={item.image || "/noticias/fieramix-noticias-espacio-informativo.png"} alt=""/><span><b>{item.title}</b><small>{item.publishedAt?.slice(0, 10) ?? ""}</small></span></Link>)}</div>
+          <article className="compactPanel compactProgramming">
+            <h2>PROGRAMACIÓN <small>HORA DOMINICANA</small></h2>
+            {liveProgramming ? <div className="compactProgrammingSlots">
+              <section className="isCurrent"><span>● AHORA</span><h3>{liveProgramming.current.title}</h3><p>{liveProgramming.current.detail}</p><strong>{liveProgramming.current.schedule}</strong></section>
+              <section><span>A CONTINUACIÓN</span><h3>{liveProgramming.next.title}</h3><p>{liveProgramming.next.detail}</p><strong>{liveProgramming.next.schedule}</strong></section>
+            </div> : <div className="compactProgrammingEmpty"><b>{selected.name}</b><span>Programación detallada no disponible.</span></div>}
           </article>
 
           <div className="compactRequestPanel">
@@ -289,6 +302,11 @@ export default function CompactPortalHome({
             <p>Únete a nuestra comunidad oficial y recibe novedades, estrenos, noticias y promociones.</p>
             <a href="https://chat.whatsapp.com/JJfXFBwAG3O8DlKs9ufvJt" target="_blank" rel="noreferrer">◉ ¡UNIRME AL CLUB!</a>
           </article>
+        </section>
+
+        <section className="compactNews compactNewsRow">
+          <h2>FIERAMIX NOTICIAS<Link href="/noticias">VER TODAS</Link></h2>
+          <div>{newsItems.slice(0, 5).map((item) => <Link key={item.id} href={`/noticias/${item.id}`}><img src={item.image || "/noticias/fieramix-noticias-espacio-informativo.png"} alt=""/><span><b>{item.title}</b><small>{item.publishedAt?.slice(0, 10) ?? ""}</small></span></Link>)}</div>
         </section>
       </main>
 
