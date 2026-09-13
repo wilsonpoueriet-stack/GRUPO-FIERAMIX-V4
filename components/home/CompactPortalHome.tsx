@@ -23,6 +23,13 @@ type Props = {
   onPlayStation: (station: Station) => void;
 };
 
+type CompactRankingTrack = {
+  title: string;
+  artist: string;
+  artwork: string;
+  plays: number;
+};
+
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
@@ -70,6 +77,7 @@ export default function CompactPortalHome({
   const [newsItems, setNewsItems] = useState<NewsItem[]>(fallbackNews.slice(0, 3));
   const [openPanel, setOpenPanel] = useState<"history" | "ranking" | null>(null);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [stationRanking, setStationRanking] = useState<CompactRankingTrack[]>([]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -82,6 +90,24 @@ export default function CompactPortalHome({
       .catch(() => undefined);
     return () => controller.abort();
   }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setStationRanking([]);
+    if (selected.rankingEligible === false) {
+      return () => controller.abort();
+    }
+    void fetch(`/api/rankings?period=actual&station=${encodeURIComponent(selected.id)}`, {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { ranking?: CompactRankingTrack[] } | null) => {
+        setStationRanking(Array.isArray(payload?.ranking) ? payload.ranking.slice(0, 10) : []);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, [selected.id, selected.rankingEligible]);
 
   useEffect(() => {
     const rememberPrompt = (event: Event) => {
@@ -120,23 +146,23 @@ export default function CompactPortalHome({
 
   const recent = fullRecent.slice(0, 5);
 
-  const ranking = useMemo(() => {
+  const rankingFallback = useMemo(() => {
     const counts = new Map<string, { title: string; artist: string; artwork: string; plays: number }>();
-    for (const station of stations.filter((item) => item.rankingEligible !== false)) {
-      const info = metadata[station.id] ?? emptyNowPlaying(station);
-      const tracks = [{ title: info.title, artist: info.artist, artwork: info.artwork }, ...(info.recent ?? [])];
-      for (const track of tracks) {
-        if (!track.title || !track.artist || track.title === "Programación en vivo") continue;
-        const key = trackKey(track.title, track.artist);
-        const existing = counts.get(key);
-        if (existing) existing.plays += 1;
-        else counts.set(key, { ...track, plays: 1 });
-      }
+    const info = metadata[selected.id] ?? emptyNowPlaying(selected);
+    const tracks = [{ title: info.title, artist: info.artist, artwork: info.artwork }, ...(info.recent ?? [])];
+    for (const track of tracks) {
+      if (!track.title || !track.artist || track.title === "Programación en vivo") continue;
+      const key = trackKey(track.title, track.artist);
+      const existing = counts.get(key);
+      if (existing) existing.plays += 1;
+      else counts.set(key, { ...track, plays: 1 });
     }
     return [...counts.values()]
       .sort((a, b) => b.plays - a.plays || a.title.localeCompare(b.title))
-      .slice(0, 25);
-  }, [metadata, stations]);
+      .slice(0, 10);
+  }, [metadata, selected]);
+
+  const ranking = stationRanking.length > 0 ? stationRanking : rankingFallback;
 
   return (
     <div className="compactPortal" style={{ "--portal-accent": selected.accent } as CSSProperties}>
@@ -214,9 +240,9 @@ export default function CompactPortalHome({
           </article>
 
           <article id="ranking" className="compactPanel rankingCompact">
-            <h2>TOP 10 GENERAL</h2>
+            <h2>TOP 10 · {selected.name}</h2>
             <ol>{ranking.slice(0, 10).map((track, index) => <li key={trackKey(track.title, track.artist)}><strong>{String(index + 1).padStart(2, "0")}</strong><img src={track.artwork || selected.logo} alt=""/><span><b>{track.title}</b><small>{track.artist}</small></span></li>)}</ol>
-            <button className="compactPanelButton" type="button" onClick={() => setOpenPanel("ranking")}>VER TOP COMPLETO</button>
+            <button className="compactPanelButton" type="button" onClick={() => setOpenPanel("ranking")}>VER TOP 10 COMPLETO</button>
           </article>
 
           <article className="compactPanel compactNews">
@@ -241,7 +267,7 @@ export default function CompactPortalHome({
         <div className="compactModalBackdrop" role="presentation" onMouseDown={() => setOpenPanel(null)}>
           <section className="compactModal" role="dialog" aria-modal="true" aria-labelledby="compact-modal-title" onMouseDown={(event) => event.stopPropagation()}>
             <header>
-              <div><span>{openPanel === "ranking" ? "RANKING FIERAMIX" : selected.name}</span><h2 id="compact-modal-title">{openPanel === "ranking" ? "TOP 25 COMPLETO" : "HISTORIAL COMPLETO"}</h2></div>
+              <div><span>{openPanel === "ranking" ? `RANKING ${selected.name}` : selected.name}</span><h2 id="compact-modal-title">{openPanel === "ranking" ? "TOP 10 DE LA EMISORA" : "HISTORIAL COMPLETO"}</h2></div>
               <button type="button" onClick={() => setOpenPanel(null)} aria-label="Cerrar">×</button>
             </header>
             {openPanel === "ranking" ? (
