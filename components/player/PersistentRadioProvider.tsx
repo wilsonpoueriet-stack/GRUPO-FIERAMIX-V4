@@ -4,8 +4,8 @@ import { createContext, useContext, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import StickyPlayer from "@/components/player/StickyPlayer";
 import { useRadioPortal } from "@/hooks/useRadioPortal";
-import AppDownloadFloat from "@/components/layout/AppDownloadFloat";
-import SupportFloat from "@/components/layout/SupportFloat";
+import InstallAppPrompt from "@/components/pwa/InstallAppPrompt";
+import SupportPrompt from "@/components/support/SupportPrompt";
 
 type PersistentRadio = ReturnType<typeof useRadioPortal>;
 
@@ -23,8 +23,8 @@ export function PersistentRadioProvider({ children }: { children: ReactNode }) {
   return (
     <PersistentRadioContext.Provider value={radio}>
       {children}
-      <SupportFloat />
-      <AppDownloadFloat />
+      <InstallAppPrompt />
+      <SupportPrompt playing={radio.playing} stationName={radio.selected.name} />
       {showPersistentPlayer ? (
         <StickyPlayer
           selected={radio.selected}

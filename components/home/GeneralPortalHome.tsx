@@ -12,7 +12,6 @@ import RecentAndRanking from "@/components/content/RecentAndRanking";
 import FieramixProgramming from "@/components/content/FieramixProgramming";
 import MostListenedStations from "@/components/stations/MostListenedStations";
 import NewsAndClub from "@/components/content/NewsAndClub";
-import InstallAppPrompt from "@/components/pwa/InstallAppPrompt";
 import FieramixSongRequestBridge from "@/components/songrequest/FieramixSongRequestBridge";
 import FieramixAIPortalContextBridge from "@/components/ai/FieramixAIPortalContextBridge";
 import { usePersistentRadio } from "@/components/player/PersistentRadioProvider";
@@ -22,7 +21,6 @@ export default function GeneralPortalHome() {
 
   return (
     <>
-      <InstallAppPrompt />
       <Header
         playing={radio.playing}
         menuOpen={radio.menuOpen}

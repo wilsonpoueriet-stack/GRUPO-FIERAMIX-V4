@@ -55,8 +55,10 @@ const APP_STORE_URL = "https://apps.apple.com/es/app/fieramix/id6755240653";
 const FAVORITE_STATIONS_STORAGE_KEY = "fieramix-favorite-stations";
 const FAVORITES_UPDATED_EVENT = "fieramix-favorites-updated";
 const compactPromos = [
-  { kicker: "LA RED LATINA QUE MUEVE AL MUNDO", title: "9 EMISORAS\nUNA SOLA PASIÓN", action: "ESCUCHAR AHORA →", href: "#emisoras", tone: "red" },
-  { kicker: "TODO FIERAMIX EN UN SOLO LUGAR", title: "DESCUBRE\nNUESTRO PORTAL", action: "ENTRAR AL PORTAL →", href: "/portal", tone: "blue" },
+  { kicker: "LA RED LATINA QUE MUEVE AL MUNDO", title: "EL GRUPO\nFIERAMIX.COM", action: "CONOCER EL PORTAL →", href: "/portal", tone: "green" },
+  { kicker: "TU MÚSICA, TU ESTILO, TU RADIO", title: "EXPLORA\nNUESTRAS EMISORAS", action: "VER EMISORAS →", href: "#emisoras", tone: "blue" },
+  { kicker: "SIEMPRE CONTIGO", title: "ESCUCHA EN VIVO\n24 HORAS AL DÍA", action: "ESCUCHAR AHORA →", href: "#inicio", tone: "red" },
+  { kicker: "TU MÚSICA TAMBIÉN CUENTA", title: "SOLICITA\nTU CANCIÓN", action: "HACER SOLICITUD →", href: "#solicita", tone: "purple" },
 ] as const;
 
 const socialLinks = [
@@ -304,9 +306,8 @@ export default function CompactPortalHome({
 
           <aside className="recentCard compactBanners" aria-label="Promociones FIERAMIX">
             <Link className={`compactBannerSlide tone-${compactPromos[promoIndex].tone}`} href={compactPromos[promoIndex].href} key={promoIndex}>
-              <small>{compactPromos[promoIndex].kicker}</small>
-              <strong>{compactPromos[promoIndex].title.split("\n").map((line) => <span key={line}>{line}</span>)}</strong>
-              <b>{compactPromos[promoIndex].action}</b>
+              <span className="compactBannerCopy"><small>{compactPromos[promoIndex].kicker}</small><strong>{compactPromos[promoIndex].title.split("\n").map((line) => <span key={line}>{line}</span>)}</strong><b>{compactPromos[promoIndex].action}</b></span>
+              <img src={promoIndex === 0 || promoIndex === 3 ? "/logos/grupo-fieramix.png" : promoIndex === 2 ? (current.artwork || selected.logo) : selected.logo} onError={(event) => { event.currentTarget.src = selected.logo; }} alt="" />
             </Link>
             <div className="compactBannerDots" aria-label="Seleccionar promoción">
               {compactPromos.map((promo, index) => <button key={promo.title} type="button" className={index === promoIndex ? "active" : ""} onClick={() => setPromoIndex(index)} aria-label={`Ver promoción ${index + 1}`} />)}
@@ -365,7 +366,7 @@ export default function CompactPortalHome({
       </main>
 
       <footer className="compactFooter">
-        <div className="compactFooterBrand"><strong>EL GRUPO FIERAMIX.COM</strong><small>LA RED LATINA QUE MUEVE AL MUNDO</small></div>
+        <div className="compactFooterBrand"><img src="/logos/grupo-fieramix.png" alt=""/><span><strong>EL GRUPO FIERAMIX.COM</strong><small>LA RED LATINA QUE MUEVE AL MUNDO</small></span></div>
         <span>© 2026 · TODOS LOS DERECHOS RESERVADOS</span>
         <nav>
           <a href="/terminos-condiciones">Términos y Condiciones</a>

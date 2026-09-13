@@ -17,7 +17,6 @@ import {
 import type { NowPlaying } from "@/types/radio";
 import type { StationId } from "@/types/station";
 import SongRequest, { type RequestStationId } from "@/components/songrequest/SongRequest";
-import SupportPrompt from "@/components/support/SupportPrompt";
 import { getStationPath } from "@/data/station-routes";
 import styles from "./StationPage.module.css";
 
@@ -566,7 +565,6 @@ export default function StationPage({ stationId: requestedStationId }: StationPa
         onPause={() => setPlaying(false)}
         onPlay={() => setPlaying(true)}
       />
-      <SupportPrompt playing={playing} stationName={currentStation.name} />
     </main>
   );
 }

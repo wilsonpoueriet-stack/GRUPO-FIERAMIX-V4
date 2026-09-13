@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import InstallAppPrompt from "@/components/pwa/InstallAppPrompt";
 import FieramixAIPortalContextBridge from "@/components/ai/FieramixAIPortalContextBridge";
 import FieramixSongRequestBridge from "@/components/songrequest/FieramixSongRequestBridge";
 import CompactPortalHome from "@/components/home/CompactPortalHome";
@@ -121,7 +120,6 @@ export default function RadioPortal() {
 
   return (
     <>
-      <InstallAppPrompt />
       <CompactPortalHome
         stations={radio.stations}
         selected={radio.selected}
