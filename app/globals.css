@@ -92,7 +92,9 @@ button { cursor: pointer; }
 .stationIdentity[data-station="rancheras"] > img,
 .stationIdentity[data-station="internacional"] > img,
 .stationIdentity[data-station="cristiana"] > img { transform: scale(2.62); }
-.livePill { position: absolute; z-index: 2; top: 12px; left: 14px; padding: 5px 9px; border-radius: 8px; color: #ff4452; background: rgba(132, 9, 18, .36); font-size: .66rem; font-weight: 900; }
+.livePill { position: absolute; z-index: 3; top: 10px; left: 11px; min-height: 25px; padding: 0 10px; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #ff6872; border-radius: 999px; color: #fff; background: linear-gradient(180deg,#ec2635,#ae0e1b); box-shadow: 0 5px 13px rgba(174,14,27,.26); font-size: .62rem; font-weight: 950; letter-spacing: .035em; }
+.livePill i { width: 7px; height: 7px; border: 2px solid rgba(255,255,255,.72); border-radius: 50%; background: #fff; box-shadow: 0 0 0 0 rgba(236,38,53,.48); animation: livePillPulse 1.8s ease-out infinite; }
+@keyframes livePillPulse { 0% { box-shadow: 0 0 0 0 rgba(236,38,53,.55); } 70%,100% { box-shadow: 0 0 0 7px rgba(236,38,53,0); } }
 .equalizerBars { position: absolute; z-index: 2; left: 18px; right: 18px; bottom: 9px; height: 25px; display: flex; gap: 3px; align-items: center; justify-content: center; }
 .equalizerBars i { width: 3px; height: var(--wave-height); border-radius: 4px; background: linear-gradient(180deg, color-mix(in srgb, var(--portal-accent) 72%, #fff), var(--portal-accent)); opacity: .72; transform-origin: center; }
 .equalizerBars.isPlaying i { animation: compactSoundWave 1.05s ease-in-out infinite; animation-delay: calc(var(--bar-index) * -48ms); }
@@ -135,7 +137,7 @@ button { cursor: pointer; }
 .compactStation[data-station="reggaeton"] .compactStationLogo img,
 .compactStation[data-station="rancheras"] .compactStationLogo img,
 .compactStation[data-station="internacional"] .compactStationLogo img,
-.compactStation[data-station="cristiana"] .compactStationLogo img { transform: scale(2.35); }
+.compactStation[data-station="cristiana"] .compactStationLogo img { transform: scale(1.52); }
 .compactStation > .compactStationInfo { min-width: 0; display: grid; gap: 1px; }
 .compactStation b,
 .compactStation small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
