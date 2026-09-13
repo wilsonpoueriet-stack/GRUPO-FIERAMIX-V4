@@ -94,9 +94,6 @@ export default function CompactPortalHome({
   useEffect(() => {
     let cancelled = false;
     setStationRanking({ stationId: "", tracks: [] });
-    if (selected.rankingEligible === false) {
-      return () => { cancelled = true; };
-    }
 
     async function loadOfficialStationTop10() {
       for (let attempt = 0; attempt < 3; attempt += 1) {
@@ -119,7 +116,7 @@ export default function CompactPortalHome({
 
     void loadOfficialStationTop10();
     return () => { cancelled = true; };
-  }, [selected.id, selected.rankingEligible]);
+  }, [selected.id]);
 
   useEffect(() => {
     const rememberPrompt = (event: Event) => {
