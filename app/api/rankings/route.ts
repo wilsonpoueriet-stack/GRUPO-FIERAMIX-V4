@@ -474,6 +474,7 @@ export async function GET(request: Request): Promise<Response> {
   if (stationFilter && period === "actual") {
     try {
       if (supportsOnlineRadioBoxRanking(stationFilter)) {
+        // Una fuente y un conteo independiente para cada emisora durante siete días.
         const { ranking, totalPlays } = await readOnlineRadioBoxTop25(stationFilter);
         const station = stations.find((item) => item.id === stationFilter);
 
@@ -518,3 +519,20 @@ export async function GET(request: Request): Promise<Response> {
           ranking,
         },
         15,
+      );
+    } catch (error) {
+      return Response.json(
+        {
+          ok: false,
+          period: "actual",
+          station: stationFilter,
+          ranking: [],
+          error: error instanceof Error ? error.message : "No fue posible contar las tocadas.",
+        },
+        { status: 502 },
+      );
+    }
+  }
+
+  return buildHistoricalRanking(period, stationFilter);
+}
