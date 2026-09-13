@@ -23,6 +23,14 @@ type Props = {
   onPlayStation: (station: Station) => void;
 };
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+}
+
+const GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=com.fieramix.webapp";
+const APP_STORE_URL = "https://apps.apple.com/es/app/fieramix/id6755240653";
+
 const socialLinks = [
   ["f", "https://www.facebook.com/FieraMIXRD", "Facebook"],
   ["◎", "https://www.instagram.com/fieramix", "Instagram"],
@@ -61,6 +69,7 @@ export default function CompactPortalHome({
 }: Props) {
   const [newsItems, setNewsItems] = useState<NewsItem[]>(fallbackNews.slice(0, 3));
   const [openPanel, setOpenPanel] = useState<"history" | "ranking" | null>(null);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -73,6 +82,30 @@ export default function CompactPortalHome({
       .catch(() => undefined);
     return () => controller.abort();
   }, []);
+
+  useEffect(() => {
+    const rememberPrompt = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
+    };
+    const clearPrompt = () => setInstallPrompt(null);
+    window.addEventListener("beforeinstallprompt", rememberPrompt);
+    window.addEventListener("appinstalled", clearPrompt);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", rememberPrompt);
+      window.removeEventListener("appinstalled", clearPrompt);
+    };
+  }, []);
+
+  const installOnWindows = async () => {
+    if (installPrompt) {
+      await installPrompt.prompt();
+      const choice = await installPrompt.userChoice;
+      if (choice.outcome === "accepted") setInstallPrompt(null);
+      return;
+    }
+    window.alert("Para instalar FIERAMIX en Windows, abre el menú del navegador y selecciona ‘Instalar aplicación’. ");
+  };
 
   const fullRecent = useMemo(() => {
     const selectedRecent = metadata[selected.id]?.recent ?? [];
@@ -165,7 +198,7 @@ export default function CompactPortalHome({
               const info = metadata[station.id] ?? emptyNowPlaying(station);
               const active = selected.id === station.id;
               return <button key={station.id} className={active ? "compactStation active" : "compactStation"} onClick={() => onPlayStation(station)} style={{ "--station-accent": station.accent } as CSSProperties}>
-                <img src={station.logo} alt="" /><span><b>{station.name}</b><small>{info.title && info.artist ? `${info.title} · ${info.artist}` : info.title || info.artist || station.genre}</small></span><i>{info.listeners ?? "•"}</i>
+                <img src={station.logo} alt="" /><span><b>{station.name}</b><small className="compactStationArtist">{info.artist || station.genre}</small><small className="compactStationTitle">{info.title || "Programación en vivo"}</small></span><i>{info.listeners ?? "•"}</i>
               </button>;
             })}
           </div>
@@ -217,7 +250,25 @@ export default function CompactPortalHome({
         </div>
       ) : null}
 
-      <footer className="compactFooter"><strong>EL GRUPO FIERAMIX.COM</strong><span>© 2026 · TODOS LOS DERECHOS RESERVADOS</span><nav><a href="/politica-privacidad">Política de privacidad</a><a href="#inicio">Volver arriba</a></nav></footer>
+      <footer className="compactFooter">
+        <strong>EL GRUPO FIERAMIX.COM</strong>
+        <span>© 2026 · TODOS LOS DERECHOS RESERVADOS</span>
+        <nav><a href="/politica-privacidad">Política de privacidad</a><a href="#inicio">Volver arriba</a></nav>
+        <section className="compactDownloads" aria-label="Descargar FIERAMIX">
+          <small>DISPONIBLE EN:</small>
+          <div>
+            <button type="button" onClick={() => void installOnWindows()} aria-label="Instalar FIERAMIX en Windows" title="Windows">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4.2 10.2 3v8H2V4.2Zm9.2-1.35L22 1.3V11H11.2V2.85ZM2 12h8.2v8L2 18.8V12Zm9.2 0H22v9.7l-10.8-1.55V12Z" /></svg><span>Windows</span>
+            </button>
+            <a href={GOOGLE_PLAY_URL} target="_blank" rel="noreferrer" aria-label="Descargar FIERAMIX para Android" title="Android">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.1 7.2h9.8c1 0 1.8.8 1.8 1.8v8.1c0 1-.8 1.8-1.8 1.8h-.8V22h-2v-3.1H9.9V22h-2v-3.1h-.8c-1 0-1.8-.8-1.8-1.8V9c0-1 .8-1.8 1.8-1.8Zm-3.4.6c.7 0 1.2.5 1.2 1.2v7.2a1.2 1.2 0 1 1-2.4 0V9c0-.7.5-1.2 1.2-1.2Zm16.6 0c.7 0 1.2.5 1.2 1.2v7.2a1.2 1.2 0 1 1-2.4 0V9c0-.7.5-1.2 1.2-1.2ZM7 6.4c.2-1.7 1.2-3.1 2.6-3.9L8.5.8l.7-.4 1.2 1.8c.5-.2 1-.3 1.6-.3s1.1.1 1.6.3L14.8.4l.7.4-1.1 1.7c1.4.8 2.4 2.2 2.6 3.9H7Z" /></svg><span>Android</span>
+            </a>
+            <a href={APP_STORE_URL} target="_blank" rel="noreferrer" aria-label="Descargar FIERAMIX para iPhone" title="iPhone">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.7 12.8c0-2.7 2.2-4 2.3-4.1-1.3-1.9-3.3-2.1-4-2.1-1.7-.2-3.3 1-4.1 1-.8 0-2.1-1-3.5-.9-1.8 0-3.5 1.1-4.4 2.7-1.9 3.3-.5 8.1 1.3 10.7.9 1.3 2 2.8 3.4 2.7 1.3-.1 1.9-.9 3.5-.9 1.6 0 2.1.9 3.5.8 1.5 0 2.4-1.3 3.3-2.6 1-1.5 1.5-3 1.5-3.1-.1 0-2.8-1.1-2.8-4.2ZM13.9 4.8c.7-.9 1.2-2.2 1.1-3.5-1.1 0-2.5.8-3.3 1.7-.7.8-1.3 2.1-1.1 3.4 1.2.1 2.5-.6 3.3-1.6Z" /></svg><span>iPhone</span>
+            </a>
+          </div>
+        </section>
+      </footer>
     </div>
   );
 }
