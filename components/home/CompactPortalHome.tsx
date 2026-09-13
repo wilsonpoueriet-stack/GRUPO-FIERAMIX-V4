@@ -162,10 +162,10 @@ export default function CompactPortalHome({
 
       <main id="inicio" className="compactMain">
         <section className="compactPlayerBand" aria-label="Reproductor principal">
-          <div className="stationIdentity">
+          <div className="stationIdentity" data-station={selected.id}>
             <span className="livePill">◉ EN VIVO</span>
             <img src={selected.logo} alt={selected.name} />
-            <div className="equalizerBars" aria-hidden="true">{Array.from({ length: 28 }, (_, index) => <i key={index} />)}</div>
+            <div className={`equalizerBars${playing ? " isPlaying" : ""}`} aria-hidden="true">{Array.from({ length: 28 }, (_, index) => <i key={index} style={{ "--bar-index": index } as CSSProperties} />)}</div>
           </div>
 
           <div className="nowPlayingCard">
@@ -197,7 +197,7 @@ export default function CompactPortalHome({
             {stations.map((station) => {
               const info = metadata[station.id] ?? emptyNowPlaying(station);
               const active = selected.id === station.id;
-              return <button key={station.id} className={active ? "compactStation active" : "compactStation"} onClick={() => onPlayStation(station)} style={{ "--station-accent": station.accent } as CSSProperties}>
+              return <button key={station.id} data-station={station.id} className={active ? "compactStation active" : "compactStation"} onClick={() => onPlayStation(station)} style={{ "--station-accent": station.accent } as CSSProperties}>
                 <img src={station.logo} alt="" /><span><b>{station.name}</b><small className="compactStationArtist">{info.artist || station.genre}</small><small className="compactStationTitle">{info.title || "Programación en vivo"}</small></span><i>{info.listeners ?? "•"}</i>
               </button>;
             })}
