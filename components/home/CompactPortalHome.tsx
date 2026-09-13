@@ -60,6 +60,7 @@ export default function CompactPortalHome({
   onPlayStation,
 }: Props) {
   const [newsItems, setNewsItems] = useState<NewsItem[]>(fallbackNews.slice(0, 3));
+  const [openPanel, setOpenPanel] = useState<"history" | "ranking" | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -73,13 +74,18 @@ export default function CompactPortalHome({
     return () => controller.abort();
   }, []);
 
-  const recent = useMemo(() => {
+  const fullRecent = useMemo(() => {
     const selectedRecent = metadata[selected.id]?.recent ?? [];
-    if (selectedRecent.length) return selectedRecent.slice(0, 5);
-    return history
+    const sessionHistory = history
       .filter((item) => item.stationId === selected.id)
-      .slice(0, 5);
+      .map((item) => ({ title: item.title, artist: item.artist, artwork: item.artwork, started: item.stamp }));
+    const combined = [...selectedRecent, ...sessionHistory];
+    return combined.filter((track, index) =>
+      combined.findIndex((candidate) => trackKey(candidate.title, candidate.artist) === trackKey(track.title, track.artist)) === index,
+    );
   }, [history, metadata, selected.id]);
+
+  const recent = fullRecent.slice(0, 5);
 
   const ranking = useMemo(() => {
     const counts = new Map<string, { title: string; artist: string; artwork: string; plays: number }>();
@@ -96,15 +102,15 @@ export default function CompactPortalHome({
     }
     return [...counts.values()]
       .sort((a, b) => b.plays - a.plays || a.title.localeCompare(b.title))
-      .slice(0, 10);
+      .slice(0, 25);
   }, [metadata, stations]);
 
   return (
     <div className="compactPortal" style={{ "--portal-accent": selected.accent } as CSSProperties}>
       <header className="compactHeader">
         <a className="compactBrand" href="#inicio" aria-label="Inicio de EL GRUPO FIERAMIX.COM">
-          <img src="/logos/grupo-fieramix.png" alt="" />
-          <span><strong>GRUPO <em>FIERAMIX</em><small>.COM</small></strong><b>LA RED LATINA QUE MUEVE AL MUNDO</b></span>
+          <img src="/logos/grupo-fieramix.png" alt="EL GRUPO FIERAMIX.COM" />
+          <span><strong>EL GRUPO FIERAMIX.COM</strong><b>LA RED LATINA QUE MUEVE AL MUNDO</b></span>
         </a>
         <nav aria-label="Menú principal">
           <a className="active" href="#inicio">⌂<span>INICIO</span></a>
@@ -148,7 +154,7 @@ export default function CompactPortalHome({
           <aside className="recentCard">
             <h2>HISTORIAL RECIENTE</h2>
             <ol>{recent.map((track, index) => <li key={`${track.title}-${index}`}><span>♫</span><b>{track.artist} · {track.title}</b><time>{"started" in track ? track.started : ""}</time></li>)}</ol>
-            <a href="#en-vivo">VER HISTORIAL COMPLETO</a>
+            <button className="compactPanelButton" type="button" onClick={() => setOpenPanel("history")}>VER HISTORIAL COMPLETO</button>
           </aside>
         </section>
 
@@ -173,8 +179,8 @@ export default function CompactPortalHome({
 
           <article id="ranking" className="compactPanel rankingCompact">
             <h2>TOP 10 GENERAL</h2>
-            <ol>{ranking.map((track, index) => <li key={trackKey(track.title, track.artist)}><strong>{String(index + 1).padStart(2, "0")}</strong><img src={track.artwork || selected.logo} alt=""/><span><b>{track.title}</b><small>{track.artist}</small></span></li>)}</ol>
-            <a href="#top-musical">VER TOP COMPLETO</a>
+            <ol>{ranking.slice(0, 10).map((track, index) => <li key={trackKey(track.title, track.artist)}><strong>{String(index + 1).padStart(2, "0")}</strong><img src={track.artwork || selected.logo} alt=""/><span><b>{track.title}</b><small>{track.artist}</small></span></li>)}</ol>
+            <button className="compactPanelButton" type="button" onClick={() => setOpenPanel("ranking")}>VER TOP COMPLETO</button>
           </article>
 
           <article className="compactPanel compactNews">
@@ -194,6 +200,22 @@ export default function CompactPortalHome({
           </article>
         </section>
       </main>
+
+      {openPanel ? (
+        <div className="compactModalBackdrop" role="presentation" onMouseDown={() => setOpenPanel(null)}>
+          <section className="compactModal" role="dialog" aria-modal="true" aria-labelledby="compact-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+            <header>
+              <div><span>{openPanel === "ranking" ? "RANKING FIERAMIX" : selected.name}</span><h2 id="compact-modal-title">{openPanel === "ranking" ? "TOP 25 COMPLETO" : "HISTORIAL COMPLETO"}</h2></div>
+              <button type="button" onClick={() => setOpenPanel(null)} aria-label="Cerrar">×</button>
+            </header>
+            {openPanel === "ranking" ? (
+              <ol className="compactModalList">{ranking.map((track, index) => <li key={trackKey(track.title, track.artist)}><strong>{String(index + 1).padStart(2, "0")}</strong><img src={track.artwork || selected.logo} alt=""/><span><b>{track.title}</b><small>{track.artist}</small></span><em>{track.plays} {track.plays === 1 ? "tocada" : "tocadas"}</em></li>)}</ol>
+            ) : (
+              <ol className="compactModalList">{fullRecent.map((track, index) => <li key={`${trackKey(track.title, track.artist)}-${index}`}><strong>{String(index + 1).padStart(2, "0")}</strong><img src={track.artwork || selected.logo} alt=""/><span><b>{track.title}</b><small>{track.artist}</small></span><em>{track.started}</em></li>)}</ol>
+            )}
+          </section>
+        </div>
+      ) : null}
 
       <footer className="compactFooter"><strong>EL GRUPO FIERAMIX.COM</strong><span>© 2026 · TODOS LOS DERECHOS RESERVADOS</span><nav><a href="/politica-privacidad">Política de privacidad</a><a href="#inicio">Volver arriba</a></nav></footer>
     </div>
