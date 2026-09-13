@@ -92,22 +92,33 @@ export default function CompactPortalHome({
   }, []);
 
   useEffect(() => {
-    const controller = new AbortController();
+    let cancelled = false;
     setStationRanking({ stationId: "", tracks: [] });
     if (selected.rankingEligible === false) {
-      return () => controller.abort();
+      return () => { cancelled = true; };
     }
-    void fetch(`/api/rankings?period=actual&station=${encodeURIComponent(selected.id)}&stationCheck=${Date.now()}`, {
-      cache: "no-store",
-      signal: controller.signal,
-    })
-      .then((response) => (response.ok ? response.json() : null))
-      .then((payload: { station?: string | null; ranking?: CompactRankingTrack[] } | null) => {
-        if (payload?.station !== selected.id || !Array.isArray(payload.ranking)) return;
-        setStationRanking({ stationId: selected.id, tracks: payload.ranking.slice(0, 10) });
-      })
-      .catch(() => undefined);
-    return () => controller.abort();
+
+    async function loadOfficialStationTop10() {
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        if (attempt > 0) {
+          await new Promise<void>((resolve) => window.setTimeout(resolve, attempt === 1 ? 700 : 1400));
+        }
+        if (cancelled) return;
+        try {
+          const response = await fetch(`/api/rankings?period=actual&station=${encodeURIComponent(selected.id)}&t=${Date.now()}`, { cache: "no-store" });
+          const payload = (await response.json()) as { ok?: boolean; station?: string | null; ranking?: CompactRankingTrack[] };
+          if (cancelled) return;
+          if (!response.ok || !payload.ok || payload.station !== selected.id || !Array.isArray(payload.ranking)) return;
+          setStationRanking({ stationId: selected.id, tracks: payload.ranking.slice(0, 10) });
+          if (payload.ranking.length > 0) return;
+        } catch {
+          if (attempt === 2) return;
+        }
+      }
+    }
+
+    void loadOfficialStationTop10();
+    return () => { cancelled = true; };
   }, [selected.id, selected.rankingEligible]);
 
   useEffect(() => {
@@ -147,25 +158,7 @@ export default function CompactPortalHome({
 
   const recent = fullRecent.slice(0, 5);
 
-  const rankingFallback = useMemo(() => {
-    const counts = new Map<string, { title: string; artist: string; artwork: string; plays: number }>();
-    const info = metadata[selected.id] ?? emptyNowPlaying(selected);
-    const tracks = [{ title: info.title, artist: info.artist, artwork: info.artwork }, ...(info.recent ?? [])];
-    for (const track of tracks) {
-      if (!track.title || !track.artist || track.title === "Programación en vivo") continue;
-      const key = trackKey(track.title, track.artist);
-      const existing = counts.get(key);
-      if (existing) existing.plays += 1;
-      else counts.set(key, { ...track, plays: 1 });
-    }
-    return [...counts.values()]
-      .sort((a, b) => b.plays - a.plays || a.title.localeCompare(b.title))
-      .slice(0, 10);
-  }, [metadata, selected]);
-
-  const ranking = stationRanking.stationId === selected.id && stationRanking.tracks.length > 0
-    ? stationRanking.tracks
-    : rankingFallback;
+  const ranking = stationRanking.stationId === selected.id ? stationRanking.tracks : [];
 
   return (
     <div className="compactPortal" style={{ "--portal-accent": selected.accent } as CSSProperties}>
