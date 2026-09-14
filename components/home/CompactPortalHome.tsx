@@ -364,12 +364,20 @@ export default function CompactPortalHome({
             <SongRequest key={selected.id} initialStationId={requestStationId(selected.id)} compact />
           </div>
 
-          <article id="club" className="compactPanel compactClub">
-            <span>CLUB DE OYENTES</span>
-            <h2>DEL GRUPO FIERAMIX.COM</h2>
-            <p>Únete a nuestra comunidad oficial y recibe novedades, estrenos, noticias y promociones.</p>
-            <Link href="/club-de-oyentes">◉ ¡UNIRME AL CLUB!</Link>
-          </article>
+          <div className="compactEngagementColumn">
+            <article id="club" className="compactPanel compactClub">
+              <span>CLUB DE OYENTES</span>
+              <h2>DEL GRUPO FIERAMIX.COM</h2>
+              <p>Recibe novedades, estrenos y promociones.</p>
+              <Link href="/club-de-oyentes">◉ ¡UNIRME AL CLUB!</Link>
+            </article>
+
+            <article className="compactPanel compactDonation">
+              <span>APOYA NUESTRA RED</span>
+              <h2>TU DONACIÓN HACE LA DIFERENCIA</h2>
+              <button type="button" onClick={() => window.dispatchEvent(new Event("fieramix-open-support"))}>DONAR AQUÍ <b>♥</b></button>
+            </article>
+          </div>
         </section>
 
         <section className="compactNews compactNewsRow">
@@ -398,15 +406,6 @@ export default function CompactPortalHome({
             <a href={APP_STORE_URL} target="_blank" rel="noreferrer" aria-label="Descargar FIERAMIX para iPhone" title="iPhone">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.7 12.8c0-2.7 2.2-4 2.3-4.1-1.3-1.9-3.3-2.1-4-2.1-1.7-.2-3.3 1-4.1 1-.8 0-2.1-1-3.5-.9-1.8 0-3.5 1.1-4.4 2.7-1.9 3.3-.5 8.1 1.3 10.7.9 1.3 2 2.8 3.4 2.7 1.3-.1 1.9-.9 3.5-.9 1.6 0 2.1.9 3.5.8 1.5 0 2.4-1.3 3.3-2.6 1-1.5 1.5-3 1.5-3.1-.1 0-2.8-1.1-2.8-4.2ZM13.9 4.8c.7-.9 1.2-2.2 1.1-3.5-1.1 0-2.5.8-3.3 1.7-.7.8-1.3 2.1-1.1 3.4 1.2.1 2.5-.6 3.3-1.6Z" /></svg><span>iPhone</span>
             </a>
-            <button className="compactDonateFlag" type="button" onClick={() => window.dispatchEvent(new Event("fieramix-open-support"))} aria-label="Abrir ventana de donación" title="Tu donación aquí">
-              <svg viewBox="0 0 82 58" aria-hidden="true">
-                <path className="donateRibbonShadow" d="M18 33h48v20L48 48v9L32 50v-9H18Z"/>
-                <path className="donateRibbonBottom" d="M7 27h70l-7 25H7Z"/>
-                <path className="donateRibbonTop" d="M4 7 78 2v29L4 36Z"/>
-                <text className="donateRibbonTopText" x="41" y="21">DONACIÓN</text>
-                <text className="donateRibbonBottomText" x="42" y="44">AQUÍ</text>
-              </svg>
-            </button>
           </div>
         </section>
       </footer>
