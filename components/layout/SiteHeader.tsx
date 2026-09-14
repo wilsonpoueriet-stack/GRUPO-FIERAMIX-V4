@@ -10,7 +10,7 @@ type Props = {
 export default function SiteHeader({ playing, onTogglePlayback }: Props) {
   return (
     <header className="site-header">
-      <a className="brand" href="#inicio" aria-label="Grupo Fieramix, inicio">
+      <a className="brand" href="/" aria-label="Ir al inicio de EL GRUPO FIERAMIX.COM">
         <Image src="/logos/grupo-fieramix.png" alt="Grupo Fieramix" width={220} height={80} priority />
       </a>
       <nav aria-label="Navegación principal">

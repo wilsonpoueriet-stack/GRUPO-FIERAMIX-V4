@@ -155,11 +155,11 @@ export default function SongRequest() {
           programación de la emisora.
         </p>
 
-        <div className="requestBrandLine">
+        <a className="requestBrandLine" href="/" aria-label="Ir al inicio de EL GRUPO FIERAMIX.COM">
           <span>EL GRUPO FIERAMIX.COM</span>
           <i aria-hidden="true">•</i>
           <strong>LA RED LATINA QUE MUEVE AL MUNDO</strong>
-        </div>
+        </a>
       </div>
 
       <style jsx>{`
@@ -245,6 +245,7 @@ export default function SongRequest() {
           font-weight: 800;
           letter-spacing: 0.08em;
           text-align: center;
+          text-decoration: none;
         }
 
         .requestBrandLine i {

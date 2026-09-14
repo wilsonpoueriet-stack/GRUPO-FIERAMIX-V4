@@ -15,7 +15,7 @@ export default function Header({
 }: HeaderProps) {
   return (
     <header className="siteHeader">
-      <a href="#inicio" className="brand" aria-label="Ir al inicio">
+      <a href="/" className="brand" aria-label="Ir al inicio de EL GRUPO FIERAMIX.COM">
         <img src="/logos/grupo-fieramix.png" alt="EL GRUPO FIERAMIX.COM" />
         <div>
           <strong>EL GRUPO FIERAMIX.COM</strong>

@@ -450,7 +450,7 @@ export default function FieramixAIChat() {
           </form>
 
           <footer className="fieramixAIFooter">
-            EL GRUPO FIERAMIX.COM · LA RED LATINA QUE MUEVE AL MUNDO
+            <a href="/" aria-label="Ir al inicio de EL GRUPO FIERAMIX.COM">EL GRUPO FIERAMIX.COM · LA RED LATINA QUE MUEVE AL MUNDO</a>
           </footer>
         </section>
       )}
@@ -779,6 +779,11 @@ export default function FieramixAIChat() {
           font-size: .48rem;
           font-weight: 850;
           letter-spacing: .06em;
+        }
+
+        .fieramixAIFooter a {
+          color: inherit;
+          text-decoration: none;
         }
 
         @media (max-width: 720px) {

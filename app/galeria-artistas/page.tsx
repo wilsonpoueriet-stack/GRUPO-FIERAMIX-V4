@@ -471,12 +471,12 @@ export default function ArtistGalleryPage() {
             ← VOLVER AL PORTAL
           </a>
 
-          <div className="artistGalleryBrand">
+          <a className="artistGalleryBrand" href="/" aria-label="Ir al inicio de EL GRUPO FIERAMIX.COM">
             <span>EL GRUPO FIERAMIX.COM</span>
             <small>
               LA RED LATINA QUE MUEVE AL MUNDO
             </small>
-          </div>
+          </a>
         </header>
 
         <section className="artistGalleryHero">
@@ -917,6 +917,7 @@ export default function ArtistGalleryPage() {
           justify-items: end;
           gap: 3px;
           text-align: right;
+          text-decoration: none;
         }
 
         .artistGalleryBrand span {

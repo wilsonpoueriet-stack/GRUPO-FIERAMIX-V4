@@ -269,7 +269,7 @@ export default function CompactPortalHome({
   return (
     <div className="compactPortal" style={{ "--portal-accent": selected.accent } as CSSProperties}>
       <header className="compactHeader">
-        <a className="compactBrand" href="#inicio" aria-label="Inicio de EL GRUPO FIERAMIX.COM">
+        <a className="compactBrand" href="/" aria-label="Ir al inicio de EL GRUPO FIERAMIX.COM">
           <img src="/logos/grupo-fieramix.png" alt="EL GRUPO FIERAMIX.COM" />
           <span><strong>EL GRUPO FIERAMIX.COM</strong><b>LA RED LATINA QUE MUEVE AL MUNDO</b></span>
         </a>
