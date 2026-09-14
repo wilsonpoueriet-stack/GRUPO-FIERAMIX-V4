@@ -11,7 +11,10 @@ export const metadata: Metadata = {
 export default function SupportPage() {
   return (
     <main className={styles.page}>
-      <Link href="/" className={styles.brand}><img src="/logos/grupo-fieramix.png" alt="" /><span>EL GRUPO FIERAMIX.COM</span></Link>
+      <Link href="/" className={styles.brand} aria-label="Ir al inicio de EL GRUPO FIERAMIX.COM">
+        <img src="/logos/grupo-fieramix.png" alt="" />
+        <span><strong>EL GRUPO FIERAMIX.COM</strong><small>LA RED LATINA QUE MUEVE AL MUNDO</small></span>
+      </Link>
       <section className={styles.hero}>
         <span>FIERAMIX VIP PREMIUM</span>
         <h1>Tu apoyo mantiene la música encendida</h1>
