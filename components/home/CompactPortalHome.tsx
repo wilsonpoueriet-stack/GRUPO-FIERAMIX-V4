@@ -373,7 +373,7 @@ export default function CompactPortalHome({
             </article>
 
             <article className="compactPanel compactDonation">
-              <button className="compactDonationFlag" type="button" onClick={() => window.dispatchEvent(new Event("fieramix-open-support"))} aria-label="Abrir ventana de donación" title="Tu donación aquí">
+              <Link className="compactDonationFlag" href="/apoyar" aria-label="Ir a la página de donaciones" title="Tu donación aquí">
                 <svg viewBox="0 0 82 58" aria-hidden="true">
                   <path className="donateRibbonShadow" d="M18 33h48v20L48 48v9L32 50v-9H18Z"/>
                   <path className="donateRibbonBottom" d="M7 27h70l-7 25H7Z"/>
@@ -381,7 +381,7 @@ export default function CompactPortalHome({
                   <text className="donateRibbonTopText" x="41" y="21">DONACIÓN</text>
                   <text className="donateRibbonBottomText" x="42" y="44">AQUÍ</text>
                 </svg>
-              </button>
+              </Link>
             </article>
           </div>
         </section>
