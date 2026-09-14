@@ -16,7 +16,6 @@ export default function SupportPage() {
         <span><strong>EL GRUPO FIERAMIX.COM</strong><small>LA RED LATINA QUE MUEVE AL MUNDO</small></span>
       </Link>
       <section className={styles.hero}>
-        <span>FIERAMIX VIP PREMIUM</span>
         <h1>Tu apoyo mantiene la música encendida</h1>
         <p>Tu aporte es voluntario y nos ayuda a sostener las transmisiones, mejorar la plataforma y llevar la música latina a más oyentes.</p>
 
