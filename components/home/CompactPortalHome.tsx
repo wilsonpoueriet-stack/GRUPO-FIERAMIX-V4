@@ -56,16 +56,27 @@ const FAVORITE_STATIONS_STORAGE_KEY = "fieramix-favorite-stations";
 const FAVORITES_UPDATED_EVENT = "fieramix-favorites-updated";
 const compactPromos = [
   { title: "Íntimamente", href: "#inicio", image: "/banners/intimamente.webp" },
+  { title: "Solo Bachata", href: "#emisoras", image: "/banners/02-solo-bachata.webp" },
   { title: "Románticamente al amanecer", href: "#inicio", image: "/banners/romanticamente-al-amanecer.webp" },
+  { title: "Solo Merengue", href: "#emisoras", image: "/banners/03-solo-merengue.webp" },
   { title: "La hora cero", href: "#inicio", image: "/banners/la-hora-cero.webp" },
+  { title: "Solo Salsa", href: "#emisoras", image: "/banners/04-solo-salsa.webp" },
   { title: "Navidad dominicana con El Fierakán", href: "#inicio", image: "/banners/navidad-dominicana.webp" },
+  { title: "Solo Baladas", href: "#emisoras", image: "/banners/05-solo-baladas.webp" },
   { title: "La mejor música latina de todos los tiempos", href: "#inicio", image: "/banners/musica-latina-al-volante.webp" },
+  { title: "Solo Reggaetón", href: "#emisoras", image: "/banners/06-solo-reggaeton.webp" },
   { title: "El fin de semana bravo", href: "#inicio", image: "/banners/fin-de-semana-bravo.webp" },
+  { title: "Solo Rancheras", href: "#emisoras", image: "/banners/07-solo-rancheras.webp" },
   { title: "El maratón de merengues clásicos", href: "#inicio", image: "/banners/maraton-merengues-clasicos.webp" },
+  { title: "Solo Música Internacional", href: "#emisoras", image: "/banners/08-solo-musica-internacional.webp" },
   { title: "El pasado inolvidable", href: "#inicio", image: "/banners/pasado-inolvidable.webp" },
+  { title: "Solo Música Cristiana", href: "#emisoras", image: "/banners/09-solo-musica-cristiana.webp" },
   { title: "El devocional de cada día", href: "#inicio", image: "/banners/devocional-cada-dia.webp" },
+  { title: "FieraMix La Brava", href: "#emisoras", image: "/banners/01-fieramix-la-brava.webp" },
   { title: "La rumba bachatípica", href: "#inicio", image: "/banners/rumba-bachatipica.webp" },
+  { title: "Radio Ahora", href: "#emisoras", image: "/banners/10-radio-ahora.webp" },
   { title: "La oración de las 8", href: "#inicio", image: "/banners/oracion-de-las-8.webp" },
+  { title: "Utopía", href: "#emisoras", image: "/banners/11-utopia.webp" },
   { title: "Salsa pa’ to’ el mundo", href: "#inicio", image: "/banners/salsa-pa-to-el-mundo.webp" },
 ] as const;
 
@@ -129,6 +140,7 @@ export default function CompactPortalHome({
   const [promoIndex, setPromoIndex] = useState(0);
 
   useEffect(() => {
+    setPromoIndex(Math.floor(Math.random() * compactPromos.length));
     const timer = window.setInterval(() => {
       setPromoIndex((current) => {
         if (compactPromos.length <= 1) return 0;
@@ -374,8 +386,8 @@ export default function CompactPortalHome({
 
           <div className="compactEngagementColumn">
             <article id="club" className="compactPanel compactClub">
-              <Link className="compactClubBanner" href="/club-de-oyentes" aria-label="Unirme al Club de Oyentes de EL GRUPO FIERAMIX.COM">
-                <img src="/images/club-de-oyentes-dimensional.webp" alt="Club de Oyentes de EL GRUPO FIERAMIX.COM. Recibe novedades, estrenos y promociones. ¡Únete al club!" />
+              <Link className="compactClubBanner" href="/club-de-oyentes" aria-label="Unirme al Club de Oyentes de FIERAMIX">
+                <img src="/images/club-de-oyentes-fieramix.webp" alt="Únete al Club de Oyentes FIERAMIX" />
               </Link>
             </article>
 

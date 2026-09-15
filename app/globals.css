@@ -132,8 +132,8 @@ button { cursor: pointer; }
 .compactBannerSlide small { color: #ff6673; font-size: .48rem; font-weight: 950; }.compactBannerSlide.tone-blue small { color: #75b6ff; }.compactBannerSlide.tone-green small { color: #6df4c0; }.compactBannerSlide.tone-purple small { color: #d594ff; }
 .compactBannerSlide strong { margin: 7px 0 14px; color: #fff; font-size: 1.18rem; line-height: 1.02; }.compactBannerSlide strong span { display: block; }
 .compactBannerSlide b { color: #fff; font-size: .5rem; font-weight: 900; }.compactBannerSlide > img { width: 100%; height: 100%; padding: 0; display: block; object-fit: cover; object-position: center; border-radius: 8px; background: #050608; }
-.compactBannerDots { position: absolute; right: 18px; bottom: 18px; display: flex; gap: 5px; }
-.compactBannerDots button { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%; background: rgba(255,255,255,.38); }.compactBannerDots button.active { width: 20px; border-radius: 99px; background: #fff; }
+.compactBannerDots { position: absolute; right: 18px; bottom: 18px; max-width: 78%; display: flex; justify-content: flex-end; gap: 3px; }
+.compactBannerDots button { width: 5px; height: 5px; padding: 0; border: 0; border-radius: 50%; background: rgba(255,255,255,.38); }.compactBannerDots button.active { width: 14px; border-radius: 99px; background: #fff; }
 .compactPanelButton { width: 100%; height: 24px; margin-top: 5px; display: grid; place-items: center; border: 1px solid #ef2d3b; border-radius: 999px; color: #f04b57; background: transparent; font-size: .55rem; font-weight: 900; }
 .compactPanelButton:hover { color: #fff; background: rgba(239,45,59,.15); }
 .compactStations { padding: 6px 0 8px; }
