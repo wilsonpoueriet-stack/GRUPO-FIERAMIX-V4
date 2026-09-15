@@ -374,8 +374,8 @@ export default function CompactPortalHome({
 
           <div className="compactEngagementColumn">
             <article id="club" className="compactPanel compactClub">
-              <Link className="compactClubBanner" href="/club-de-oyentes" aria-label="Unirme al Club de Oyentes de FIERAMIX">
-                <img src="/images/club-de-oyentes-fieramix.webp" alt="Únete al Club de Oyentes FIERAMIX" />
+              <Link className="compactClubBanner" href="/club-de-oyentes" aria-label="Unirme al Club de Oyentes de EL GRUPO FIERAMIX.COM">
+                <img src="/images/club-de-oyentes-dimensional.webp" alt="Club de Oyentes de EL GRUPO FIERAMIX.COM. Recibe novedades, estrenos y promociones. ¡Únete al club!" />
               </Link>
             </article>
 
