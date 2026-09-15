@@ -61,6 +61,12 @@ const compactPromos = [
   { title: "Navidad dominicana con El Fierakán", href: "#inicio", image: "/banners/navidad-dominicana.webp" },
   { title: "La mejor música latina de todos los tiempos", href: "#inicio", image: "/banners/musica-latina-al-volante.webp" },
   { title: "El fin de semana bravo", href: "#inicio", image: "/banners/fin-de-semana-bravo.webp" },
+  { title: "El maratón de merengues clásicos", href: "#inicio", image: "/banners/maraton-merengues-clasicos.webp" },
+  { title: "El pasado inolvidable", href: "#inicio", image: "/banners/pasado-inolvidable.webp" },
+  { title: "El devocional de cada día", href: "#inicio", image: "/banners/devocional-cada-dia.webp" },
+  { title: "La rumba bachatípica", href: "#inicio", image: "/banners/rumba-bachatipica.webp" },
+  { title: "La oración de las 8", href: "#inicio", image: "/banners/oracion-de-las-8.webp" },
+  { title: "Salsa pa’ to’ el mundo", href: "#inicio", image: "/banners/salsa-pa-to-el-mundo.webp" },
 ] as const;
 
 const socialLinks = [
@@ -123,7 +129,13 @@ export default function CompactPortalHome({
   const [promoIndex, setPromoIndex] = useState(0);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setPromoIndex((index) => (index + 1) % compactPromos.length), 6500);
+    const timer = window.setInterval(() => {
+      setPromoIndex((current) => {
+        if (compactPromos.length <= 1) return 0;
+        const candidate = Math.floor(Math.random() * (compactPromos.length - 1));
+        return candidate >= current ? candidate + 1 : candidate;
+      });
+    }, 12_000);
     return () => window.clearInterval(timer);
   }, []);
 
@@ -251,7 +263,6 @@ export default function CompactPortalHome({
   }, [history, metadata, selected.id]);
 
   const recent = fullRecent.slice(0, 10);
-  const activePromo = compactPromos[promoIndex];
 
   const ranking = stationRanking.stationId === selected.id ? stationRanking.tracks : [];
   const liveProgramming = programmingClock ? getLiveProgramming(selected.id, programmingClock) : null;
@@ -308,9 +319,17 @@ export default function CompactPortalHome({
           </div>
 
           <aside className="recentCard compactBanners" aria-label="Promociones FIERAMIX">
-            <Link className="compactBannerSlide" href={activePromo.href} key={promoIndex}>
-              <img src={activePromo.image} alt={activePromo.title} />
-            </Link>
+            {compactPromos.map((promo, index) => (
+              <Link
+                className={`compactBannerSlide${index === promoIndex ? " active" : ""}`}
+                href={promo.href}
+                key={promo.title}
+                aria-hidden={index !== promoIndex}
+                tabIndex={index === promoIndex ? 0 : -1}
+              >
+                <img src={promo.image} alt={promo.title} />
+              </Link>
+            ))}
             <div className="compactBannerDots" aria-label="Seleccionar promoción">
               {compactPromos.map((promo, index) => <button key={promo.title} type="button" className={index === promoIndex ? "active" : ""} onClick={() => setPromoIndex(index)} aria-label={`Ver promoción ${index + 1}`} />)}
             </div>
