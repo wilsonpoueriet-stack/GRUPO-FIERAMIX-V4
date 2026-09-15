@@ -124,13 +124,13 @@ button { cursor: pointer; }
 .recentCard li { min-width: 0; padding: 5px 0; display: grid; grid-template-columns: 14px minmax(0,1fr) auto; gap: 5px; align-items: center; border-top: 1px solid rgba(255,255,255,.08); font-size: .58rem; }
 .recentCard li span { color: #fff; }.recentCard li b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.recentCard li time { color: #7f8799; }
 .compactBanners { position: relative; padding: 8px; display: block; }
-.compactBannerSlide { width: 100%; height: 100%; min-width: 0; padding: 18px; display: grid; grid-template-columns: minmax(0,1fr) 42%; gap: 10px; align-items: center; overflow: hidden; border: 1px solid rgba(255,65,82,.42); border-radius: 9px; background: radial-gradient(circle at 85% 5%,rgba(255,42,65,.38),transparent 38%),linear-gradient(145deg,#20101b,#060914); animation: compactBannerIn .45s ease; }
+.compactBannerSlide { width: 100%; height: 100%; min-width: 0; padding: 0; display: block; overflow: hidden; border: 1px solid rgba(255,255,255,.18); border-radius: 9px; background: #050608; animation: compactBannerIn .45s ease; }
 .compactBannerSlide.tone-blue { border-color: rgba(88,156,255,.5); background: radial-gradient(circle at 85% 5%,rgba(44,112,255,.4),transparent 38%),linear-gradient(145deg,#0d1b38,#060914); }
 .compactBannerSlide.tone-green { border-color: rgba(81,241,188,.5); background: radial-gradient(circle at 85% 5%,rgba(48,222,163,.32),transparent 40%),linear-gradient(145deg,#0b2630,#060914); }.compactBannerSlide.tone-purple { border-color: rgba(182,92,246,.5); background: radial-gradient(circle at 85% 5%,rgba(166,70,230,.35),transparent 40%),linear-gradient(145deg,#21102e,#060914); }
 .compactBannerCopy { min-width: 0; display: flex; flex-direction: column; }
 .compactBannerSlide small { color: #ff6673; font-size: .48rem; font-weight: 950; }.compactBannerSlide.tone-blue small { color: #75b6ff; }.compactBannerSlide.tone-green small { color: #6df4c0; }.compactBannerSlide.tone-purple small { color: #d594ff; }
 .compactBannerSlide strong { margin: 7px 0 14px; color: #fff; font-size: 1.18rem; line-height: 1.02; }.compactBannerSlide strong span { display: block; }
-.compactBannerSlide b { color: #fff; font-size: .5rem; font-weight: 900; }.compactBannerSlide > img { width: 100%; height: 125px; padding: 8px; object-fit: contain; border-radius: 10px; background: rgba(255,255,255,.96); }
+.compactBannerSlide b { color: #fff; font-size: .5rem; font-weight: 900; }.compactBannerSlide > img { width: 100%; height: 100%; padding: 0; object-fit: cover; object-position: center; border-radius: 8px; background: #050608; }
 .compactBannerDots { position: absolute; right: 18px; bottom: 18px; display: flex; gap: 5px; }
 .compactBannerDots button { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%; background: rgba(255,255,255,.38); }.compactBannerDots button.active { width: 20px; border-radius: 99px; background: #fff; }
 @keyframes compactBannerIn { from { opacity: .35; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
