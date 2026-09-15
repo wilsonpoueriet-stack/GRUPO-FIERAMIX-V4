@@ -194,7 +194,7 @@ button { cursor: pointer; }
 .compactEngagementColumn .compactPanel { min-height: 0; padding: 9px 10px; }
 .compactClub { padding: 0; overflow: hidden; border-color: rgba(57, 236, 84, .55); background: #07120c; }
 .compactClubBanner { display: block; width: 100%; height: 100%; min-height: 100%; }
-.compactClubBanner img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.compactClubBanner img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center; }
 .compactDonation { display: grid; place-items: center; overflow: hidden; border-color: rgba(255,79,72,.72); background: radial-gradient(circle at 50% 50%,rgba(255,183,35,.13),transparent 58%),linear-gradient(145deg,#28070d,#0c0508 72%); box-shadow: inset 0 1px 0 rgba(255,255,255,.08),0 0 18px rgba(226,23,39,.12); }
 .compactDonationFlag { width: min(138px,100%); padding: 0; border: 0; color: #fff; background: transparent; cursor: pointer; filter: drop-shadow(0 6px 9px rgba(0,0,0,.5)); transition: transform .18s ease,filter .18s ease; }.compactDonationFlag:hover { transform: translateY(-2px) rotate(-1deg) scale(1.03); filter: drop-shadow(0 8px 12px rgba(255,174,42,.3)); }.compactDonationFlag > img { width: 100%; height: auto; display: block; border-radius: 7px; }
 .compactFooter { min-height: 72px; padding: 9px 22px; display: grid; grid-template-columns: minmax(235px,auto) minmax(160px,1fr) auto auto; gap: 20px; align-items: center; border-top: 1px solid rgba(255,255,255,.11); background: #01040b; font-size: .58rem; }
