@@ -382,7 +382,7 @@ export default function CompactPortalHome({
 
             <article className="compactPanel compactDonation">
               <Link className="compactDonationFlag" href="/apoyar" aria-label="Ir a la página de donaciones" title="Tu donación aquí">
-                <img src="/images/donacion-aqui-dimensional.webp" alt="Donación aquí" />
+                <img src="/images/donacion-aqui-dimensional-v2.webp" alt="Donación aquí" />
               </Link>
             </article>
           </div>
