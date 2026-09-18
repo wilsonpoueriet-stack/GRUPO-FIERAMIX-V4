@@ -641,7 +641,7 @@ export default function Hero({
 
             <div className="heroActions">
               <a
-                href="https://www.facebook.com/FieraMIXRD"
+                href="https://facebook.com/ElGrupoFieramix"
                 target="_blank"
                 rel="noopener noreferrer"
               >
