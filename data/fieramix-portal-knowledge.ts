@@ -96,7 +96,7 @@ SERVICIOS Y CONTENIDO DEL PORTAL
 - FIERAMIX Noticias: actualidad nacional e internacional, deportes, entretenimiento, tecnología y demás publicaciones visibles.
 - Club de Oyentes: solicita nombre completo, WhatsApp con código de país, ciudad, país, emisora favorita y autorización de contacto. Comunica novedades, promociones, premios y contenido especial.
 - Galería de artistas, política de privacidad, página de apoyo/donación e instalación de la aplicación web.
-- Redes oficiales: Facebook FieraMIXRD; X FieraMIX; TikTok elgrupofieramix; Instagram fieramix; YouTube FieraMIXTV.
+- Redes oficiales: Facebook ElGrupoFieramix; X FieraMIX; TikTok elgrupofieramix; Instagram fieramix; YouTube FieraMIXTV.
 - Directorios donde puede estar disponible la red: TuneIn, myTuner, Simple Radio, radio.es, Streema y WorldsRadio.
 - Emisoras invitadas o aliadas visibles: Radio Ahora, Utopía, LatinaMix, Radio Bávaro, Estrella 92.3 FM, Magia 90.3 FM y Makao Radio. No deben mezclarse con las emisoras propias al explicar rankings internos.
 `;
