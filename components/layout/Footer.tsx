@@ -100,7 +100,7 @@ const socialLinks: {
 }[] = [
   {
     label: "Facebook",
-    href: "https://www.facebook.com/FieraMIXRD",
+    href: "https://facebook.com/ElGrupoFieramix",
     type: "facebook",
   },
   {
