@@ -81,7 +81,7 @@ const compactPromos = [
 ] as const;
 
 const socialLinks = [
-  ["facebook", "https://www.facebook.com/FieraMIXRD", "Facebook"],
+  ["facebook", "https://facebook.com/ElGrupoFieramix", "Facebook"],
   ["instagram", "https://www.instagram.com/fieramix", "Instagram"],
   ["x", "https://x.com/FieraMIX", "X"],
   ["youtube", "https://www.youtube.com/@fieramixtv5937", "YouTube"],
