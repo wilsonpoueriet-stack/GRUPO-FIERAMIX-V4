@@ -1,0 +1,75 @@
+name: Construir app Fieramix Windows
+on:
+  push:
+    branches: [app-windows-build]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Crear aplicación y compilar instalador
+        shell: powershell
+        run: |
+          @'
+          using System;
+          using System.IO;
+          using System.Diagnostics;
+          using System.Windows.Forms;
+          using System.Reflection;
+
+          internal static class Fieramix {
+            const string Site = "https://fieramix.com/";
+            [STAThread]
+            static int Main(string[] args) {
+              if (args.Length > 0 && args[0] == "--verificar") return 0;
+              try {
+                if (args.Length > 0 && args[0] == "--abrir") { OpenPortal(); return 0; }
+                string folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Fieramix");
+                Directory.CreateDirectory(folder);
+                string app = Path.Combine(folder, "Fieramix.exe");
+                File.Copy(Application.ExecutablePath, app, true);
+                MakeShortcut(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Fieramix.lnk"), app);
+                string start = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "Fieramix.lnk");
+                MakeShortcut(start, app);
+                MessageBox.Show("Fieramix está listo. Encontrarás la aplicación en tu escritorio.", "Fieramix", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Process.Start(app, "--abrir");
+                return 0;
+              } catch (Exception ex) {
+                MessageBox.Show("No se pudo completar la operación: " + ex.Message, "Fieramix", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return 1;
+              }
+            }
+            static void MakeShortcut(string path, string app) {
+              Type type = Type.GetTypeFromProgID("WScript.Shell");
+              object shell = Activator.CreateInstance(type);
+              object shortcut = type.InvokeMember("CreateShortcut", BindingFlags.InvokeMethod, null, shell, new object[] {path});
+              Type t = shortcut.GetType();
+              t.InvokeMember("TargetPath", BindingFlags.SetProperty, null, shortcut, new object[] {app});
+              t.InvokeMember("Arguments", BindingFlags.SetProperty, null, shortcut, new object[] {"--abrir"});
+              t.InvokeMember("Description", BindingFlags.SetProperty, null, shortcut, new object[] {"EL GRUPO FIERAMIX.COM"});
+              t.InvokeMember("Save", BindingFlags.InvokeMethod, null, shortcut, null);
+            }
+            static void OpenPortal() {
+              string[] roots = {Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)};
+              string[] browsers = {@"Microsoft\Edge\Application\msedge.exe", @"Google\Chrome\Application\chrome.exe"};
+              foreach (string relative in browsers)
+                foreach (string root in roots) {
+                  string path = Path.Combine(root, relative);
+                  if (File.Exists(path)) { Process.Start(path, "--app=" + Site); return; }
+                }
+              throw new Exception("Se necesita Microsoft Edge o Google Chrome para abrir la aplicación.");
+            }
+          }
+          '@ | Set-Content -Encoding UTF8 App.cs
+          $csc = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
+          & $csc /nologo /target:winexe /platform:anycpu /reference:System.Windows.Forms.dll /out:FIERAMIX-Setup.exe App.cs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $p = Start-Process -FilePath .\FIERAMIX-Setup.exe -ArgumentList '--verificar' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { exit $p.ExitCode }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FIERAMIX-Setup
+          path: FIERAMIX-Setup.exe
+          retention-days: 7
